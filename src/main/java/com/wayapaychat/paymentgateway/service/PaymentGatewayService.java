@@ -8,13 +8,15 @@ import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
-import com.wayapaychat.paymentgateway.pojo.wema.WemaTxnQueryRequest;
 
 public interface PaymentGatewayService {
 	
-	PaymentGatewayResponse wemaTransactionQuery(HttpServletRequest request, WemaTxnQueryRequest tran);
-	
-	PaymentGatewayResponse wemaAllPrefix(HttpServletRequest request);
+	/*
+	 * PaymentGatewayResponse wemaTransactionQuery(HttpServletRequest request,
+	 * WemaTxnQueryRequest tran);
+	 * 
+	 * PaymentGatewayResponse wemaAllPrefix(HttpServletRequest request);
+	 */
 	
 	PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account, String token);
 	

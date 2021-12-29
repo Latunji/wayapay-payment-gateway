@@ -11,8 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.waya.proxy.WemaBankProxy;
-import com.waya.vo.response.ServiceResponse;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
 import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
@@ -23,12 +21,10 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
-import com.wayapaychat.paymentgateway.pojo.wema.WemaTxnQueryRequest;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
-import com.wayapaychat.paymentgateway.utils.Constant;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
-	private WemaBankProxy proxy;
+	//private WemaBankProxy proxy;
 
 	@Autowired
 	UnifiedPaymentProxy uniPaymentProxy;
@@ -47,47 +43,37 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	@Autowired
 	PaymentGatewayRepository paymentGatewayRepo;
 
-	@Autowired
-	public PaymentGatewayServiceImpl(WemaBankProxy proxy) {
-		this.proxy = proxy;
-	}
+	/*
+	 * @Autowired public PaymentGatewayServiceImpl(WemaBankProxy proxy) { this.proxy
+	 * = proxy; }
+	 * 
+	 * @Override public PaymentGatewayResponse
+	 * wemaTransactionQuery(HttpServletRequest request, WemaTxnQueryRequest tran) {
+	 * log.debug("Request received --- {}", "wemaTransactionQuery", tran);
+	 * 
+	 * PaymentGatewayResponse response = new
+	 * ErrorResponse(Constant.ERROR_PROCESSING); try { ServiceResponse wemaRes =
+	 * proxy.transactionQuery(tran.getSessionid(), tran.getCraccount(),
+	 * tran.getAmount(), tran.getTxndate()); if (wemaRes.getResponseCode() ==
+	 * Constant.SUCCESS_CODE) { return new
+	 * SuccessResponse(Constant.OPERATION_SUCCESS, wemaRes.getData()); } else {
+	 * return new ErrorResponse(wemaRes.getStatusMessage()); }
+	 * 
+	 * } catch (Exception ex) { log.error("Error occurred - Name Enquiry : ", ex); }
+	 * return response; }
+	 */
 
-	@Override
-	public PaymentGatewayResponse wemaTransactionQuery(HttpServletRequest request, WemaTxnQueryRequest tran) {
-		log.debug("Request received --- {}", "wemaTransactionQuery", tran);
-
-		PaymentGatewayResponse response = new ErrorResponse(Constant.ERROR_PROCESSING);
-		try {
-			ServiceResponse wemaRes = proxy.transactionQuery(tran.getSessionid(), tran.getCraccount(), tran.getAmount(),
-					tran.getTxndate());
-			if (wemaRes.getResponseCode() == Constant.SUCCESS_CODE) {
-				return new SuccessResponse(Constant.OPERATION_SUCCESS, wemaRes.getData());
-			} else {
-				return new ErrorResponse(wemaRes.getStatusMessage());
-			}
-
-		} catch (Exception ex) {
-			log.error("Error occurred - Name Enquiry : ", ex);
-		}
-		return response;
-	}
-
-	@Override
-	public PaymentGatewayResponse wemaAllPrefix(HttpServletRequest request) {
-		PaymentGatewayResponse response = new ErrorResponse(Constant.ERROR_PROCESSING);
-		try {
-			ServiceResponse wemaRes = proxy.getAllPrefix();
-			if (wemaRes.getResponseCode() == Constant.SUCCESS_CODE) {
-				return new SuccessResponse(Constant.OPERATION_SUCCESS, wemaRes.getData());
-			} else {
-				return new ErrorResponse(wemaRes.getStatusMessage());
-			}
-
-		} catch (Exception ex) {
-			log.error("Error occurred - Name Enquiry : ", ex);
-		}
-		return response;
-	}
+	/*
+	 * @Override public PaymentGatewayResponse wemaAllPrefix(HttpServletRequest
+	 * request) { PaymentGatewayResponse response = new
+	 * ErrorResponse(Constant.ERROR_PROCESSING); try { ServiceResponse wemaRes =
+	 * proxy.getAllPrefix(); if (wemaRes.getResponseCode() == Constant.SUCCESS_CODE)
+	 * { return new SuccessResponse(Constant.OPERATION_SUCCESS, wemaRes.getData());
+	 * } else { return new ErrorResponse(wemaRes.getStatusMessage()); }
+	 * 
+	 * } catch (Exception ex) { log.error("Error occurred - Name Enquiry : ", ex); }
+	 * return response; }
+	 */
 
 	@Override
 	public PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account,

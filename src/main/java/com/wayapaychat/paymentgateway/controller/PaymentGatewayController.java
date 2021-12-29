@@ -21,7 +21,6 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCallbackRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
-import com.wayapaychat.paymentgateway.pojo.wema.WemaTxnQueryRequest;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -40,31 +39,37 @@ public class PaymentGatewayController {
 	@Autowired
 	PaymentGatewayService paymentGatewayService;
 
-	@ApiOperation(value = "Wema Transaction Query", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-	@PostMapping("/wema/tranQuery")
-	public ResponseEntity<?> createPostAccount(HttpServletRequest request,
-			@Valid @RequestBody WemaTxnQueryRequest account) {
-		PaymentGatewayResponse resp = paymentGatewayService.wemaTransactionQuery(request, account);
-		if (!resp.getStatus()) {
-			return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
-		}
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-
-	}
-	
-	@ApiOperation(value = "Wema Prefix", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	@GetMapping("/wema/prefix")
-	public ResponseEntity<?> getAllPrefix(HttpServletRequest request) {
-		PaymentGatewayResponse resp = paymentGatewayService.wemaAllPrefix(request);
-		if (!resp.getStatus()) {
-			return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
-		}
-		log.info("Response received --- {}", "wemaPrefix", resp);
-		return new ResponseEntity<>(resp, HttpStatus.OK);
-
-	}
+	/*
+	 * @ApiOperation(value = "Wema Transaction Query", notes =
+	 * "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
+	 * 
+	 * @ApiImplicitParams({
+	 * 
+	 * @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value
+	 * = "token", paramType = "header", required = true) })
+	 * 
+	 * @PostMapping("/wema/tranQuery") public ResponseEntity<?>
+	 * createPostAccount(HttpServletRequest request,
+	 * 
+	 * @Valid @RequestBody WemaTxnQueryRequest account) { PaymentGatewayResponse
+	 * resp = paymentGatewayService.wemaTransactionQuery(request, account); if
+	 * (!resp.getStatus()) { return new ResponseEntity<>(resp,
+	 * HttpStatus.BAD_REQUEST); } return new ResponseEntity<>(resp, HttpStatus.OK);
+	 * 
+	 * }
+	 * 
+	 * @ApiOperation(value = "Wema Prefix", notes =
+	 * "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
+	 * 
+	 * @GetMapping("/wema/prefix") public ResponseEntity<?>
+	 * getAllPrefix(HttpServletRequest request) { PaymentGatewayResponse resp =
+	 * paymentGatewayService.wemaAllPrefix(request); if (!resp.getStatus()) { return
+	 * new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST); }
+	 * log.info("Response received --- {}", "wemaPrefix", resp); return new
+	 * ResponseEntity<>(resp, HttpStatus.OK);
+	 * 
+	 * }
+	 */
 	
 	@ApiOperation(value = "Waya-Request Transaction", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })

@@ -1,0 +1,39 @@
+server:
+   port: 80
+   servlet:
+     context-path: /
+spring:
+  application:
+     name: payment-gateway
+  datasource:
+     username: root
+     password: pONvagaJf3BTbu9l
+     url: jdbc:postgresql://postgresdb2:5432/payment-gateway-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+     driver-class-name:  org.postgresql.Driver
+  jpa:
+    hibernate:
+        ddl-auto: update
+    properties:
+        hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+            show-sql: true
+            hbm2ddl:
+               auto: update
+eureka:
+   client:
+      serviceUrl:
+         defaultZone: ${EUREKA_SERVER_URL:http://eureka-service/eureka}
+   instance:
+    preferIpAddress: true
+waya:
+  wallet:
+     auth: AUTHENTICATION-SERVICE
+     authurl: https://services.staging.mywayapay.com/auth-service/api/v1
+  unified-payment:
+     name: unified-payment
+     baseurl: https://test.payarena.com
+     merchant: FAVE
+     secret: 82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D
+  identitymanager:
+     name: IDENTITYMANAGER-SERVICE
+     url: https://services.staging.mywayapay.com/identity-manager-service/api/v1

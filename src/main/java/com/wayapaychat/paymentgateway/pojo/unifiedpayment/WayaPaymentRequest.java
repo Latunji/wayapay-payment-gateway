@@ -14,7 +14,7 @@ public class WayaPaymentRequest {
 	
 	@NotBlank(message = "Merchant ID must not be null")
 	@Size(min=3, max=30, message = "The Merchant ID '${validatedValue}' must be between {min} and {max} characters long")
-	private String id;
+	private String merchantId;
 	
 	@NotBlank(message = "Description must not be null")
 	@Size(min=3, max=20, message = "The Description '${validatedValue}' must be between {min} and {max} characters long")
@@ -38,6 +38,6 @@ public class WayaPaymentRequest {
 	
 	@NotBlank(message = "Secret Key must not be null")
 	@Size(min=3, max=100, message = "The Secret Key '${validatedValue}' must be between {min} and {max} characters long")
-	private String secretKey;
+	private String wayaPublicKey;
 
 }

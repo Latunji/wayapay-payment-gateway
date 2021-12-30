@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class WayaCardPayment {
 
-	private String secretKey;
+	private String wayaPublicKey;
 
 	private String scheme;
 

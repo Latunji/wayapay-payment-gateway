@@ -70,6 +70,9 @@ public class PaymentGateway {
 	private String mobile;
 
 	private String status;
+	
+	@Column(columnDefinition="TEXT")
+	private String encyptCard;
 
 	@Column(nullable = false)
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

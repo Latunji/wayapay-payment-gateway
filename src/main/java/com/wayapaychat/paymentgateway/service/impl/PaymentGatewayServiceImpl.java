@@ -32,14 +32,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
-	//private WemaBankProxy proxy;
+	// private WemaBankProxy proxy;
 
 	@Autowired
 	UnifiedPaymentProxy uniPaymentProxy;
 
 	@Autowired
 	MerchantProxy merchantProxy;
-	
+
 	@Autowired
 	PaymentGatewayRepository paymentGatewayRepo;
 
@@ -80,24 +80,24 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			String token) {
 		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocess Transaction", null);
 		try {
-			
-			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getId());
+
+			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
 			log.info("Merchant: " + merchant.toString());
 			PaymentGateway payment = new PaymentGateway();
-			Date dte=new Date();
-		    long milliSeconds = dte.getTime();
-		    String strLong = Long.toString(milliSeconds);
+			Date dte = new Date();
+			long milliSeconds = dte.getTime();
+			String strLong = Long.toString(milliSeconds);
 			payment.setRefNo(strLong);
-			payment.setMerchantId(account.getId());
+			payment.setMerchantId(account.getMerchantId());
 			payment.setDescription(account.getDescription());
 			payment.setAmount(account.getAmount());
 			payment.setFee(account.getFee());
 			payment.setCurrencyCode(account.getIsoCurrencyCode());
 			payment.setReturnUrl(account.getReturnUrl());
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
-			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getSecretKey(), secretKey);
+			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
-			
+
 			String tranId = uniPaymentProxy.postUnified(account);
 			if (!tranId.isBlank()) {
 				response = new PaymentGatewayResponse(true, "Success Transaction", tranId);
@@ -118,7 +118,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		UnifiedCardRequest cardReq = new UnifiedCardRequest();
 		if (card.getScheme().equalsIgnoreCase("Amex") || card.getScheme().equalsIgnoreCase("Mastercard")
 				|| card.getScheme().equalsIgnoreCase("Visa")) {
-			cardReq.setSecretKey(card.getSecretKey());
+			cardReq.setSecretKey(card.getWayaPublicKey());
 			cardReq.setScheme(card.getScheme());
 			cardReq.setCardNumber(card.getCardNumber());
 			cardReq.setExpiry(card.getExpiry());
@@ -127,7 +127,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
 		} else if (card.getScheme().equalsIgnoreCase("Verve")) {
-			cardReq.setSecretKey(card.getSecretKey());
+			cardReq.setSecretKey(card.getWayaPublicKey());
 			cardReq.setScheme(card.getScheme());
 			cardReq.setCardNumber(card.getCardNumber());
 			cardReq.setExpiry(card.getExpiry());
@@ -136,7 +136,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
 		} else if (card.getScheme().equalsIgnoreCase("PayAttitude")) {
-			cardReq.setSecretKey(card.getSecretKey());
+			cardReq.setSecretKey(card.getWayaPublicKey());
 			cardReq.setScheme(card.getScheme());
 			cardReq.setCardNumber(card.getCardNumber());
 			cardReq.setExpiry(card.getExpiry());
@@ -156,9 +156,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	@Override
 	public PaymentGatewayResponse CardAcquireCallback(HttpServletRequest request, WayaPaymentCallback pay) {
 		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Callback fail", null);
-		String callReq = uniPaymentProxy.getPaymentStatus(pay.getTranId(), pay.getCardEncrypt());
-		if (!callReq.isBlank()) {
-			response = new PaymentGatewayResponse(true, "Success Encrypt", callReq);
+		PaymentGateway mPay = paymentGatewayRepo.findByTranId(pay.getTranId()).orElse(null);
+		if (mPay != null) {
+			mPay.setEncyptCard(pay.getCardEncrypt());
+			paymentGatewayRepo.save(mPay);
+			String callReq = uniPaymentProxy.getPaymentStatus(pay.getTranId(), pay.getCardEncrypt());
+			if (!callReq.isBlank()) {
+				response = new PaymentGatewayResponse(true, "Success Encrypt", callReq);
+			}
 		}
 		return response;
 	}
@@ -166,22 +171,31 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	@Override
 	public PaymentGatewayResponse PayAttitudeCallback(HttpServletRequest request, WayaPaymentCallback pay) {
 		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "PayAttitude Callback fail", null);
-		WayaTransactionQuery callReq = uniPaymentProxy.postPayAttitude(pay);
-		if (callReq != null) {
-			response = new PaymentGatewayResponse(true, "Success Encrypt", callReq);
+		PaymentGateway mPay = paymentGatewayRepo.findByTranId(pay.getTranId()).orElse(null);
+		if (mPay != null) {
+			mPay.setEncyptCard(pay.getCardEncrypt());
+			paymentGatewayRepo.save(mPay);
+			WayaTransactionQuery callReq = uniPaymentProxy.postPayAttitude(pay);
+			if (callReq != null) {
+				response = new PaymentGatewayResponse(true, "Success Encrypt", callReq);
+			}
 		}
 		return response;
 	}
 
 	@Override
 	public ResponseEntity<?> GetTransactionStatus(HttpServletRequest req, String tranId) {
-		WayaTransactionQuery response = uniPaymentProxy.transactionQuery(tranId);
-		String input = "NJOKU EMMANUEL IFEANYI";
-		final String secretKey = "ssshhhhhhhhhhh!!!!";
+		WayaTransactionQuery response = null;
+		/*
+		 * String input = "NJOKU EMMANUEL IFEANYI"; final String secretKey =
+		 * "ssshhhhhhhhhhh!!!!";
+		 */
 		try {
-			String vt = UnifiedPaymentProxy.getDataEncrypt(input, secretKey);
-			log.info(vt);
-			log.info(UnifiedPaymentProxy.getDataDecrypt(vt, secretKey));
+			/*
+			 * String vt = UnifiedPaymentProxy.getDataEncrypt(input, secretKey);
+			 * log.info(vt); log.info(UnifiedPaymentProxy.getDataDecrypt(vt, secretKey));
+			 */
+			response = uniPaymentProxy.transactionQuery(tranId);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -86,7 +86,7 @@ public class PaymentGatewayController {
 	
 	@ApiOperation(value = "Waya-Payment Card Processing", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-	@PostMapping("/payment/transaction")
+	@PostMapping("/transaction/payment")
 	public ResponseEntity<?> PostCardPayment(HttpServletRequest request,
 			@Valid @RequestBody WayaCardPayment card) {
 		PaymentGatewayResponse resp = paymentGatewayService.CardAcquirePayment(request, card);
@@ -99,7 +99,7 @@ public class PaymentGatewayController {
 	
 	@ApiOperation(value = "Request Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-	@PostMapping("/callback/card")
+	@PostMapping("/transaction/processing")
 	public ResponseEntity<?> PostCallbackCard(HttpServletRequest request,
 			@Valid @RequestBody WayaPaymentCallback pay) {
 		PaymentGatewayResponse resp = paymentGatewayService.CardAcquireCallback(request, pay);
@@ -112,7 +112,7 @@ public class PaymentGatewayController {
 	
 	@ApiOperation(value = "Request Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-	@PostMapping("/callback/payattitude")
+	@PostMapping("/transaction/processing/bank")
 	public ResponseEntity<?> PostCallbackPayAttitude(HttpServletRequest request,
 			@Valid @RequestBody WayaPaymentCallback pay) {
 		PaymentGatewayResponse resp = paymentGatewayService.PayAttitudeCallback(request, pay);

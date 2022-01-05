@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -81,8 +82,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocess Transaction", null);
 		try {
 
-			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
-			log.info("Merchant: " + merchant.toString());
+			//MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
+			//log.info("Merchant: " + merchant.toString());
 			PaymentGateway payment = new PaymentGateway();
 			Date dte = new Date();
 			long milliSeconds = dte.getTime();
@@ -123,7 +124,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setCardNumber(card.getCardNumber());
 			cardReq.setExpiry(card.getExpiry());
 			cardReq.setCvv(card.getCvv());
-			cardReq.setCardholder(card.getCardholder());
+			cardReq.setCardHolder(card.getCardholder());
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
 		} else if (card.getScheme().equalsIgnoreCase("Verve")) {
@@ -132,7 +133,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setCardNumber(card.getCardNumber());
 			cardReq.setExpiry(card.getExpiry());
 			cardReq.setCvv(card.getCvv());
-			cardReq.setCardholder(card.getCardholder());
+			cardReq.setCardHolder(card.getCardholder());
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
 		} else if (card.getScheme().equalsIgnoreCase("PayAttitude")) {
@@ -141,7 +142,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setCardNumber(card.getCardNumber());
 			cardReq.setExpiry(card.getExpiry());
 			cardReq.setCvv(card.getCvv());
-			cardReq.setCardholder(card.getCardholder());
+			cardReq.setCardHolder(card.getCardholder());
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
 		}
@@ -154,18 +155,24 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	}
 
 	@Override
-	public PaymentGatewayResponse CardAcquireCallback(HttpServletRequest request, WayaPaymentCallback pay) {
-		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Callback fail", null);
-		PaymentGateway mPay = paymentGatewayRepo.findByTranId(pay.getTranId()).orElse(null);
-		if (mPay != null) {
-			mPay.setEncyptCard(pay.getCardEncrypt());
-			paymentGatewayRepo.save(mPay);
-			String callReq = uniPaymentProxy.getPaymentStatus(pay.getTranId(), pay.getCardEncrypt());
-			if (!callReq.isBlank()) {
-				response = new PaymentGatewayResponse(true, "Success Encrypt", callReq);
+	public PaymentGatewayResponse CardAcquireCallback(HttpServletRequest request, HttpServletResponse response,
+			WayaPaymentCallback pay) {
+		PaymentGatewayResponse mResponse = new PaymentGatewayResponse(false, "Callback fail", null);
+		try {
+			PaymentGateway mPay = paymentGatewayRepo.findByTranId(pay.getTranId()).orElse(null);
+			if (mPay != null) {
+				mPay.setEncyptCard(pay.getCardEncrypt());
+				paymentGatewayRepo.save(mPay);
+				String callReq = uniPaymentProxy.getPaymentStatus(pay.getTranId(), pay.getCardEncrypt());
+				if (!callReq.isBlank()) {
+					response.sendRedirect(callReq);
+					mResponse = new PaymentGatewayResponse(true, "Success callback", null);
+				}
 			}
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
 		}
-		return response;
+		return mResponse;
 	}
 
 	@Override

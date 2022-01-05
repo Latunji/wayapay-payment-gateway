@@ -15,7 +15,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
-import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -28,7 +27,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.waya.proxy.UnifiedPaymentProxyImpl;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedPaymentRequest;
@@ -172,6 +170,9 @@ public class UnifiedPaymentProxy {
 
 	public static String encrypt(String content, String password) {
 		try {
+			log.info("ENCRYPT PASSWORD: " +password);
+			log.info("ENCRYPT CONTENT: " + content);
+			
 			// byte[] data = pad(content.getBytes());
 			byte[] data = content.getBytes();
 			byte[] keybytes = password.substring(0, 16).getBytes();
@@ -202,18 +203,19 @@ public class UnifiedPaymentProxy {
 		String jsonString = null;
 		ObjectMapper mapper = new ObjectMapper();
 		try {
+			String expMonyear = card.getExpiry();
+			log.info(expMonyear);
+			card.setExpiry("MONYR");
 			String json = mapper.writeValueAsString(card);
 			log.info("Result JSON String = " + json);
-			json = StringEscapeUtils.escapeJson(json);
-			//json = "{\"secretKey\":\"82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D\",\"scheme\":\"visa\",\"cardNumber\":\"4999082100029373\",\"expiry\":\"01/23\",\"cvv\":\"126\",\"cardholder\":\"\",\"mobile\":\"\",\"pin\":\"\"}";
+			//json = StringEscapeUtils.escapeJson(json);
+			//log.info("JSON = " + json);
+			json = json.replace("MONYR", expMonyear);
 			log.info("JSON = " + json);
-			String key = UnifiedPaymentProxyImpl.sha1(merchantSecret).toLowerCase();
+			String key = sha1(merchantSecret).toLowerCase();
 			log.info(key);
-			jsonString = UnifiedPaymentProxyImpl.encrypt(json, key);
+			jsonString = encrypt(json, key);
 			log.info("JSON Serial = " + jsonString);
-			//String vt = "{\"secretKey\":\"82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D\",\"scheme\":\"visa\",\"cardHolder\":\"\",\"cardNumber\":\"4999082100029373\",\"cvv\":\"126\",\"expiry\":\"01/23\",\"mobile\":\"\",\"pin\":\"\"}";
-			//jsonString = UnifiedPaymentProxyImpl.encrypt(vt, key);
-			//log.info("JSON Sample = " + jsonString);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}

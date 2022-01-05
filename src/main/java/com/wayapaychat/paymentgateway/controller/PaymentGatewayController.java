@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.controller;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,9 +101,9 @@ public class PaymentGatewayController {
 	@ApiOperation(value = "Request Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/transaction/processing")
-	public ResponseEntity<?> PostCallbackCard(HttpServletRequest request,
+	public ResponseEntity<?> PostCallbackCard(HttpServletRequest request, HttpServletResponse response,
 			@Valid @RequestBody WayaPaymentCallback pay) {
-		PaymentGatewayResponse resp = paymentGatewayService.CardAcquireCallback(request, pay);
+		PaymentGatewayResponse resp = paymentGatewayService.CardAcquireCallback(request, response, pay);
 		if (!resp.getStatus()) {
 			return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
 		}

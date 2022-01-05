@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.service;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.ResponseEntity;
 
@@ -22,7 +23,7 @@ public interface PaymentGatewayService {
 	
 	PaymentGatewayResponse CardAcquirePayment(HttpServletRequest request, WayaCardPayment card);
 	
-	PaymentGatewayResponse CardAcquireCallback(HttpServletRequest request, WayaPaymentCallback pay);
+	PaymentGatewayResponse CardAcquireCallback(HttpServletRequest request, HttpServletResponse response, WayaPaymentCallback pay);
 	
 	PaymentGatewayResponse PayAttitudeCallback(HttpServletRequest request, WayaPaymentCallback pay);
 	

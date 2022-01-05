@@ -1,5 +1,8 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
+import java.io.BufferedInputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -7,6 +10,7 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
-import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
@@ -165,14 +168,22 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				paymentGatewayRepo.save(mPay);
 				String callReq = uniPaymentProxy.getPaymentStatus(pay.getTranId(), pay.getCardEncrypt());
 				if (!callReq.isBlank()) {
-					response.sendRedirect(callReq);
-					mResponse = new PaymentGatewayResponse(true, "Success callback", null);
+					//response.sendRedirect(callReq);
+					URLConnection urlConnection_ = new URL(callReq).openConnection();
+					urlConnection_.connect();
+				    BufferedInputStream bufferedInputStream = new BufferedInputStream(urlConnection_.getInputStream());
+					String callbackResponse = new String(bufferedInputStream.readAllBytes());
+					Jsoup.parse(callbackResponse).body().getElementsByTag("script").get(0);
+					callbackResponse = callbackResponse.replace("\r", "").replace("\n", "").replace("\"", "").replace("\\","");
+					mResponse = new PaymentGatewayResponse(true, "Success callback", callbackResponse);
 				}
 			}
 		} catch (Exception ex) {
 			log.error(ex.getMessage());
+		   return new PaymentGatewayResponse(false, "Transaction Not Completed", null);
 		}
 		return mResponse;
+		
 	}
 
 	@Override

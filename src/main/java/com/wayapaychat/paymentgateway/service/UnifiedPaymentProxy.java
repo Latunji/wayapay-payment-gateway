@@ -1,10 +1,10 @@
 package com.wayapaychat.paymentgateway.service;
 
-import java.awt.Desktop;
-import java.io.IOException;
+//import java.awt.Desktop;
+//import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
+//import java.net.URI;
+//import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -113,7 +113,7 @@ public class UnifiedPaymentProxy {
 				.queryParam("payload", encryptData);
 		log.info("PAYMENT URL= " + builderURL.toUriString());
 		Response = builderURL.toUriString();
-		Runtime runtime = Runtime.getRuntime();
+		/*Runtime runtime = Runtime.getRuntime();
 		try {
 			if (homeDirectory.contains("window")) {
 				URI homepage = new URI(builderURL.toUriString());
@@ -124,7 +124,7 @@ public class UnifiedPaymentProxy {
 			}
 		} catch (URISyntaxException | IOException | InterruptedException e) {
 			e.printStackTrace();
-		}
+		}*/
 		return Response;
 	}
 

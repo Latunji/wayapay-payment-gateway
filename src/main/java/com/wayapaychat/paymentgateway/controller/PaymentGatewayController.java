@@ -130,7 +130,7 @@ public class PaymentGatewayController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
     )
 	@ApiOperation(value = "Waya Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	public ResponseEntity<?> CallBack(@RequestBody WayaCallbackRequest requests) {
+	public ResponseEntity<?> CallBack(WayaCallbackRequest requests) {
 		log.info(requests.toString());
 		return null;
 	}

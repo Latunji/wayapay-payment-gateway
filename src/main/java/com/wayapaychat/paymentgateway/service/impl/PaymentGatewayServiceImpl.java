@@ -6,6 +6,7 @@ import java.net.URLConnection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
+import com.wayapaychat.paymentgateway.pojo.MerchantData;
+import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
@@ -85,8 +88,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocess Transaction", null);
 		try {
 
-			//MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
-			//log.info("Merchant: " + merchant.toString());
+			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
+			if(!merchant.getCode().equals("00")) {
+				return new PaymentGatewayResponse(false, "Merchant id doesn't exist", null);
+			}
+			log.info("Merchant: " + merchant.toString());
+			MerchantData sMerchant = merchant.getData();
+			if(!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
+				return new PaymentGatewayResponse(false, "Invalid merchant key", null);
+			}
 			PaymentGateway payment = new PaymentGateway();
 			Date dte = new Date();
 			long milliSeconds = dte.getTime();
@@ -96,8 +106,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setDescription(account.getDescription());
 			payment.setAmount(account.getAmount());
 			payment.setFee(account.getFee());
-			payment.setCurrencyCode(account.getIsoCurrencyCode());
-			payment.setReturnUrl(account.getReturnUrl());
+			payment.setCurrencyCode(account.getCurrency());
+			payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
@@ -122,29 +132,49 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		UnifiedCardRequest cardReq = new UnifiedCardRequest();
 		if (card.getScheme().equalsIgnoreCase("Amex") || card.getScheme().equalsIgnoreCase("Mastercard")
 				|| card.getScheme().equalsIgnoreCase("Visa")) {
+			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), card.getWayaPublicKey());
+			if(vt.isBlank()) {
+				return new PaymentGatewayResponse(false, "Invalid Encryption", null);
+			}
+			if(vt.length() < 16) {
+				return new PaymentGatewayResponse(false, "Invalid Card", null);
+			}
+			String[] mt = vt.split(Pattern.quote("|"));
+			String cardNo = mt[0];
+			String cvv = mt[1];
 			cardReq.setSecretKey(card.getWayaPublicKey());
 			cardReq.setScheme(card.getScheme());
-			cardReq.setCardNumber(card.getCardNumber());
+			cardReq.setCardNumber(cardNo);
 			cardReq.setExpiry(card.getExpiry());
-			cardReq.setCvv(card.getCvv());
+			cardReq.setCvv(cvv);
 			cardReq.setCardHolder(card.getCardholder());
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
 		} else if (card.getScheme().equalsIgnoreCase("Verve")) {
+			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), card.getWayaPublicKey());
+			if(vt.isBlank()) {
+				return new PaymentGatewayResponse(false, "Invalid Encryption", null);
+			}
+			if(vt.length() < 16) {
+				return new PaymentGatewayResponse(false, "Invalid Card", null);
+			}
+			String[] mt = vt.split(Pattern.quote("|"));
+			String cardNo = mt[0];
+			String cvv = mt[1];
 			cardReq.setSecretKey(card.getWayaPublicKey());
 			cardReq.setScheme(card.getScheme());
-			cardReq.setCardNumber(card.getCardNumber());
+			cardReq.setCardNumber(cardNo);
 			cardReq.setExpiry(card.getExpiry());
-			cardReq.setCvv(card.getCvv());
+			cardReq.setCvv(cvv);
 			cardReq.setCardHolder(card.getCardholder());
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
 		} else if (card.getScheme().equalsIgnoreCase("PayAttitude")) {
 			cardReq.setSecretKey(card.getWayaPublicKey());
 			cardReq.setScheme(card.getScheme());
-			cardReq.setCardNumber(card.getCardNumber());
+			cardReq.setCardNumber(card.getEncryptCardNo());
 			cardReq.setExpiry(card.getExpiry());
-			cardReq.setCvv(card.getCvv());
+			cardReq.setCvv(card.getEncryptCardNo());
 			cardReq.setCardHolder(card.getCardholder());
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());

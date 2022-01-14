@@ -34,6 +34,8 @@ waya:
      baseurl: https://test.payarena.com
      merchant: FAVE
      secret: 82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D
+  callback:
+     baseurl: https://services.staging.mywayapay.com/payment-gateway/api/v1/wayaCallBack
   identitymanager:
      name: IDENTITYMANAGER-SERVICE
      url: https://services.staging.mywayapay.com/identity-manager-service/api/v1

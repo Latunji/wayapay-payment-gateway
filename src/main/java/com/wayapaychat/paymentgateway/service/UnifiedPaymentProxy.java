@@ -49,6 +49,9 @@ public class UnifiedPaymentProxy {
 
 	@Value("${waya.unified-payment.baseurl}")
 	private String merchantUrl;
+	
+	@Value("${waya.callback.baseurl}")
+	private String callbackUrl;
 
 	private static final String Mode = "AES/CBC/PKCS5Padding";
 	
@@ -67,8 +70,8 @@ public class UnifiedPaymentProxy {
 			uniRequest.setDescription(payment.getDescription());
 			uniRequest.setAmount(payment.getAmount());
 			uniRequest.setFee(payment.getFee());
-			uniRequest.setCurrency(payment.getIsoCurrencyCode());
-			uniRequest.setReturnUrl(payment.getReturnUrl());
+			uniRequest.setCurrency(payment.getCurrency());
+			uniRequest.setReturnUrl(callbackUrl);
 			uniRequest.setSecretKey(merchantSecret);
 
 			log.info("Unified Payment Request: {}", uniRequest.toString());

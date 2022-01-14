@@ -9,11 +9,9 @@ public class WayaCardPayment {
 
 	private String scheme;
 
-	private String cardNumber;
+	private String encryptCardNo;
 
 	private String expiry;
-
-	private String cvv;
 
 	private String cardholder;
 

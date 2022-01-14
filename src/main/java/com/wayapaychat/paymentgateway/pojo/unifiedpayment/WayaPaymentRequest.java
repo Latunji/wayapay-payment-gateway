@@ -30,11 +30,11 @@ public class WayaPaymentRequest {
 	
 	@Size(min=3, max=3, message = "The currency code '${validatedValue}' must be between {min} and {max} characters long")
 	@NotBlank(message = "Currency code must not be null")
-	private String isoCurrencyCode = "566";
+	private String currency = "566";
 	
-	@NotBlank(message = "Return-Url must not be null")
-	@Size(min=3, max=100, message = "The Return-Url '${validatedValue}' must be between {min} and {max} characters long")
-	private String returnUrl;
+	//@NotBlank(message = "Return-Url must not be null")
+	//@Size(min=3, max=100, message = "The Return-Url '${validatedValue}' must be between {min} and {max} characters long")
+	//private String returnUrl;
 	
 	@NotBlank(message = "Secret Key must not be null")
 	@Size(min=3, max=100, message = "The Secret Key '${validatedValue}' must be between {min} and {max} characters long")

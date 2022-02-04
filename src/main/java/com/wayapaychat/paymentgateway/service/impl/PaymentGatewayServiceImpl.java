@@ -89,13 +89,19 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		try {
 
 			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
-			if(!merchant.getCode().equals("00")) {
+			if (!merchant.getCode().equals("00")) {
 				return new PaymentGatewayResponse(false, "Merchant id doesn't exist", null);
 			}
 			log.info("Merchant: " + merchant.toString());
 			MerchantData sMerchant = merchant.getData();
-			if(!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
-				return new PaymentGatewayResponse(false, "Invalid merchant key", null);
+			if (sMerchant.getMerchantKeyMode().equals("TEST")) {
+				if (!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
+					return new PaymentGatewayResponse(false, "Invalid merchant key", null);
+				}
+			} else {
+				if (!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
+					return new PaymentGatewayResponse(false, "Invalid merchant key", null);
+				}
 			}
 			PaymentGateway payment = new PaymentGateway();
 			Date dte = new Date();
@@ -133,10 +139,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		if (card.getScheme().equalsIgnoreCase("Amex") || card.getScheme().equalsIgnoreCase("Mastercard")
 				|| card.getScheme().equalsIgnoreCase("Visa")) {
 			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), card.getWayaPublicKey());
-			if(vt.isBlank()) {
+			if (vt.isBlank()) {
 				return new PaymentGatewayResponse(false, "Invalid Encryption", null);
 			}
-			if(vt.length() < 16) {
+			if (vt.length() < 16) {
 				return new PaymentGatewayResponse(false, "Invalid Card", null);
 			}
 			String[] mt = vt.split(Pattern.quote("|"));
@@ -152,10 +158,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setPin(card.getPin());
 		} else if (card.getScheme().equalsIgnoreCase("Verve")) {
 			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), card.getWayaPublicKey());
-			if(vt.isBlank()) {
+			if (vt.isBlank()) {
 				return new PaymentGatewayResponse(false, "Invalid Encryption", null);
 			}
-			if(vt.length() < 16) {
+			if (vt.length() < 16) {
 				return new PaymentGatewayResponse(false, "Invalid Card", null);
 			}
 			String[] mt = vt.split(Pattern.quote("|"));
@@ -198,22 +204,23 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				paymentGatewayRepo.save(mPay);
 				String callReq = uniPaymentProxy.getPaymentStatus(pay.getTranId(), pay.getCardEncrypt());
 				if (!callReq.isBlank()) {
-					//response.sendRedirect(callReq);
+					// response.sendRedirect(callReq);
 					URLConnection urlConnection_ = new URL(callReq).openConnection();
 					urlConnection_.connect();
-				    BufferedInputStream bufferedInputStream = new BufferedInputStream(urlConnection_.getInputStream());
+					BufferedInputStream bufferedInputStream = new BufferedInputStream(urlConnection_.getInputStream());
 					String callbackResponse = new String(bufferedInputStream.readAllBytes());
 					Jsoup.parse(callbackResponse).body().getElementsByTag("script").get(0);
-					callbackResponse = callbackResponse.replace("\r", "").replace("\n", "").replace("\"", "").replace("\\","");
+					callbackResponse = callbackResponse.replace("\r", "").replace("\n", "").replace("\"", "")
+							.replace("\\", "");
 					mResponse = new PaymentGatewayResponse(true, "Success callback", callbackResponse);
 				}
 			}
 		} catch (Exception ex) {
 			log.error(ex.getMessage());
-		   return new PaymentGatewayResponse(false, "Transaction Not Completed", null);
+			return new PaymentGatewayResponse(false, "Transaction Not Completed", null);
 		}
 		return mResponse;
-		
+
 	}
 
 	@Override

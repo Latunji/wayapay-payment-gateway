@@ -8,7 +8,7 @@ spring:
   datasource:
      username: root
      password: pONvagaJf3BTbu9l
-     url: jdbc:postgresql://postgresdb2:5432/payment-gateway-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+     url: jdbc:postgresql://postgresdb:5432/payment-gateway-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
      driver-class-name:  org.postgresql.Driver
   jpa:
     hibernate:

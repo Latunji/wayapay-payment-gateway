@@ -94,7 +94,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			}
 			log.info("Merchant: " + merchant.toString());
 			MerchantData sMerchant = merchant.getData();
-			if(!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
+			if(!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
 				return new PaymentGatewayResponse(false, "Invalid merchant key", null);
 			}
 			PaymentGateway payment = new PaymentGateway();

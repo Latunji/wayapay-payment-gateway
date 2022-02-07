@@ -138,14 +138,17 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		String keygen = null;
 		if (card.getWayaPublicKey().contains("TEST")) {
 			keygen = card.getWayaPublicKey().replace("WAYAPUBK_TEST_0x", "");
+			log.info(keygen);
 		}else {
 			keygen = card.getWayaPublicKey().replace("WAYAPUBK_PROD_0x", "");
+			log.info(keygen);
 		}
 		UnifiedCardRequest cardReq = new UnifiedCardRequest();
 		if (card.getScheme().equalsIgnoreCase("Amex") || card.getScheme().equalsIgnoreCase("Mastercard")
 				|| card.getScheme().equalsIgnoreCase("Visa")) {
 			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
-			if (vt.isBlank()) {
+			log.info(vt);
+			if (vt == null || vt.equals("")) {
 				return new PaymentGatewayResponse(false, "Invalid Encryption", null);
 			}
 			if (vt.length() < 16) {
@@ -164,7 +167,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setPin(card.getPin());
 		} else if (card.getScheme().equalsIgnoreCase("Verve")) {
 			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
-			if (vt.isBlank()) {
+			log.info(vt);
+			if (vt == null || vt.equals("")) {
 				return new PaymentGatewayResponse(false, "Invalid Encryption", null);
 			}
 			if (vt.length() < 16) {

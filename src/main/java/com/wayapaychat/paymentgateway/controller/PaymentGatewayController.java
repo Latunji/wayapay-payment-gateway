@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCallbackRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
@@ -141,6 +143,32 @@ public class PaymentGatewayController {
 	public ResponseEntity<?> getTransactionStatus(HttpServletRequest request, 
 			@PathVariable("tranId") final String tranId) {
 		return paymentGatewayService.GetTransactionStatus(request, tranId);
+	}
+	
+	@ApiOperation(value = "Card Encryption", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
+	@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@PostMapping("/card/encryption")
+	public ResponseEntity<?> PostCardEncrypt(HttpServletRequest request,
+			@Valid @RequestBody WayaEncypt pay) {
+		PaymentGatewayResponse resp = paymentGatewayService.encrypt(request, pay);
+		if (!resp.getStatus()) {
+			return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(resp, HttpStatus.OK);
+
+	}
+	
+	@ApiOperation(value = "Card Decryption", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
+	@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@PostMapping("/card/decryption")
+	public ResponseEntity<?> PostCardDecrypt(HttpServletRequest request,
+			@Valid @RequestBody WayaDecypt pay) {
+		PaymentGatewayResponse resp = paymentGatewayService.decrypt(request, pay);
+		if (!resp.getStatus()) {
+			return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(resp, HttpStatus.OK);
+
 	}
 
 }

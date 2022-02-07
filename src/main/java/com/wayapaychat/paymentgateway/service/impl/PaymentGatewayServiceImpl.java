@@ -25,6 +25,8 @@ import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
@@ -139,7 +141,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		if (card.getWayaPublicKey().contains("TEST")) {
 			keygen = card.getWayaPublicKey().replace("WAYAPUBK_TEST_0x", "");
 			log.info(keygen);
-		}else {
+		} else {
 			keygen = card.getWayaPublicKey().replace("WAYAPUBK_PROD_0x", "");
 			log.info(keygen);
 		}
@@ -268,6 +270,40 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
+	}
+
+	@Override
+	public PaymentGatewayResponse encrypt(HttpServletRequest request, WayaEncypt pay) {
+		String keygen = null;
+		if (pay.getMerchantSecretKey().contains("TEST")) {
+			keygen = pay.getMerchantSecretKey().replace("WAYAPUBK_TEST_0x", "");
+			log.info(keygen);
+		} else {
+			keygen = pay.getMerchantSecretKey().replace("WAYAPUBK_PROD_0x", "");
+			log.info(keygen);
+		}
+		String vt = UnifiedPaymentProxy.getDataEncrypt(pay.getEncryptString(), keygen);
+		if (vt == null || vt.equals("")) {
+			return (new PaymentGatewayResponse(false, "Encryption fail", null));
+		}
+		return (new PaymentGatewayResponse(true, "Encrypted", vt));
+	}
+
+	@Override
+	public PaymentGatewayResponse decrypt(HttpServletRequest request, WayaDecypt pay) {
+		String keygen = null;
+		if (pay.getMerchantSecretKey().contains("TEST")) {
+			keygen = pay.getMerchantSecretKey().replace("WAYAPUBK_TEST_0x", "");
+			log.info(keygen);
+		} else {
+			keygen = pay.getMerchantSecretKey().replace("WAYAPUBK_PROD_0x", "");
+			log.info(keygen);
+		}
+		String vt = UnifiedPaymentProxy.getDataDecrypt(pay.getDecryptString(), keygen);
+		if (vt == null || vt.equals("")) {
+			return (new PaymentGatewayResponse(false, "Decryption fail", null));
+		}
+		return (new PaymentGatewayResponse(true, "Decrypted", vt));
 	}
 
 }

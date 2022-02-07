@@ -75,7 +75,7 @@ public class PaymentGatewayController {
 	@ApiOperation(value = "Waya-Request Transaction", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/request/transaction")
-	public ResponseEntity<?> PostCardRequest(HttpServletRequest request,@RequestHeader("authorization") String token,
+	public ResponseEntity<?> PostCardRequest(HttpServletRequest request, @RequestHeader("authorization") String token,
 			@Valid @RequestBody WayaPaymentRequest account) {
 		PaymentGatewayResponse resp = paymentGatewayService.CardAcquireRequest(request, account,token);
 		if (!resp.getStatus()) {

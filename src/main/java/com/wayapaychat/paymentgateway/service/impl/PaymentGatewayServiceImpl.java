@@ -135,10 +135,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Override
 	public PaymentGatewayResponse CardAcquirePayment(HttpServletRequest request, WayaCardPayment card) {
+		String keygen = null;
+		if (card.getWayaPublicKey().contains("TEST")) {
+			keygen = card.getWayaPublicKey().replace("WAYAPUBK_TEST_0x", "");
+		}else {
+			keygen = card.getWayaPublicKey().replace("WAYAPUBK_PROD_0x", "");
+		}
 		UnifiedCardRequest cardReq = new UnifiedCardRequest();
 		if (card.getScheme().equalsIgnoreCase("Amex") || card.getScheme().equalsIgnoreCase("Mastercard")
 				|| card.getScheme().equalsIgnoreCase("Visa")) {
-			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), card.getWayaPublicKey());
+			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
 			if (vt.isBlank()) {
 				return new PaymentGatewayResponse(false, "Invalid Encryption", null);
 			}
@@ -157,7 +163,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
 		} else if (card.getScheme().equalsIgnoreCase("Verve")) {
-			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), card.getWayaPublicKey());
+			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
 			if (vt.isBlank()) {
 				return new PaymentGatewayResponse(false, "Invalid Encryption", null);
 			}

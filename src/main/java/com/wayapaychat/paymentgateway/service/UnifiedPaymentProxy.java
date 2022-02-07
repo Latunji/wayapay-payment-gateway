@@ -299,7 +299,7 @@ public class UnifiedPaymentProxy {
         } 
         catch (Exception e) 
         {
-            System.out.println("Error while encrypting: " + e.toString());
+            System.out.println("Error while encrypting: " + e.getLocalizedMessage() + " : " + e.getMessage());
         }
         return null;
     }

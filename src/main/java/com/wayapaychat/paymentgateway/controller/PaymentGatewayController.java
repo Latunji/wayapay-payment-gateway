@@ -126,7 +126,7 @@ public class PaymentGatewayController {
 
 	}
 	
-	@PostMapping(
+	@GetMapping(
             value = "/wayaCallBack",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE

@@ -167,6 +167,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setCardHolder(card.getCardholder());
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
+			log.info("Card Info: " + cardReq.toString());
 		} else if (card.getScheme().equalsIgnoreCase("Verve")) {
 			String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
 			log.info(vt);
@@ -187,6 +188,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setCardHolder(card.getCardholder());
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
+			log.info("Card Info: " + cardReq.toString());
 		} else if (card.getScheme().equalsIgnoreCase("PayAttitude")) {
 			cardReq.setSecretKey(card.getWayaPublicKey());
 			cardReq.setScheme(card.getScheme());
@@ -196,6 +198,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			cardReq.setCardHolder(card.getCardholder());
 			cardReq.setMobile(card.getMobile());
 			cardReq.setPin(card.getPin());
+			log.info("Card Info: " + cardReq.toString());
 		}
 		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Encrypt Card fail", null);
 		String encryptData = uniPaymentProxy.encryptPaymentDataAccess(cardReq);

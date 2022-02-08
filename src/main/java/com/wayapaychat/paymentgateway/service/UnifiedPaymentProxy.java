@@ -209,6 +209,7 @@ public class UnifiedPaymentProxy {
 			String expMonyear = card.getExpiry();
 			log.info(expMonyear);
 			card.setExpiry("MONYR");
+			card.setSecretKey(merchantSecret);
 			String json = mapper.writeValueAsString(card);
 			log.info("Result JSON String = " + json);
 			//json = StringEscapeUtils.escapeJson(json);

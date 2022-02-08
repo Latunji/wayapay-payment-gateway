@@ -84,6 +84,13 @@ public class UnifiedCardRequest {
 	public void setPin(String pin) {
 		this.pin = pin;
 	}
+
+	@Override
+	public String toString() {
+		return "UnifiedCardRequest [secretKey=" + secretKey + ", scheme=" + scheme + ", cardHolder=" + cardHolder
+				+ ", cardNumber=" + cardNumber + ", cvv=" + cvv + ", expiry=" + expiry + ", mobile=" + mobile + ", pin="
+				+ pin + "]";
+	}
 	
 
 }

@@ -23,6 +23,7 @@ import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UniPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
@@ -227,7 +228,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 					Jsoup.parse(callbackResponse).body().getElementsByTag("script").get(0);
 					callbackResponse = callbackResponse.replace("\r", "").replace("\n", "").replace("\"", "")
 							.replace("\\", "");
-					mResponse = new PaymentGatewayResponse(true, "Success callback", callbackResponse);
+					UniPayment payment = new UniPayment(callbackResponse, callReq);
+					mResponse = new PaymentGatewayResponse(true, "Success callback", payment);
 				}
 			}
 		} catch (Exception ex) {

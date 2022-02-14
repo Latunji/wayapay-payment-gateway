@@ -16,7 +16,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: payment-gateway
-  namespace: staging
   labels:
     app: payment-gateway
 spec:
@@ -31,7 +30,7 @@ spec:
     spec:
       containers:
       - name: payment-gateway
-        image: 863852973330.dkr.ecr.eu-west-2.amazonaws.com/payment-gateway:latest
+        image: 863852973330.dkr.ecr.eu-west-2.amazonaws.com/payment-gateway:imgtag
         env:
         - name: MESSAGING_GROUP_ID
           value: "events" 

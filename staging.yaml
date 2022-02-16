@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-gateway
+  labels:
+    app: payment-gateway
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  selector:
+    app: payment-gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-gateway
+  labels:
+    app: payment-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-gateway
+  template:
+    metadata:
+      labels:
+        app: payment-gateway
+    spec:
+      containers:
+      - name: payment-gateway
+        image: 863852973330.dkr.ecr.eu-west-2.amazonaws.com/payment-gateway:imgtag
+        envFrom:
+        - configMapRef:
+            name: common-services-config
+        ports: 
+        - name: http
+          containerPort: 80
+        volumeMounts:
+        - name: config-file
+          mountPath: "/app/application-cfgprofile.yml"  # "secret-file" file will be created in "/app" directory
+          subPath: application.yml
+      volumes:
+        - name: config-file
+          secret:
+            secretName: payment-gateway-config-file # name of the Secret

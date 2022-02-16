@@ -9,7 +9,7 @@ pipeline {
         REGISTRY = credentials('REGISTRY')
         SERVICE_NAME = 'payment-gateway'
         VERSION = sh (script: 'git rev-parse HEAD', returnStdout: true).trim().take(10)
-        NAMESPACE = "${env.GIT_BRANCH == 'origin/production' ? 'production' : 'staging' }"
+        NAMESPACE = "${env.GIT_BRANCH == 'production' ? 'production' : 'staging' }"
     }
 
     stages {

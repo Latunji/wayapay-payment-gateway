@@ -28,7 +28,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 cors().and().csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/api/v1/payment-gateway/**","/api/v1/switch/**","/api/v1/payment-gateway/**","/api/v1/wayaCallBack","/callback").permitAll()
-                .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**","/actuator/**", "/webjars/**","/payment-gateway/api/v1/wayaCallBack").permitAll()
+                .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**","/actuator/**", "/webjars/**","/api/v1/**").permitAll()
                 .anyRequest().authenticated().and()
                 .addFilter(new AuthorizationFilter(authenticationManager())).sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

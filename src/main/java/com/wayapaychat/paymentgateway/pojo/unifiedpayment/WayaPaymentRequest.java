@@ -25,7 +25,7 @@ public class WayaPaymentRequest {
 	private BigDecimal amount;
 	
 	@NotNull(message = "Fee must not Null or Blank")
-	@Min(value = 1, message ="Fee must be greater than zero")
+	//@Min(value = 1, message ="Fee must be greater than zero")
 	private BigDecimal fee;
 	
 	@Size(min=3, max=3, message = "The currency code '${validatedValue}' must be between {min} and {max} characters long")

@@ -23,6 +23,7 @@ import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
 import com.wayapaychat.paymentgateway.pojo.LoginRequest;
 import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
@@ -107,10 +108,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			auth.setPassword(passSecret);
 			TokenAuthResponse authToken = authProxy.UserLogin(auth);
 			log.info("Response: " + authToken.toString());
-			if(!authToken.isStatus()) {
+			if(!authToken.getStatus()) {
 				return new PaymentGatewayResponse(false, "Unable to authenticate Demon User", null);
 			}
-			String token = authToken.getToken();
+			PaymentData payData = authToken.getData();
+			String token = payData.getToken();
 			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
 			if (!merchant.getCode().equals("00")) {
 				return new PaymentGatewayResponse(false, "Merchant id doesn't exist", null);

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,6 +25,8 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 
 import io.swagger.annotations.ApiOperation;
@@ -72,6 +75,30 @@ public class PaymentGatewayController {
 	 * 
 	 * }
 	 */
+	@ApiOperation(value = "Wallet Waya-Request Transaction", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
+	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@PostMapping("/request/wallet")
+	public ResponseEntity<?> PostPaymentAuthentication(HttpServletRequest request, @Valid @RequestBody WayaAuthenicationRequest account) {
+		return paymentGatewayService.WalletPaymentAuthentication(request, account);
+	}
+	
+	@ApiOperation(value = "Wallet Waya-Payment Processing", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
+	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@PostMapping("/wallet/payment")
+	public ResponseEntity<?> PostWalletPayment(HttpServletRequest request,
+			@Valid @RequestBody WayaWalletPayment payment, @RequestHeader("Authorization") String token) {
+		return paymentGatewayService.ConsumeWalletPayment(request, payment, token);
+		
+
+	}
+	
+	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = { "PAYMENT-GATEWAY" })
+	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@GetMapping("/wallet/query/{tranId}")
+	public ResponseEntity<?> getWalletTransaction(HttpServletRequest request, 
+			@PathVariable("tranId") final String tranId) {
+		return paymentGatewayService.GetTransactionStatus(request, tranId);
+	}
 	
 	@ApiOperation(value = "Waya-Request Transaction", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })

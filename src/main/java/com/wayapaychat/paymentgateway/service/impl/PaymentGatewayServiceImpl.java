@@ -27,6 +27,7 @@ import com.wayapaychat.paymentgateway.pojo.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
+import com.wayapaychat.paymentgateway.pojo.User;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UniPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
@@ -35,12 +36,18 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletAuthResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
+import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -60,6 +67,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Autowired
 	PaymentGatewayRepository paymentGatewayRepo;
+	
+	@Autowired
+	WalletProxy wallProxy;
 	
 	@Value("${service.name}")
 	private String username;
@@ -331,6 +341,50 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			return (new PaymentGatewayResponse(false, "Decryption fail", null));
 		}
 		return (new PaymentGatewayResponse(true, "Decrypted", vt));
+	}
+
+	@Override
+	public ResponseEntity<?> WalletPaymentAuthentication(HttpServletRequest request, WayaAuthenicationRequest account) {
+		ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"), HttpStatus.BAD_REQUEST);
+		try {
+			LoginRequest auth = new LoginRequest();
+			auth.setEmailOrPhoneNumber(account.getEmailOrPhoneNumber());
+			auth.setPassword(account.getPassword());
+			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			log.info("Response: " + authToken.toString());
+			if(!authToken.getStatus()) {
+				return new ResponseEntity<>(new ErrorResponse("AUTHENTICATION WALLET FAILED"), HttpStatus.BAD_REQUEST);
+			}
+			PaymentData payData = authToken.getData();
+			String token = payData.getToken();
+			User user = payData.getUser();
+			
+			WalletResponse wallet = wallProxy.getWalletDetails(token, user.getId());
+			if (!wallet.getStatus()) {
+				log.error("WALLET ERROR: " + wallet.toString());
+				return new ResponseEntity<>(new ErrorResponse(wallet.getMessage()), HttpStatus.BAD_REQUEST);
+			}
+			WalletAuthResponse mWallet = new WalletAuthResponse();
+			mWallet.setToken(token);
+			mWallet.setWallet(wallet.getData());
+			response = new ResponseEntity<>(new SuccessResponse("WALLET PAYMENT", 
+					mWallet), HttpStatus.CREATED);
+			
+		} catch (Exception ex) {
+			if (ex instanceof FeignException) {
+				String httpStatus = Integer.toString(((FeignException) ex).status());
+				log.error("Feign Exception Status {}", httpStatus);
+			}
+			log.error("Higher Wahala {}", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+		return response;
+	}
+
+	@Override
+	public ResponseEntity<?> ConsumeWalletPayment(HttpServletRequest request, WayaWalletPayment payment, String token) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

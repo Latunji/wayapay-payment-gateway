@@ -29,6 +29,8 @@ waya:
   wallet:
      auth: AUTHENTICATION-SERVICE
      authurl: https://services.staging.wayabank.ng/auth-service/api/v1
+     tempname: WALLET-SERVICE
+     tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
   unified-payment:
      name: unified-payment
      baseurl: https://test.payarena.com

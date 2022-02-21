@@ -23,6 +23,9 @@ public class PaymentData {
 	@JsonProperty("pinCreated")
 	private Boolean pinCreated;
 	
+	@JsonProperty("user")
+	private User user;
+	
 	@JsonProperty("token")
 	private String token;
 

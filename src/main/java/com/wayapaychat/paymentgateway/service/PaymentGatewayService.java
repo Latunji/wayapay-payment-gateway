@@ -11,6 +11,8 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 
 public interface PaymentGatewayService {
 	
@@ -20,6 +22,10 @@ public interface PaymentGatewayService {
 	 * 
 	 * PaymentGatewayResponse wemaAllPrefix(HttpServletRequest request);
 	 */
+	
+	ResponseEntity<?> WalletPaymentAuthentication(HttpServletRequest request, WayaAuthenicationRequest account);
+	
+	ResponseEntity<?> ConsumeWalletPayment(HttpServletRequest request, WayaWalletPayment payment, String token);
 	
 	PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account);
 	

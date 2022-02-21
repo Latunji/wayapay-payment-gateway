@@ -21,7 +21,7 @@ public interface PaymentGatewayService {
 	 * PaymentGatewayResponse wemaAllPrefix(HttpServletRequest request);
 	 */
 	
-	PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account, String token);
+	PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account);
 	
 	PaymentGatewayResponse CardAcquirePayment(HttpServletRequest request, WayaCardPayment card);
 	

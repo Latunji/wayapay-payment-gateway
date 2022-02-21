@@ -13,16 +13,19 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
+import com.wayapaychat.paymentgateway.pojo.LoginRequest;
 import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
+import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UniPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
@@ -31,6 +34,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
+import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
@@ -49,9 +53,18 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Autowired
 	MerchantProxy merchantProxy;
+	
+	@Autowired
+	AuthApiClient authProxy;
 
 	@Autowired
 	PaymentGatewayRepository paymentGatewayRepo;
+	
+	@Value("${service.name}")
+	private String username;
+
+	@Value("${service.pass}")
+	private String passSecret;
 
 	/*
 	 * @Autowired public PaymentGatewayServiceImpl(WemaBankProxy proxy) { this.proxy
@@ -86,11 +99,17 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	 */
 
 	@Override
-	public PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account,
-			String token) {
+	public PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account) {
 		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocess Transaction", null);
 		try {
-
+			LoginRequest auth = new LoginRequest();
+			auth.setEmailOrPhoneNumber(username);
+			auth.setPassword(passSecret);
+			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			if(!authToken.isStatus()) {
+				return new PaymentGatewayResponse(false, "Unable to authenticate Demon User", null);
+			}
+			String token = authToken.getToken();
 			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
 			if (!merchant.getCode().equals("00")) {
 				return new PaymentGatewayResponse(false, "Merchant id doesn't exist", null);

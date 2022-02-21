@@ -3,9 +3,12 @@ package com.wayapaychat.paymentgateway.proxy;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.wayapaychat.paymentgateway.config.PaymentGatewayClientConfiguration;
+import com.wayapaychat.paymentgateway.pojo.LoginRequest;
+import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.TokenCheckResponse;
 
 
@@ -16,6 +19,9 @@ public interface AuthApiClient {
     
     @PostMapping("/auth/validate-user")
 	public TokenCheckResponse getUserDataToken(@RequestHeader("authorization") String token);
+    
+    @PostMapping("/auth/login")
+	public TokenAuthResponse UserLogin(@RequestBody LoginRequest login);
     
     
 }

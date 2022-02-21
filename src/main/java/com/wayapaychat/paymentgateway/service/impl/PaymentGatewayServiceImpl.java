@@ -106,6 +106,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);
 			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			log.info("Response: " + authToken.toString());
 			if(!authToken.isStatus()) {
 				return new PaymentGatewayResponse(false, "Unable to authenticate Demon User", null);
 			}

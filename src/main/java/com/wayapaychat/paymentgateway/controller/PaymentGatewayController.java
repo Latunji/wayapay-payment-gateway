@@ -26,6 +26,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 
@@ -75,35 +76,54 @@ public class PaymentGatewayController {
 	 * 
 	 * }
 	 */
-	@ApiOperation(value = "Wallet Waya-Request Transaction", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "QR-Code Waya-Request Transaction", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
+	@PostMapping("/request/qr-code")
+	public ResponseEntity<?> PostPaymentQRCode(HttpServletRequest request,
+			@Valid @RequestBody WayaQRRequest account) {
+		return paymentGatewayService.WalletPaymentQR(request, account);
+	}
+
+	@ApiOperation(value = "Wallet Waya-Request Transaction", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/request/wallet")
-	public ResponseEntity<?> PostPaymentAuthentication(HttpServletRequest request, @Valid @RequestBody WayaAuthenicationRequest account) {
+	public ResponseEntity<?> PostPaymentAuthentication(HttpServletRequest request,
+			@Valid @RequestBody WayaAuthenicationRequest account) {
 		return paymentGatewayService.WalletPaymentAuthentication(request, account);
 	}
-	
-	@ApiOperation(value = "Wallet Waya-Payment Processing", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+
+	@ApiOperation(value = "Wallet Waya-Payment Processing", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/wallet/payment")
 	public ResponseEntity<?> PostWalletPayment(HttpServletRequest request,
 			@Valid @RequestBody WayaWalletPayment payment, @RequestHeader("Authorization") String token) {
 		return paymentGatewayService.ConsumeWalletPayment(request, payment, token);
-		
 
 	}
-	
-	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+
+	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {
+			"PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@GetMapping("/wallet/query/{tranId}")
-	public ResponseEntity<?> getWalletTransaction(HttpServletRequest request, 
+	public ResponseEntity<?> getWalletTransaction(HttpServletRequest request,
 			@PathVariable("tranId") final String tranId) {
 		return paymentGatewayService.GetTransactionStatus(request, tranId);
 	}
-	
-	@ApiOperation(value = "Waya-Request Transaction", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+
+	@ApiOperation(value = "Waya-Request Transaction", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/request/transaction")
-	public ResponseEntity<?> PostCardRequest(HttpServletRequest request, @Valid @RequestBody WayaPaymentRequest account) {
+	public ResponseEntity<?> PostCardRequest(HttpServletRequest request,
+			@Valid @RequestBody WayaPaymentRequest account) {
 		PaymentGatewayResponse resp = paymentGatewayService.CardAcquireRequest(request, account);
 		if (!resp.getStatus()) {
 			return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
@@ -111,12 +131,13 @@ public class PaymentGatewayController {
 		return new ResponseEntity<>(resp, HttpStatus.OK);
 
 	}
-	
-	@ApiOperation(value = "Waya-Payment Card Processing", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+
+	@ApiOperation(value = "Waya-Payment Card Processing", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/transaction/payment")
-	public ResponseEntity<?> PostCardPayment(HttpServletRequest request,
-			@Valid @RequestBody WayaCardPayment card) {
+	public ResponseEntity<?> PostCardPayment(HttpServletRequest request, @Valid @RequestBody WayaCardPayment card) {
 		PaymentGatewayResponse resp = paymentGatewayService.CardAcquirePayment(request, card);
 		if (!resp.getStatus()) {
 			return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
@@ -124,9 +145,11 @@ public class PaymentGatewayController {
 		return new ResponseEntity<>(resp, HttpStatus.OK);
 
 	}
-	
-	@ApiOperation(value = "Request Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+
+	@ApiOperation(value = "Request Callback URL", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/transaction/processing")
 	public ResponseEntity<?> PostCallbackCard(HttpServletRequest request, HttpServletResponse response,
 			@Valid @RequestBody WayaPaymentCallback pay) {
@@ -137,9 +160,11 @@ public class PaymentGatewayController {
 		return new ResponseEntity<>(resp, HttpStatus.OK);
 
 	}
-	
-	@ApiOperation(value = "Request Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+
+	@ApiOperation(value = "Request Callback URL", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/transaction/processing/bank")
 	public ResponseEntity<?> PostCallbackPayAttitude(HttpServletRequest request,
 			@Valid @RequestBody WayaPaymentCallback pay) {
@@ -150,31 +175,29 @@ public class PaymentGatewayController {
 		return new ResponseEntity<>(resp, HttpStatus.OK);
 
 	}
-	
-	@GetMapping(
-            value = "/wayaCallBack",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
-    )
+
+	@GetMapping(value = "/wayaCallBack", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 	@ApiOperation(value = "Waya Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	public ResponseEntity<?> CallBack(WayaCallbackRequest requests) {
 		log.info(requests.toString());
 		return null;
 	}
-	
-	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+
+	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {
+			"PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@GetMapping("/transaction/query/{tranId}")
-	public ResponseEntity<?> getTransactionStatus(HttpServletRequest request, 
+	public ResponseEntity<?> getTransactionStatus(HttpServletRequest request,
 			@PathVariable("tranId") final String tranId) {
 		return paymentGatewayService.GetTransactionStatus(request, tranId);
 	}
-	
+
 	@ApiOperation(value = "Card Encryption", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/card/encryption")
-	public ResponseEntity<?> PostCardEncrypt(HttpServletRequest request,
-			@Valid @RequestBody WayaEncypt pay) {
+	public ResponseEntity<?> PostCardEncrypt(HttpServletRequest request, @Valid @RequestBody WayaEncypt pay) {
 		PaymentGatewayResponse resp = paymentGatewayService.encrypt(request, pay);
 		if (!resp.getStatus()) {
 			return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
@@ -182,12 +205,12 @@ public class PaymentGatewayController {
 		return new ResponseEntity<>(resp, HttpStatus.OK);
 
 	}
-	
+
 	@ApiOperation(value = "Card Decryption", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/card/decryption")
-	public ResponseEntity<?> PostCardDecrypt(HttpServletRequest request,
-			@Valid @RequestBody WayaDecypt pay) {
+	public ResponseEntity<?> PostCardDecrypt(HttpServletRequest request, @Valid @RequestBody WayaDecypt pay) {
 		PaymentGatewayResponse resp = paymentGatewayService.decrypt(request, pay);
 		if (!resp.getStatus()) {
 			return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);

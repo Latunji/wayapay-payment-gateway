@@ -37,8 +37,10 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletAuthResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletQRResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
@@ -382,9 +384,111 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	}
 
 	@Override
-	public ResponseEntity<?> ConsumeWalletPayment(HttpServletRequest request, WayaWalletPayment payment, String token) {
-		// TODO Auto-generated method stub
-		return null;
+	public ResponseEntity<?> ConsumeWalletPayment(HttpServletRequest request, WayaWalletPayment account, String token) {
+		ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"), HttpStatus.BAD_REQUEST);
+		try {
+			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
+			if (!merchant.getCode().equals("00")) {
+				return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
+			}
+			log.info("Merchant: " + merchant.toString());
+			MerchantData sMerchant = merchant.getData();
+			if (sMerchant.getMerchantKeyMode().equals("TEST")) {
+				if (!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
+					return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
+				}
+			} else {
+				if (!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
+					return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
+				}
+			}
+			PaymentGateway payment = new PaymentGateway();
+			Date dte = new Date();
+			long milliSeconds = dte.getTime();
+			String strLong = Long.toString(milliSeconds);
+			payment.setRefNo(strLong);
+			payment.setMerchantId(account.getMerchantId());
+			payment.setDescription(account.getPaymentDescription());
+			payment.setAmount(account.getAmount());
+			payment.setFee(account.getFee());
+			payment.setCurrencyCode(account.getCurrency());
+			payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
+			final String secretKey = "ssshhhhhhhhhhh!!!!";
+			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
+			payment.setSecretKey(vt);
+
+			String tranId = uniPaymentProxy.postWalletTransaction(account, token, strLong);
+			if (!tranId.isBlank()) {
+				response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tranId), HttpStatus.CREATED);
+				payment.setTranId(tranId);
+				payment.setTranDate(LocalDate.now());
+				payment.setRcre_time(LocalDateTime.now());
+				paymentGatewayRepo.save(payment);
+			}
+		} catch (Exception ex) {
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+		return response;
+	}
+
+	@Override
+	public ResponseEntity<?> WalletPaymentQR(HttpServletRequest request, WayaQRRequest account) {
+		ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"), HttpStatus.BAD_REQUEST);
+		try {
+			LoginRequest auth = new LoginRequest();
+			auth.setEmailOrPhoneNumber(username);
+			auth.setPassword(passSecret);
+			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			log.info("Response: " + authToken.toString());
+			if(!authToken.getStatus()) {
+				return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"), HttpStatus.BAD_REQUEST);
+			}
+			PaymentData payData = authToken.getData();
+			String token = payData.getToken();
+			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
+			if (!merchant.getCode().equals("00")) {
+				return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
+			}
+			log.info("Merchant: " + merchant.toString());
+			MerchantData sMerchant = merchant.getData();
+			if (sMerchant.getMerchantKeyMode().equals("TEST")) {
+				if (!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
+					return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
+				}
+			} else {
+				if (!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
+					return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
+				}
+			}
+			PaymentGateway payment = new PaymentGateway();
+			Date dte = new Date();
+			long milliSeconds = dte.getTime();
+			String strLong = Long.toString(milliSeconds);
+			payment.setRefNo(strLong);
+			payment.setMerchantId(account.getMerchantId());
+			payment.setDescription(account.getPaymentDescription());
+			payment.setAmount(account.getAmount());
+			payment.setFee(account.getFee());
+			payment.setCurrencyCode(account.getCurrency());
+			payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
+			final String secretKey = "ssshhhhhhhhhhh!!!!";
+			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
+			payment.setSecretKey(vt);
+
+			WalletQRResponse tranRep = uniPaymentProxy.postQRTransaction(account, token);
+			if (tranRep != null) {
+				response = new ResponseEntity<>(new SuccessResponse("SUCCESS QR", tranRep), HttpStatus.CREATED);
+				payment.setTranId(account.getReferenceNo());
+				payment.setTranDate(LocalDate.now());
+				payment.setRcre_time(LocalDateTime.now());
+				paymentGatewayRepo.save(payment);
+			}
+		} catch (Exception ex) {
+			log.error("Error occurred - GET QR TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+		return response;
 	}
 
 }

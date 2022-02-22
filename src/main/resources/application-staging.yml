@@ -31,6 +31,9 @@ waya:
      authurl: https://services.staging.wayabank.ng/auth-service/api/v1
      tempname: WALLET-SERVICE
      tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
+  qrcode:
+     name: QRCODE-SERVICE
+     baseurl: https://services.staging.wayabank.ng/qrcode-service/api/v1
   unified-payment:
      name: unified-payment
      baseurl: https://test.payarena.com

@@ -33,13 +33,29 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
+import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletEventPayment;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletPaymentResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletQRGenerate;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletQRResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
+import com.wayapaychat.paymentgateway.proxy.QRCodeProxy;
 import com.wayapaychat.paymentgateway.proxy.UnifiedPaymentApiClient;
+import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class UnifiedPaymentProxy {
+
+	@Autowired
+	WalletProxy wallProxy;
+
+	@Autowired
+	QRCodeProxy qrCodeProxy;
 
 	@Value("${waya.unified-payment.merchant}")
 	private String merchantId;
@@ -49,15 +65,15 @@ public class UnifiedPaymentProxy {
 
 	@Value("${waya.unified-payment.baseurl}")
 	private String merchantUrl;
-	
+
 	@Value("${waya.callback.baseurl}")
 	private String callbackUrl;
 
 	private static final String Mode = "AES/CBC/PKCS5Padding";
-	
+
 	private static SecretKeySpec secretKey;
-	
-    private static byte[] key;
+
+	private static byte[] key;
 
 	@Autowired
 	UnifiedPaymentApiClient unifiedClient;
@@ -116,18 +132,14 @@ public class UnifiedPaymentProxy {
 				.queryParam("payload", encryptData);
 		log.info("PAYMENT URL= " + builderURL.toUriString());
 		Response = builderURL.toUriString();
-		/*Runtime runtime = Runtime.getRuntime();
-		try {
-			if (homeDirectory.contains("window")) {
-				URI homepage = new URI(builderURL.toUriString());
-				Desktop.getDesktop().browse(homepage);
-			} else {
-				runtime.exec("rundll32 url.dll,FileProtocolHandler " + builderURL.toUriString());
-				Thread.sleep(5000);
-			}
-		} catch (URISyntaxException | IOException | InterruptedException e) {
-			e.printStackTrace();
-		}*/
+		/*
+		 * Runtime runtime = Runtime.getRuntime(); try { if
+		 * (homeDirectory.contains("window")) { URI homepage = new
+		 * URI(builderURL.toUriString()); Desktop.getDesktop().browse(homepage); } else
+		 * { runtime.exec("rundll32 url.dll,FileProtocolHandler " +
+		 * builderURL.toUriString()); Thread.sleep(5000); } } catch (URISyntaxException
+		 * | IOException | InterruptedException e) { e.printStackTrace(); }
+		 */
 		return Response;
 	}
 
@@ -173,9 +185,9 @@ public class UnifiedPaymentProxy {
 
 	public static String encrypt(String content, String password) {
 		try {
-			log.info("ENCRYPT PASSWORD: " +password);
+			log.info("ENCRYPT PASSWORD: " + password);
 			log.info("ENCRYPT CONTENT: " + content);
-			
+
 			// byte[] data = pad(content.getBytes());
 			byte[] data = content.getBytes();
 			byte[] keybytes = password.substring(0, 16).getBytes();
@@ -212,8 +224,8 @@ public class UnifiedPaymentProxy {
 			card.setSecretKey(merchantSecret);
 			String json = mapper.writeValueAsString(card);
 			log.info("Result JSON String = " + json);
-			//json = StringEscapeUtils.escapeJson(json);
-			//log.info("JSON = " + json);
+			// json = StringEscapeUtils.escapeJson(json);
+			// log.info("JSON = " + json);
 			json = json.replace("MONYR", expMonyear);
 			log.info("JSON = " + json);
 			String key = sha1(merchantSecret).toLowerCase();
@@ -270,54 +282,106 @@ public class UnifiedPaymentProxy {
 		}
 		return null;
 	}
-	
-	public static void setKey(String myKey) 
-    {
-        MessageDigest sha = null;
-        try {
-            key = myKey.getBytes("UTF-8");
-            sha = MessageDigest.getInstance("SHA-1");
-            key = sha.digest(key);
-            key = Arrays.copyOf(key, 16); 
-            secretKey = new SecretKeySpec(key, "AES");
-        } 
-        catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } 
-        catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-    }
- 
-    public static String getDataEncrypt(String strToEncrypt, String secret) 
-    {
-        try
-        {
-            setKey(secret);
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes("UTF-8")));
-        } 
-        catch (Exception e) 
-        {
-            System.out.println("Error while encrypting: " + e.getLocalizedMessage() + " : " + e.getMessage());
-        }
-        return null;
-    }
- 
-    public static String getDataDecrypt(String strToDecrypt, String secret) 
-    {
-        try
-        {
-            setKey(secret);
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            return new String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt)));
-        } 
-        catch (Exception e) 
-        {
-            System.out.println("Error while decrypting: " + e.toString());
-        }
-        return null;
-    }
+
+	public static void setKey(String myKey) {
+		MessageDigest sha = null;
+		try {
+			key = myKey.getBytes("UTF-8");
+			sha = MessageDigest.getInstance("SHA-1");
+			key = sha.digest(key);
+			key = Arrays.copyOf(key, 16);
+			secretKey = new SecretKeySpec(key, "AES");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static String getDataEncrypt(String strToEncrypt, String secret) {
+		try {
+			setKey(secret);
+			Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+			return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes("UTF-8")));
+		} catch (Exception e) {
+			System.out.println("Error while encrypting: " + e.getLocalizedMessage() + " : " + e.getMessage());
+		}
+		return null;
+	}
+
+	public static String getDataDecrypt(String strToDecrypt, String secret) {
+		try {
+			setKey(secret);
+			Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
+			cipher.init(Cipher.DECRYPT_MODE, secretKey);
+			return new String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt)));
+		} catch (Exception e) {
+			System.out.println("Error while decrypting: " + e.toString());
+		}
+		return null;
+	}
+
+	public String postWalletTransaction(WayaWalletPayment account, String token, String refNo) {
+
+		String result = null;
+		WalletEventPayment event = new WalletEventPayment();
+		event.setAmount(account.getAmount());
+		event.setEventId("WAYAPAY");
+		event.setTranCrncy("NGN");
+		event.setCustomerAccountNumber(account.getAccountNo());
+		event.setPaymentReference(refNo);
+		String tranParticular = account.getPaymentDescription() + "-" + refNo;
+		event.setTranNarration(tranParticular);
+		event.setTransactionCategory("WITHDRAW");
+		try {
+			WalletPaymentResponse wallet = wallProxy.fundWayaOfficialAcct(token, event);
+			if (wallet.getStatus()) {
+				for (FundEventResponse response : wallet.getData()) {
+					result = response.getTranId();
+				}
+			} else {
+				log.error("WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: "
+						+ account.getMerchantId());
+			}
+		} catch (Exception ex) {
+			if (ex instanceof FeignException) {
+				String httpStatus = Integer.toString(((FeignException) ex).status());
+				log.error("Feign Exception Status {}", httpStatus);
+			}
+			log.error("Higher Wahala {}", ex.getMessage());
+			log.error("WALLET TRANSACTION: " + ex.getLocalizedMessage());
+		}
+		return result;
+	}
+
+	public WalletQRResponse postQRTransaction(WayaQRRequest account, String token) {
+		WalletQRResponse wallet = null;
+		WalletQRGenerate qrgen = new WalletQRGenerate();
+		qrgen.setPayableAmount(account.getAmount());
+		qrgen.setActive(true);
+		qrgen.setCustomerSessionId(account.getReferenceNo());
+		qrgen.setMerchantId(account.getMerchantId());
+		qrgen.setPaymentChannel("QR");
+		String tranParticular = account.getPaymentDescription() + "-" + account.getReferenceNo();
+		qrgen.setTransactionNarration(tranParticular);
+		qrgen.setQrCodeExpiryDate(account.getQrExpiryDate());
+		qrgen.setUserId(0L);
+		try {
+			wallet = qrCodeProxy.wayaQRGenerate(qrgen);
+			if (wallet.getStatusCodeValue() != 200) {
+				log.error("QR TRANSACTION FAILED: " + wallet.getStatusCode() + " with Merchant: "
+						+ account.getMerchantId());
+			}
+		} catch (Exception ex) {
+			if (ex instanceof FeignException) {
+				String httpStatus = Integer.toString(((FeignException) ex).status());
+				log.error("Feign Exception Status {}", httpStatus);
+			}
+			log.error("Higher Wahala {}", ex.getMessage());
+			log.error("WALLET TRANSACTION: " + ex.getLocalizedMessage());
+		}
+		return wallet;
+
+	}
 }

@@ -26,7 +26,7 @@ public class WayaQRRequest {
 
 	private String wayaPublicKey;
 
-	private String accountNo;
+	//private String accountNo;
 
 	private String currency;
 

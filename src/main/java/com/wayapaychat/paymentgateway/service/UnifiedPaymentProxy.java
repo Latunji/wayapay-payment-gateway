@@ -356,7 +356,7 @@ public class UnifiedPaymentProxy {
 	}
 
 	public WalletQRResponse postQRTransaction(WayaQRRequest account, String token) {
-		WalletQRResponse wallet = null;
+		WalletQRResponse wallet = new WalletQRResponse();
 		WalletQRGenerate qrgen = new WalletQRGenerate();
 		qrgen.setPayableAmount(account.getAmount());
 		qrgen.setActive(true);
@@ -366,7 +366,8 @@ public class UnifiedPaymentProxy {
 		String tranParticular = account.getPaymentDescription() + "-" + account.getReferenceNo();
 		qrgen.setTransactionNarration(tranParticular);
 		qrgen.setQrCodeExpiryDate(account.getQrExpiryDate());
-		qrgen.setUserId(0L);
+		qrgen.setUserId(0);
+		log.info("Request QR: " + qrgen.toString());
 		try {
 			wallet = qrCodeProxy.wayaQRGenerate(qrgen);
 			if (wallet.getStatusCodeValue() != 200) {

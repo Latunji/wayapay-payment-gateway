@@ -25,6 +25,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
+import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
@@ -81,9 +82,17 @@ public class PaymentGatewayController {
 	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
 	// String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/request/qr-code")
-	public ResponseEntity<?> PostPaymentQRCode(HttpServletRequest request,
-			@Valid @RequestBody WayaQRRequest account) {
+	public ResponseEntity<?> PostPaymentQRCode(HttpServletRequest request, @Valid @RequestBody WayaQRRequest account) {
 		return paymentGatewayService.WalletPaymentQR(request, account);
+	}
+
+	@ApiOperation(value = "USSD Waya-Request Transaction", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+// String.class, value = "token", paramType = "header", required = true) })
+	@PostMapping("/request/ussd")
+	public ResponseEntity<?> PostPaymentUSSD(HttpServletRequest request, @Valid @RequestBody WayaUSSDRequest account) {
+		return paymentGatewayService.USSDPaymentRequest(request, account);
 	}
 
 	@ApiOperation(value = "Wallet Waya-Request Transaction", notes = "This endpoint create client user", tags = {

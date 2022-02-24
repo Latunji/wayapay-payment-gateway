@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 //import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -365,7 +366,10 @@ public class UnifiedPaymentProxy {
 		qrgen.setPaymentChannel("QR");
 		String tranParticular = account.getPaymentDescription() + "-" + account.getReferenceNo();
 		qrgen.setTransactionNarration(tranParticular);
-		qrgen.setQrCodeExpiryDate(account.getQrExpiryDate());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        String expiryDate = sdf.format(account.getQrExpiryDate());
+        log.info("QR TIME: " + expiryDate);
+		qrgen.setQrCodeExpiryDate(expiryDate);
 		qrgen.setUserId(0);
 		log.info("Request QR: " + qrgen.toString());
 		try {

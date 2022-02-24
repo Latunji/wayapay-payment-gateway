@@ -26,7 +26,7 @@ public class WalletQRGenerate {
 	  
 	  private String paymentChannel = "QR";
 	  
-	  private Date qrCodeExpiryDate;
+	  private String qrCodeExpiryDate;
 	  
 	  private String transactionNarration;
 	  

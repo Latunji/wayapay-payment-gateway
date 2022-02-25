@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,8 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
+import com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment;
+import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
@@ -93,6 +96,25 @@ public class PaymentGatewayController {
 	@PostMapping("/request/ussd")
 	public ResponseEntity<?> PostPaymentUSSD(HttpServletRequest request, @Valid @RequestBody WayaUSSDRequest account) {
 		return paymentGatewayService.USSDPaymentRequest(request, account);
+	}
+
+	@ApiOperation(value = "USSD Waya-Payment Transaction", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+//String.class, value = "token", paramType = "header", required = true) })
+	@PutMapping("/payment/ussd/{refNo}")
+	public ResponseEntity<?> PostUSSD(HttpServletRequest request, @Valid @RequestBody WayaUSSDPayment account,
+			@PathVariable("refNo") final String refNo) {
+		return paymentGatewayService.USSDPayment(request, account, refNo);
+	}
+
+	@ApiOperation(value = "USSD Wallet Transaction", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
+//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+//String.class, value = "token", paramType = "header", required = true) })
+	@PutMapping("/payment/ussd/wallet")
+	public ResponseEntity<?> PostWalletUSSD(HttpServletRequest request, @Valid @RequestBody USSDWalletPayment account) {
+		return paymentGatewayService.USSDWalletPayment(request, account);
 	}
 
 	@ApiOperation(value = "Wallet Waya-Request Transaction", notes = "This endpoint create client user", tags = {

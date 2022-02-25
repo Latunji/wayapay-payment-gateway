@@ -336,7 +336,7 @@ public class UnifiedPaymentProxy {
 		event.setTranNarration(tranParticular);
 		event.setTransactionCategory("WITHDRAW");
 		try {
-			WalletPaymentResponse wallet = wallProxy.fundWayaOfficialAcct(token, event);
+			WalletPaymentResponse wallet = wallProxy.fundWayaAccount(token, event);
 			if (wallet.getStatus()) {
 				for (FundEventResponse response : wallet.getData()) {
 					result = response.getTranId();

@@ -5,6 +5,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.regex.Pattern;
 
@@ -36,6 +37,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
+import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletQRResponse;
@@ -484,6 +486,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			if (tranRep != null) {
 				response = new ResponseEntity<>(new SuccessResponse("SUCCESS QR", tranRep), HttpStatus.CREATED);
 				payment.setTranId(account.getReferenceNo());
+				payment.setPreferenceNo(account.getReferenceNo());
 				payment.setTranDate(LocalDate.now());
 				payment.setRcre_time(LocalDateTime.now());
 				paymentGatewayRepo.save(payment);
@@ -541,6 +544,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
 			payment.setTranId(account.getReferenceNo());
+			payment.setPreferenceNo(account.getReferenceNo());
 			payment.setTranDate(LocalDate.now());
 			payment.setRcre_time(LocalDateTime.now());
 			PaymentGateway pay = paymentGatewayRepo.save(payment);
@@ -551,6 +555,27 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return response;
+	}
+
+	@Override
+	public ResponseEntity<?> USSDPayment(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
+		PaymentGateway payment = paymentGatewayRepo.findByRefMerchant(refNo, account.getMerchantId()).orElse(null);
+		if(payment == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PAYMENT REQUEST INITIATED"), HttpStatus.BAD_REQUEST);
+		}
+		payment.setStatus(account.getStatus());
+		payment.setTranId(account.getTranId());
+		payment.setSuccessfailure(account.isSuccessfailure());
+		LocalDate toDate = account.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		payment.setVendorDate(toDate);
+		PaymentGateway mPayment = paymentGatewayRepo.save(payment);
+		return new ResponseEntity<>(new SuccessResponse("TRANSACTION UPDATE", mPayment), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> USSDWalletPayment(HttpServletRequest request, com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment account) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

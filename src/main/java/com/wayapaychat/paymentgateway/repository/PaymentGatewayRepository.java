@@ -17,5 +17,9 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
 	@Query("SELECT u FROM PaymentGateway u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false"
 			+  " AND u.tranDate = (:tranDate)")
 	Optional<PaymentGateway> findByPaymentTrans(String tranId, LocalDate tranDate);
+	
+	@Query("SELECT u FROM PaymentGateway u " + "WHERE UPPER(u.refNo) = UPPER(:ref) " + " AND u.del_flg = false"
+			+  " AND u.merchantId = (:merchId)")
+	Optional<PaymentGateway> findByRefMerchant(String ref, String merchId);
 
 }

@@ -357,7 +357,9 @@ public class UnifiedPaymentProxy {
 				log.error("Feign Exception Status {}", httpStatus);
 			}
 			log.error("Higher Wahala {}", ex.getMessage());
-			log.error("WALLET TRANSACTION: " + ex.getLocalizedMessage());
+			log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());
+			throw new CustomException("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage() + " with Merchant: "
+					+ account.getMerchantId(), HttpStatus.BAD_REQUEST);
 		}
 		return result;
 	}

@@ -30,5 +30,7 @@ public class WayaWalletPayment {
 	private String pin;
 	
 	private BigDecimal fee;
+	
+	private String refNo;
 
 }

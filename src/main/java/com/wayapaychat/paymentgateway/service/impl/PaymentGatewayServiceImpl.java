@@ -374,6 +374,20 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			WalletAuthResponse mWallet = new WalletAuthResponse();
 			mWallet.setToken(token);
 			mWallet.setWallet(wallet.getData());
+			// Payment Request
+			PaymentGateway payment = new PaymentGateway();
+			Date dte = new Date();
+			long milliSeconds = dte.getTime();
+			String strLong = Long.toString(milliSeconds);
+			payment.setRefNo(strLong);
+			payment.setCurrencyCode("NGN");
+            String tempTranId = wallet.getTimeStamp() + strLong; 
+			payment.setTranId(tempTranId);
+			payment.setTranDate(LocalDate.now());
+			payment.setRcre_time(LocalDateTime.now());
+			mWallet.setRefNo(strLong);
+			paymentGatewayRepo.save(payment);
+
 			response = new ResponseEntity<>(new SuccessResponse("WALLET PAYMENT", mWallet), HttpStatus.CREATED);
 
 		} catch (Exception ex) {
@@ -424,7 +438,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 			FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, strLong);
 			if (tran != null) {
-				response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()), HttpStatus.CREATED);
+				response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()),
+						HttpStatus.CREATED);
 				payment.setTranId(tran.getTranId());
 				payment.setTranDate(LocalDate.now());
 				payment.setRcre_time(LocalDateTime.now());
@@ -561,7 +576,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	@Override
 	public ResponseEntity<?> USSDPayment(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
 		PaymentGateway payment = paymentGatewayRepo.findByRefMerchant(refNo, account.getMerchantId()).orElse(null);
-		if(payment == null) {
+		if (payment == null) {
 			return new ResponseEntity<>(new ErrorResponse("NO PAYMENT REQUEST INITIATED"), HttpStatus.BAD_REQUEST);
 		}
 		payment.setStatus(account.getStatus());
@@ -574,7 +589,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	}
 
 	@Override
-	public ResponseEntity<?> USSDWalletPayment(HttpServletRequest request, com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment account) {
+	public ResponseEntity<?> USSDWalletPayment(HttpServletRequest request,
+			com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment account) {
 		// TODO Auto-generated method stub
 		return null;
 	}

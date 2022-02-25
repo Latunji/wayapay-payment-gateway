@@ -112,7 +112,7 @@ public class PaymentGatewayController {
 			"PAYMENT-GATEWAY" })
 //@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
 //String.class, value = "token", paramType = "header", required = true) })
-	@PutMapping("/payment/ussd/wallet")
+	@PostMapping("/payment/ussd/wallet")
 	public ResponseEntity<?> PostWalletUSSD(HttpServletRequest request, @Valid @RequestBody USSDWalletPayment account) {
 		return paymentGatewayService.USSDWalletPayment(request, account);
 	}

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -28,6 +29,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.exception.CustomException;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedPaymentRequest;
@@ -323,9 +325,9 @@ public class UnifiedPaymentProxy {
 		return null;
 	}
 
-	public String postWalletTransaction(WayaWalletPayment account, String token, String refNo) {
+	public FundEventResponse postWalletTransaction(WayaWalletPayment account, String token, String refNo) {
 
-		String result = null;
+		FundEventResponse result = null;
 		WalletEventPayment event = new WalletEventPayment();
 		event.setAmount(account.getAmount());
 		event.setEventId("WAYAPAY");
@@ -339,11 +341,15 @@ public class UnifiedPaymentProxy {
 			WalletPaymentResponse wallet = wallProxy.fundWayaAccount(token, event);
 			if (wallet.getStatus()) {
 				for (FundEventResponse response : wallet.getData()) {
-					result = response.getTranId();
+					if(response.getPartTranType().equals("C")) {
+					  result = response;
+					}
 				}
 			} else {
 				log.error("WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: "
 						+ account.getMerchantId());
+				throw new CustomException("WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: "
+						+ account.getMerchantId(), HttpStatus.BAD_REQUEST);
 			}
 		} catch (Exception ex) {
 			if (ex instanceof FeignException) {

@@ -69,5 +69,8 @@ public class FundEventResponse {
 	
 	@JsonProperty("tranCategory")
 	private String tranCategory;
+	
+	@JsonProperty("tranCategory")
+	private String partTranType;
 
 }

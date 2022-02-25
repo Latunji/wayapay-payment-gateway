@@ -39,6 +39,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletQRResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletResponse;
@@ -421,10 +422,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
 
-			String tranId = uniPaymentProxy.postWalletTransaction(account, token, strLong);
-			if (!tranId.isBlank()) {
-				response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tranId), HttpStatus.CREATED);
-				payment.setTranId(tranId);
+			FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, strLong);
+			if (tran != null) {
+				response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()), HttpStatus.CREATED);
+				payment.setTranId(tran.getTranId());
 				payment.setTranDate(LocalDate.now());
 				payment.setRcre_time(LocalDateTime.now());
 				paymentGatewayRepo.save(payment);

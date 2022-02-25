@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.wayapaychat.paymentgateway.config.PaymentGatewayClientConfiguration;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletEventPayment;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletOfficePayment;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletPaymentResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletResponse;
 
@@ -21,8 +22,8 @@ public interface WalletProxy {
 	@PostMapping("/wallet/event/charge/payment")
 	public WalletPaymentResponse fundWayaAccount(@RequestHeader("authorization") String token, @RequestBody WalletEventPayment request);
 	
-	@PostMapping("/wallet/event/charge/payment")
-	public WalletPaymentResponse fundOfficialAccount(@RequestHeader("authorization") String token, @RequestBody WalletEventPayment request);
+	@PostMapping("/wallet/event/office/payment")
+	public WalletPaymentResponse fundOfficialAccount(@RequestHeader("authorization") String token, @RequestBody WalletOfficePayment request);
 
 
 }

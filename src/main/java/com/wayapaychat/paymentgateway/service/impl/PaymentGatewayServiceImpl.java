@@ -383,6 +383,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCurrencyCode("NGN");
 			payment.setMerchantId("WALLET PAYMENT");
 			payment.setReturnUrl("http://localhost");
+			payment.setSecretKey("PUBLIC KEY");
             String tempTranId = wallet.getTimeStamp() + strLong; 
 			payment.setTranId(tempTranId);
 			payment.setTranDate(LocalDate.now());

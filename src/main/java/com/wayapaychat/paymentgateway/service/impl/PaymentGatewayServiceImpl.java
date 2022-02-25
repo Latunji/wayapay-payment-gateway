@@ -381,6 +381,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			String strLong = Long.toString(milliSeconds);
 			payment.setRefNo(strLong);
 			payment.setCurrencyCode("NGN");
+			payment.setMerchantId("WALLET PAYMENT");
+			payment.setReturnUrl("http://localhost");
             String tempTranId = wallet.getTimeStamp() + strLong; 
 			payment.setTranId(tempTranId);
 			payment.setTranDate(LocalDate.now());

@@ -26,9 +26,11 @@ import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.ProfileResponse;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.User;
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.CardResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UniPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
@@ -37,6 +39,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
+import com.wayapaychat.paymentgateway.pojo.ussd.USSDResponse;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
@@ -144,6 +147,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 					return new PaymentGatewayResponse(false, "Invalid merchant key", null);
 				}
 			}
+			//Fetch Profile
+			ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
+			
 			PaymentGateway payment = new PaymentGateway();
 			Date dte = new Date();
 			long milliSeconds = dte.getTime();
@@ -155,13 +161,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setFee(account.getFee());
 			payment.setCurrencyCode(account.getCurrency());
 			payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
+			payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
-
+            CardResponse card = new CardResponse();
 			String tranId = uniPaymentProxy.postUnified(account);
 			if (!tranId.isBlank()) {
-				response = new PaymentGatewayResponse(true, "Success Transaction", tranId);
+				card.setTranId(tranId);
+				card.setName(profile.getData().getOtherDetails().getOrganisationName());
+				response = new PaymentGatewayResponse(true, "Success Transaction", card);
 				payment.setTranId(tranId);
 				payment.setTranDate(LocalDate.now());
 				payment.setRcre_time(LocalDateTime.now());
@@ -471,6 +480,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			}
 			PaymentData payData = authToken.getData();
 			String token = payData.getToken();
+			
 			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
 			if (!merchant.getCode().equals("00")) {
 				return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
@@ -486,6 +496,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 					return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
 				}
 			}
+			//Fetch Profile
+			ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
+					
 			PaymentGateway payment = new PaymentGateway();
 			Date dte = new Date();
 			long milliSeconds = dte.getTime();
@@ -497,12 +510,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setFee(account.getFee());
 			payment.setCurrencyCode(account.getCurrency());
 			payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
+			payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
 
 			WalletQRResponse tranRep = uniPaymentProxy.postQRTransaction(account, token);
 			if (tranRep != null) {
+				tranRep.setName(profile.getData().getOtherDetails().getOrganisationName());
 				response = new ResponseEntity<>(new SuccessResponse("SUCCESS QR", tranRep), HttpStatus.CREATED);
 				payment.setTranId(account.getReferenceNo());
 				payment.setPreferenceNo(account.getReferenceNo());
@@ -548,6 +563,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 					return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
 				}
 			}
+			//Fetch Profile
+			ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
+			
 			PaymentGateway payment = new PaymentGateway();
 			Date dte = new Date();
 			long milliSeconds = dte.getTime();
@@ -566,11 +584,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setPreferenceNo(account.getReferenceNo());
 			payment.setTranDate(LocalDate.now());
 			payment.setRcre_time(LocalDateTime.now());
+			payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
 			PaymentGateway pay = paymentGatewayRepo.save(payment);
-			response = new ResponseEntity<>(new SuccessResponse("SUCCESS QR", pay.getRefNo()), HttpStatus.CREATED);
+			USSDResponse ussd = new USSDResponse();
+			ussd.setRefNo(pay.getRefNo());
+			ussd.setName(profile.getData().getOtherDetails().getOrganisationName());
+			response = new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
 
 		} catch (Exception ex) {
-			log.error("Error occurred - GET QR TRANSACTION :", ex.getMessage());
+			log.error("Error occurred - GET USSD TRANSACTION :", ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return response;

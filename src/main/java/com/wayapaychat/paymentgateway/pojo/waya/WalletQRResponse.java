@@ -35,5 +35,7 @@ public class WalletQRResponse {
 	
 	@JsonProperty("statusCode")
 	private String statusCode;
+	
+	private String name;
 
 }

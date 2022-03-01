@@ -95,5 +95,7 @@ public class PaymentGateway {
 	@JsonDeserialize(using = LocalDateDeserializer.class)
 	@JsonSerialize(using = LocalDateSerializer.class)
 	private LocalDate vendorDate;
+	
+	private String merchantName;
 
 }

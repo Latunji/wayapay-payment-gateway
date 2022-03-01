@@ -40,3 +40,6 @@ waya:
   identitymanager:
      name: IDENTITYMANAGER-SERVICE
      url: https://services.staging.wayabank.ng/identity-manager-service/api/v1
+service:
+   name: ${SERVICE_NAME:tbaadm@wayapaychat.com}
+   pass: ${SERVICE_PASS:fintemp@#123}

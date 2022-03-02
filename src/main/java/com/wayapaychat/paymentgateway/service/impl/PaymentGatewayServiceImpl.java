@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -710,6 +711,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment account) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public ResponseEntity<?> QueryTranStatus(HttpServletRequest req) {
+		List<PaymentGateway> mPay = paymentGatewayRepo.findByPayment();
+		if (mPay == null) {
+			return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("List Payment", mPay), HttpStatus.OK);
 	}
 
 }

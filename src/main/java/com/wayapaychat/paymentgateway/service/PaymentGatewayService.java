@@ -54,5 +54,7 @@ public interface PaymentGatewayService {
 	PaymentGatewayResponse encrypt(HttpServletRequest request, WayaEncypt pay);
 	
 	PaymentGatewayResponse decrypt(HttpServletRequest request, WayaDecypt pay);
+	
+	ResponseEntity<?> QueryTranStatus(HttpServletRequest req);
 
 }

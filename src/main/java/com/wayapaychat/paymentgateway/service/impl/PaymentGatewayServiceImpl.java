@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
+import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
 import com.wayapaychat.paymentgateway.pojo.LoginRequest;
 import com.wayapaychat.paymentgateway.pojo.MerchantData;
@@ -167,6 +168,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCustomerName(account.getCustomer().getName());
 			payment.setCustomerEmail(account.getCustomer().getEmail());
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
+			payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
@@ -521,6 +523,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCustomerName(account.getCustomer().getName());
 			payment.setCustomerEmail(account.getCustomer().getEmail());
 			payment.setChannel(PaymentChannel.QR);
+			payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
 			
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
@@ -595,6 +598,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCustomerEmail(account.getCustomer().getEmail());
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
 			payment.setChannel(PaymentChannel.WALLET);
+			payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
@@ -671,6 +675,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCustomerEmail(account.getCustomer().getEmail());
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
 			payment.setChannel(PaymentChannel.USSD);
+			payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
 			PaymentGateway pay = paymentGatewayRepo.save(payment);
 			USSDResponse ussd = new USSDResponse();
 			ussd.setRefNo(pay.getRefNo());
@@ -690,7 +695,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		if (payment == null) {
 			return new ResponseEntity<>(new ErrorResponse("NO PAYMENT REQUEST INITIATED"), HttpStatus.BAD_REQUEST);
 		}
-		payment.setStatus(account.getStatus());
+		TransactionStatus channel = TransactionStatus.valueOf(account.getStatus());
+		payment.setStatus(channel);
 		payment.setTranId(account.getTranId());
 		payment.setSuccessfailure(account.isSuccessfailure());
 		LocalDate toDate = account.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();

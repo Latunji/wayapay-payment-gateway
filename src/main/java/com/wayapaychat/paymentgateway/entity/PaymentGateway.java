@@ -21,6 +21,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
+import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -72,7 +73,9 @@ public class PaymentGateway {
 
 	private String mobile;
 
-	private String status;
+	//private String status;
+	@Enumerated(EnumType.STRING)
+    private TransactionStatus status;
 	
 	@Column(columnDefinition="TEXT")
 	private String encyptCard;

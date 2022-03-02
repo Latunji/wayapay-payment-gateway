@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
 import com.wayapaychat.paymentgateway.pojo.LoginRequest;
 import com.wayapaychat.paymentgateway.pojo.MerchantData;
@@ -268,6 +269,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			PaymentGateway mPay = paymentGatewayRepo.findByTranId(pay.getTranId()).orElse(null);
 			if (mPay != null) {
 				mPay.setEncyptCard(pay.getCardEncrypt());
+				mPay.setChannel(PaymentChannel.CARD);
 				paymentGatewayRepo.save(mPay);
 				String callReq = uniPaymentProxy.getPaymentStatus(pay.getTranId(), pay.getCardEncrypt());
 				if (!callReq.isBlank()) {
@@ -297,6 +299,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		PaymentGateway mPay = paymentGatewayRepo.findByTranId(pay.getTranId()).orElse(null);
 		if (mPay != null) {
 			mPay.setEncyptCard(pay.getCardEncrypt());
+			mPay.setChannel(PaymentChannel.PAYATTITUDE);
 			paymentGatewayRepo.save(mPay);
 			WayaTransactionQuery callReq = uniPaymentProxy.postPayAttitude(pay);
 			if (callReq != null) {
@@ -517,7 +520,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
 			payment.setCustomerName(account.getCustomer().getName());
 			payment.setCustomerEmail(account.getCustomer().getEmail());
+			payment.setChannel(PaymentChannel.QR);
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
+			
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
@@ -589,6 +594,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCustomerName(account.getCustomer().getName());
 			payment.setCustomerEmail(account.getCustomer().getEmail());
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
+			payment.setChannel(PaymentChannel.WALLET);
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
@@ -664,6 +670,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCustomerName(account.getCustomer().getName());
 			payment.setCustomerEmail(account.getCustomer().getEmail());
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
+			payment.setChannel(PaymentChannel.USSD);
 			PaymentGateway pay = paymentGatewayRepo.save(payment);
 			USSDResponse ussd = new USSDResponse();
 			ussd.setRefNo(pay.getRefNo());

@@ -32,6 +32,7 @@ import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 
 import io.swagger.annotations.ApiOperation;
@@ -119,9 +120,19 @@ public class PaymentGatewayController {
 
 	@ApiOperation(value = "Wallet Waya-Request Transaction", notes = "This endpoint create client user", tags = {
 			"PAYMENT-GATEWAY" })
+// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+// String.class, value = "token", paramType = "header", required = true) })
+	@PostMapping("/request/wallet")
+	public ResponseEntity<?> PostPaymentWallet(HttpServletRequest request,
+			@Valid @RequestBody WayaWalletRequest account) {
+		return paymentGatewayService.PostWalletPayment(request, account);
+	}
+
+	@ApiOperation(value = "Wallet Authentication", notes = "This endpoint create client user", tags = {
+			"PAYMENT-GATEWAY" })
 	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
 	// String.class, value = "token", paramType = "header", required = true) })
-	@PostMapping("/request/wallet")
+	@PostMapping("/authentication/wallet")
 	public ResponseEntity<?> PostPaymentAuthentication(HttpServletRequest request,
 			@Valid @RequestBody WayaAuthenicationRequest account) {
 		return paymentGatewayService.WalletPaymentAuthentication(request, account);

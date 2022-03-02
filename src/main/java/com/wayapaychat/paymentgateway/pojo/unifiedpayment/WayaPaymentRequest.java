@@ -7,6 +7,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.wayapaychat.paymentgateway.pojo.Customer;
+
 import lombok.Data;
 
 @Data
@@ -39,5 +41,7 @@ public class WayaPaymentRequest {
 	@NotBlank(message = "Secret Key must not be null")
 	@Size(min=3, max=100, message = "The Secret Key '${validatedValue}' must be between {min} and {max} characters long")
 	private String wayaPublicKey;
+	
+	private Customer customer;
 
 }

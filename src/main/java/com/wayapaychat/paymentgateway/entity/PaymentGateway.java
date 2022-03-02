@@ -97,5 +97,11 @@ public class PaymentGateway {
 	private LocalDate vendorDate;
 	
 	private String merchantName;
+	
+	private String customerName;
+	
+	private String customerEmail;
+	
+	private String customerPhone;
 
 }

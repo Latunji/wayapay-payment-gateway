@@ -1,7 +1,6 @@
 package com.wayapaychat.paymentgateway.pojo.waya;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

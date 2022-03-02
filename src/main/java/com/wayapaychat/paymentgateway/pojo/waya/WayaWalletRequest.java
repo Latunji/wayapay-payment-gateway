@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.pojo.ussd;
+package com.wayapaychat.paymentgateway.pojo.waya;
 
 import java.math.BigDecimal;
 
@@ -15,7 +15,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class WayaUSSDRequest {
+public class WayaWalletRequest {
 
 	private String paymentDescription;
 
@@ -27,12 +27,10 @@ public class WayaUSSDRequest {
 
 	private String wayaPublicKey;
 
-	private String phoneNo;
+	private Customer customer;
 
 	private String currency;
 
 	private BigDecimal fee;
-	
-	private Customer customer;
 
 }

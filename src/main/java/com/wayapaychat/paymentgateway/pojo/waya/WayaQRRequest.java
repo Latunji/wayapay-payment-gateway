@@ -3,6 +3,8 @@ package com.wayapaychat.paymentgateway.pojo.waya;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import com.wayapaychat.paymentgateway.pojo.Customer;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +28,7 @@ public class WayaQRRequest {
 
 	private String wayaPublicKey;
 
-	//private String accountNo;
+	private Customer customer;
 
 	private String currency;
 

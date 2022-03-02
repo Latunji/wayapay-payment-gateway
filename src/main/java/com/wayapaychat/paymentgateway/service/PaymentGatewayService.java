@@ -17,6 +17,7 @@ import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
 
 public interface PaymentGatewayService {
 	
@@ -27,6 +28,8 @@ public interface PaymentGatewayService {
 	 * PaymentGatewayResponse wemaAllPrefix(HttpServletRequest request);
 	 */
 	ResponseEntity<?> WalletPaymentQR(HttpServletRequest request, WayaQRRequest account);
+	
+	ResponseEntity<?> PostWalletPayment(HttpServletRequest request, WayaWalletRequest account);
 	
 	ResponseEntity<?> USSDPayment(HttpServletRequest request, WayaUSSDPayment account, String refNo);
 	

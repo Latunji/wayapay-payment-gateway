@@ -13,7 +13,7 @@ public class Test {
 		*
 		* below is the direct 16byte string we can use
 		*/
-		String secretKey = "mustbe16byteskey";
+		String secretKey = "wayatest1726chat";
 		String encodedBase64Key = Crypto.encodeKey(secretKey);
 		System.out.println("EncodedBase64Key = " + encodedBase64Key); // This need to be share between client and server
 		// To check actual key from encoded base 64 secretKey

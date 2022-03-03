@@ -270,4 +270,14 @@ public class PaymentGatewayController {
 		return paymentGatewayService.QueryTranStatus(request);
 	}
 
+	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {
+			"PAYMENT-GATEWAY" })
+//@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+//String.class, value = "token", paramType = "header", required = true) })
+	@GetMapping("/report/query/{merchantId}")
+	public ResponseEntity<?> getQueryTransactionStatus(HttpServletRequest request,
+			@PathVariable("merchantId") final String merchantId) {
+		return paymentGatewayService.QueryMerchantTranStatus(request, merchantId);
+	}
+
 }

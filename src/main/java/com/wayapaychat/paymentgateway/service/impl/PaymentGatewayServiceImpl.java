@@ -9,11 +9,13 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jsoup.Jsoup;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -30,6 +32,7 @@ import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.ProfileResponse;
+import com.wayapaychat.paymentgateway.pojo.ReportPayment;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.User;
@@ -83,6 +86,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Autowired
 	WalletProxy wallProxy;
+	
+	@Autowired
+	ModelMapper modelMapper;
 
 	@Value("${service.name}")
 	private String username;
@@ -719,7 +725,25 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		if (mPay == null) {
 			return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
 		}
-		return new ResponseEntity<>(new SuccessResponse("List Payment", mPay), HttpStatus.OK);
+		List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
+		return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
+	}
+	
+	<S, T> List<T> mapList(List<S> source, Class<T> targetClass) {
+	    return source
+	      .stream()
+	      .map(element -> modelMapper.map(element, targetClass))
+	      .collect(Collectors.toList());
+	}
+
+	@Override
+	public ResponseEntity<?> QueryMerchantTranStatus(HttpServletRequest req, String merchantId) {
+		List<PaymentGateway> mPay = paymentGatewayRepo.findByMerchantPayment(merchantId);
+		if (mPay == null) {
+			return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+		}
+		List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
+		return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
 	}
 
 }

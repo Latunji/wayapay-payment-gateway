@@ -86,15 +86,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Autowired
 	WalletProxy wallProxy;
-	
-	@Autowired
-	ModelMapper modelMapper;
 
 	@Value("${service.name}")
 	private String username;
 
 	@Value("${service.pass}")
 	private String passSecret;
+	
+	ModelMapper modelMapper = new ModelMapper();
 
 	/*
 	 * @Autowired public PaymentGatewayServiceImpl(WemaBankProxy proxy) { this.proxy

@@ -1,7 +1,5 @@
 package com.wayapaychat.paymentgateway.pojo.waya;
 
-import java.math.BigDecimal;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,21 +13,21 @@ import lombok.ToString;
 @ToString
 public class WayaWalletPayment {
 	
-	private String paymentDescription;
+	//private String paymentDescription;
 	
-	private String merchantId;
+	//private String merchantId;
 	
-	private BigDecimal amount;
+	//private BigDecimal amount;
 	
-	private String wayaPublicKey;
+	//private String wayaPublicKey;
 	
 	private String accountNo;
 	
-	private String currency;
+	//private String currency;
 	
 	private String pin;
 	
-	private BigDecimal fee;
+	//private BigDecimal fee;
 	
 	private String refNo;
 

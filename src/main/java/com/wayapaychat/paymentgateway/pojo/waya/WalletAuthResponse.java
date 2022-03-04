@@ -19,5 +19,6 @@ public class WalletAuthResponse {
 	private List<WalletData> wallet;
 	private String token;
 	private String refNo;
+	private String merchantName;
 
 }

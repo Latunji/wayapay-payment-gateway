@@ -29,6 +29,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.exception.CustomException;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedPaymentCallback;
@@ -325,16 +326,16 @@ public class UnifiedPaymentProxy {
 		return null;
 	}
 
-	public FundEventResponse postWalletTransaction(WayaWalletPayment account, String token, String refNo) {
+	public FundEventResponse postWalletTransaction(WayaWalletPayment account, String token, PaymentGateway mPay) {
 
 		FundEventResponse result = null;
 		WalletEventPayment event = new WalletEventPayment();
-		event.setAmount(account.getAmount());
+		event.setAmount(mPay.getAmount());
 		event.setEventId("WAYAPAY");
 		event.setTranCrncy("NGN");
 		event.setCustomerAccountNumber(account.getAccountNo());
-		event.setPaymentReference(refNo);
-		String tranParticular = account.getPaymentDescription() + "-" + refNo;
+		event.setPaymentReference(mPay.getRefNo());
+		String tranParticular = mPay.getDescription() + "-" + mPay.getRefNo();
 		event.setTranNarration(tranParticular);
 		event.setTransactionCategory("WITHDRAW");
 		try {
@@ -347,9 +348,9 @@ public class UnifiedPaymentProxy {
 				}
 			} else {
 				log.error("WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: "
-						+ account.getMerchantId());
+						+ mPay.getMerchantId());
 				throw new CustomException("WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: "
-						+ account.getMerchantId(), HttpStatus.BAD_REQUEST);
+						+ mPay.getMerchantId(), HttpStatus.BAD_REQUEST);
 			}
 		} catch (Exception ex) {
 			if (ex instanceof FeignException) {
@@ -359,7 +360,7 @@ public class UnifiedPaymentProxy {
 			log.error("Higher Wahala {}", ex.getMessage());
 			log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());
 			throw new CustomException("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage() + " with Merchant: "
-					+ account.getMerchantId(), HttpStatus.BAD_REQUEST);
+					+ mPay.getMerchantId(), HttpStatus.BAD_REQUEST);
 		}
 		return result;
 	}

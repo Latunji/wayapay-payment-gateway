@@ -31,6 +31,7 @@ import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.PinResponse;
 import com.wayapaychat.paymentgateway.pojo.ProfileResponse;
 import com.wayapaychat.paymentgateway.pojo.ReportPayment;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
@@ -92,7 +93,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Value("${service.pass}")
 	private String passSecret;
-	
+
 	ModelMapper modelMapper = new ModelMapper();
 
 	/*
@@ -395,11 +396,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				log.error("WALLET ERROR: " + wallet.toString());
 				return new ResponseEntity<>(new ErrorResponse(wallet.getMessage()), HttpStatus.BAD_REQUEST);
 			}
+			// Fetch Profile
+			ProfileResponse profile = authProxy.getProfileDetail(user.getId(), token);
+
 			WalletAuthResponse mWallet = new WalletAuthResponse();
 			mWallet.setToken(token);
 			mWallet.setWallet(wallet.getData());
+			mWallet.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
 			// Payment Request
-			PaymentGateway payment = new PaymentGateway();
+			/*PaymentGateway payment = new PaymentGateway();
 			Date dte = new Date();
 			long milliSeconds = dte.getTime();
 			String strLong = Long.toString(milliSeconds);
@@ -414,7 +419,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setRcre_time(LocalDateTime.now());
 			mWallet.setRefNo(strLong);
 			paymentGatewayRepo.save(payment);
-
+            */
 			response = new ResponseEntity<>(new SuccessResponse("WALLET PAYMENT", mWallet), HttpStatus.CREATED);
 
 		} catch (Exception ex) {
@@ -433,23 +438,23 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"),
 				HttpStatus.BAD_REQUEST);
 		try {
-			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
+			PaymentGateway payment = paymentGatewayRepo.findByRefNo(account.getRefNo()).orElse(null);
+			if (payment == null) {
+				return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
+			}
+			
+			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
 			if (!merchant.getCode().equals("00")) {
 				return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
 			}
 			log.info("Merchant: " + merchant.toString());
 			MerchantData sMerchant = merchant.getData();
-			if (sMerchant.getMerchantKeyMode().equals("TEST")) {
-				if (!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
-					return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
-				}
-			} else {
-				if (!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
-					return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
-				}
+			
+			PinResponse pin = authProxy.validatePin(Long.valueOf(sMerchant.getUserId()), Long.valueOf(account.getPin()),token);
+			if(!pin.isStatus()) {
+				return new ResponseEntity<>(new ErrorResponse("INVALID PIN"), HttpStatus.BAD_REQUEST);
 			}
-			PaymentGateway payment = new PaymentGateway();
-			Date dte = new Date();
+			/*Date dte = new Date();
 			long milliSeconds = dte.getTime();
 			String strLong = Long.toString(milliSeconds);
 			payment.setRefNo(strLong);
@@ -462,8 +467,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
-
-			FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, strLong);
+            */
+			FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, payment);
 			if (tran != null) {
 				response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()),
 						HttpStatus.CREATED);
@@ -531,7 +536,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setChannel(PaymentChannel.QR);
 			payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
-			
+
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
@@ -727,12 +732,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
 		return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
 	}
-	
+
 	<S, T> List<T> mapList(List<S> source, Class<T> targetClass) {
-	    return source
-	      .stream()
-	      .map(element -> modelMapper.map(element, targetClass))
-	      .collect(Collectors.toList());
+		return source.stream().map(element -> modelMapper.map(element, targetClass)).collect(Collectors.toList());
 	}
 
 	@Override

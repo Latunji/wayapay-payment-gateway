@@ -338,9 +338,12 @@ public class UnifiedPaymentProxy {
 		String tranParticular = mPay.getDescription() + "-" + mPay.getRefNo();
 		event.setTranNarration(tranParticular);
 		event.setTransactionCategory("WITHDRAW");
+		log.info("EVENT DEBIT: " + event.toString());
 		try {
 			WalletPaymentResponse wallet = wallProxy.fundWayaAccount(token, event);
+			log.info(wallet.toString());
 			if (wallet.getStatus()) {
+				log.info("FUNDING WALLET");
 				for (FundEventResponse response : wallet.getData()) {
 					if(response.getPartTranType().equals("C")) {
 					  result = response;

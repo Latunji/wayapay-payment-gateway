@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -167,6 +168,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			Date dte = new Date();
 			long milliSeconds = dte.getTime();
 			String strLong = Long.toString(milliSeconds);
+			Random rnd = new Random();
+			strLong = strLong + rnd.nextInt(999999);
 			payment.setRefNo(strLong);
 			payment.setMerchantId(account.getMerchantId());
 			payment.setDescription(account.getDescription());

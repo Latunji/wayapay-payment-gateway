@@ -6,10 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 import lombok.ToString;
 
 
@@ -23,10 +20,7 @@ import lombok.ToString;
 "tranNarration",
 "transactionCategory"
 })
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 @ToString
 public class WalletEventPayment {
 	
@@ -50,5 +44,22 @@ public class WalletEventPayment {
 	
 	@JsonProperty("transactionCategory")
 	private String transactionCategory;
+
+	public WalletEventPayment(BigDecimal amount, String customerAccountNumber, String eventId, String paymentReference,
+			String tranCrncy, String tranNarration, String transactionCategory) {
+		super();
+		this.amount = amount;
+		this.customerAccountNumber = customerAccountNumber;
+		this.eventId = eventId;
+		this.paymentReference = paymentReference;
+		this.tranCrncy = tranCrncy;
+		this.tranNarration = tranNarration;
+		this.transactionCategory = transactionCategory;
+	}
+
+	public WalletEventPayment() {
+		super();
+	}	
+	
 
 }

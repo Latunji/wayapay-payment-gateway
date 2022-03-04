@@ -25,7 +25,8 @@ import lombok.ToString;
 "tranDate",
 "tranCrncyCode",
 "paymentReference",
-"tranCategory"
+"tranCategory",
+"partTranType"
 })
 @Getter
 @Setter
@@ -70,7 +71,7 @@ public class FundEventResponse {
 	@JsonProperty("tranCategory")
 	private String tranCategory;
 	
-	@JsonProperty("tranCategory")
+	@JsonProperty("partTranType")
 	private String partTranType;
 
 }

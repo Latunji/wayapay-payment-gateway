@@ -43,5 +43,7 @@ public class WayaPaymentRequest {
 	private String wayaPublicKey;
 	
 	private Customer customer;
+	
+	private String preferenceNo;
 
 }

@@ -25,7 +25,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.entity.PaymentWallet;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
+import com.wayapaychat.paymentgateway.enumm.TStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.Customer;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
@@ -64,6 +66,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
+import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
@@ -91,6 +94,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Autowired
 	WalletProxy wallProxy;
+	
+	@Autowired
+	PaymentWalletRepository paymentWalletRepo;
 
 	@Value("${service.name}")
 	private String username;
@@ -487,6 +493,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
             */
+			PaymentWallet wallet = new PaymentWallet();
 			FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, payment);
 			if (tran != null) {
 				response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()),
@@ -494,7 +501,22 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				payment.setTranId(tran.getTranId());
 				payment.setTranDate(LocalDate.now());
 				payment.setRcre_time(LocalDateTime.now());
+				payment.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
 				paymentGatewayRepo.save(payment);
+				
+				wallet.setPaymentDescription(tran.getTranNarrate());
+				wallet.setPaymentReference(tran.getPaymentReference());
+				wallet.setTranAmount(tran.getTranAmount());
+				wallet.setTranDate(tran.getTranDate());
+				wallet.setTranId(tran.getTranId());
+				wallet.setStatus(TStatus.APPROVED);
+				paymentWalletRepo.save(wallet);
+			}else {
+				wallet.setPaymentDescription(payment.getDescription());
+				wallet.setPaymentReference(payment.getPreferenceNo());
+				wallet.setTranAmount(payment.getAmount());
+				wallet.setStatus(TStatus.REJECTED);
+				paymentWalletRepo.save(wallet);
 			}
 		} catch (Exception ex) {
 			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());

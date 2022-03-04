@@ -346,7 +346,7 @@ public class UnifiedPaymentProxy {
 				log.info("FUNDING WALLET");
 				for (FundEventResponse response : wallet.getData()) {
 					if(response.getPartTranType().equals("C")) {
-					  result = response;
+					  result = response;					  
 					}
 				}
 			} else {

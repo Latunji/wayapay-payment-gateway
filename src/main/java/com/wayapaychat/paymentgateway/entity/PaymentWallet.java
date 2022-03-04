@@ -4,11 +4,15 @@ import java.math.BigDecimal;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+
+import com.wayapaychat.paymentgateway.enumm.TStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -43,5 +47,8 @@ public class PaymentWallet {
 	private String paymentReference;
 	
 	private String paymentDescription;
+	
+	@Enumerated(EnumType.STRING)
+    private TStatus status;
 
 }

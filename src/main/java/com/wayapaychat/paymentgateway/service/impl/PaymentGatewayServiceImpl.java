@@ -43,6 +43,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPayattitude;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
@@ -176,13 +177,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCustomerEmail(account.getCustomer().getEmail());
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
 			payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
+			payment.setPreferenceNo(account.getPreferenceNo());
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
 			CardResponse card = new CardResponse();
 			String tranId = uniPaymentProxy.postUnified(account);
 			if (!tranId.isBlank()) {
-				card.setTranId(tranId);
+				card.setTranId(strLong);
 				card.setName(profile.getData().getOtherDetails().getOrganisationName());
 				response = new PaymentGatewayResponse(true, "Success Transaction", card);
 				payment.setTranId(tranId);
@@ -275,12 +277,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			WayaPaymentCallback pay) {
 		PaymentGatewayResponse mResponse = new PaymentGatewayResponse(false, "Callback fail", null);
 		try {
-			PaymentGateway mPay = paymentGatewayRepo.findByTranId(pay.getTranId()).orElse(null);
+			PaymentGateway mPay = paymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
 			if (mPay != null) {
 				mPay.setEncyptCard(pay.getCardEncrypt());
 				mPay.setChannel(PaymentChannel.CARD);
 				paymentGatewayRepo.save(mPay);
-				String callReq = uniPaymentProxy.getPaymentStatus(pay.getTranId(), pay.getCardEncrypt());
+				String callReq = uniPaymentProxy.getPaymentStatus(mPay.getTranId(), pay.getCardEncrypt());
 				if (!callReq.isBlank()) {
 					// response.sendRedirect(callReq);
 					URLConnection urlConnection_ = new URL(callReq).openConnection();
@@ -310,7 +312,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			mPay.setEncyptCard(pay.getCardEncrypt());
 			mPay.setChannel(PaymentChannel.PAYATTITUDE);
 			paymentGatewayRepo.save(mPay);
-			WayaTransactionQuery callReq = uniPaymentProxy.postPayAttitude(pay);
+			WayaPayattitude attitude = new WayaPayattitude(mPay.getTranId(), pay.getCardEncrypt());
+			WayaTransactionQuery callReq = uniPaymentProxy.postPayAttitude(attitude);
 			if (callReq != null) {
 				response = new PaymentGatewayResponse(true, "Success Encrypt", callReq);
 			}

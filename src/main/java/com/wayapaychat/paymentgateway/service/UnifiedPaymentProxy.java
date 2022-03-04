@@ -34,7 +34,7 @@ import com.wayapaychat.paymentgateway.exception.CustomException;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedPaymentRequest;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPayattitude;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
@@ -255,7 +255,7 @@ public class UnifiedPaymentProxy {
 		return resp.getBody();
 	}
 
-	public WayaTransactionQuery postPayAttitude(WayaPaymentCallback pay) {
+	public WayaTransactionQuery postPayAttitude(WayaPayattitude pay) {
 		try {
 			UnifiedPaymentCallback callReq = new UnifiedPaymentCallback(pay.getTranId(), merchantId,
 					pay.getCardEncrypt());

@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
+import com.wayapaychat.paymentgateway.pojo.Customer;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
 import com.wayapaychat.paymentgateway.pojo.LoginRequest;
 import com.wayapaychat.paymentgateway.pojo.MerchantData;
@@ -182,7 +184,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
 			payment.setSecretKey(vt);
 			CardResponse card = new CardResponse();
-			String tranId = uniPaymentProxy.postUnified(account);
+			//To create temporary tranId
+			UUID uuid = UUID.randomUUID();
+	        String tranId = uuid.toString();
+			//String tranId = uniPaymentProxy.postUnified(account);
 			if (!tranId.isBlank()) {
 				card.setTranId(strLong);
 				card.setName(profile.getData().getOtherDetails().getOrganisationName());
@@ -282,6 +287,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				mPay.setEncyptCard(pay.getCardEncrypt());
 				mPay.setChannel(PaymentChannel.CARD);
 				paymentGatewayRepo.save(mPay);
+				WayaPaymentRequest mAccount = new WayaPaymentRequest(mPay.getMerchantId(), mPay.getDescription(), mPay.getAmount(),
+						mPay.getFee(), mPay.getCurrencyCode(), mPay.getSecretKey(), 
+						new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), 
+								mPay.getCustomerPhone()), mPay.getPreferenceNo());
+				String tranId = uniPaymentProxy.postUnified(mAccount);
+				if (tranId.isBlank()) {
+					return new PaymentGatewayResponse(false, "Unable to transaction request", null);
+				}
 				String callReq = uniPaymentProxy.getPaymentStatus(mPay.getTranId(), pay.getCardEncrypt());
 				if (!callReq.isBlank()) {
 					// response.sendRedirect(callReq);

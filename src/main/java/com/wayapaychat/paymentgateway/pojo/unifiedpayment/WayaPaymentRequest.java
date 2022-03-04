@@ -46,4 +46,23 @@ public class WayaPaymentRequest {
 	
 	private String preferenceNo;
 
+	public WayaPaymentRequest(String merchantId, String description, BigDecimal amount,
+			BigDecimal fee, String currency, String wayaPublicKey, Customer customer, 
+			String preferenceNo) {
+		super();
+		this.merchantId = merchantId;
+		this.description = description;
+		this.amount = amount;
+		this.fee = fee;
+		this.currency = currency;
+		this.wayaPublicKey = wayaPublicKey;
+		this.customer = customer;
+		this.preferenceNo = preferenceNo;
+	}
+
+	public WayaPaymentRequest() {
+		super();
+	}
+	
+
 }

@@ -22,4 +22,17 @@ public class Customer {
 	@Size(min=3, max=100, message = "The phoneNumber '${validatedValue}' must be between {min} and {max} characters long")
 	private String phoneNumber;
 
+	public Customer(String name, String email, String phoneNumber) {
+		super();
+		this.name = name;
+		this.email = email;
+		this.phoneNumber = phoneNumber;
+	}
+
+	public Customer() {
+		super();
+		
+	}
+	
+
 }

@@ -85,7 +85,7 @@ public class PaymentGatewayController {
 			"PAYMENT-GATEWAY" })
 	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
 	// String.class, value = "token", paramType = "header", required = true) })
-	@PostMapping("/request/qr-code")
+	@PostMapping("/generate/qr-code")
 	public ResponseEntity<?> PostPaymentQRCode(HttpServletRequest request, @Valid @RequestBody WayaQRRequest account) {
 		return paymentGatewayService.WalletPaymentQR(request, account);
 	}

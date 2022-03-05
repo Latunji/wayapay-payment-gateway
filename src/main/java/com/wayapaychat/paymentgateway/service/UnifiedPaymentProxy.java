@@ -368,18 +368,18 @@ public class UnifiedPaymentProxy {
 		return result;
 	}
 
-	public WalletQRResponse postQRTransaction(WayaQRRequest account, String token) {
+	public WalletQRResponse postQRTransaction(PaymentGateway account, String token, WayaQRRequest request) {
 		WalletQRResponse wallet = new WalletQRResponse();
 		WalletQRGenerate qrgen = new WalletQRGenerate();
 		qrgen.setPayableAmount(account.getAmount());
 		qrgen.setActive(true);
-		qrgen.setCustomerSessionId(account.getReferenceNo());
+		qrgen.setCustomerSessionId(account.getRefNo());
 		qrgen.setMerchantId(account.getMerchantId());
 		qrgen.setPaymentChannel("QR");
-		String tranParticular = account.getPaymentDescription() + "-" + account.getReferenceNo();
+		String tranParticular = account.getDescription() + "-" + account.getRefNo();
 		qrgen.setTransactionNarration(tranParticular);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        String expiryDate = sdf.format(account.getQrExpiryDate());
+        String expiryDate = sdf.format(request.getQrExpiryDate());
         log.info("QR TIME: " + expiryDate);
 		qrgen.setQrCodeExpiryDate(expiryDate);
 		qrgen.setUserId(0);

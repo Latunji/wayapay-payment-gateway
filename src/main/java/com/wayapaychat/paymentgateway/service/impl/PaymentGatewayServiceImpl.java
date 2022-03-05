@@ -470,6 +470,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
 			}
 			
+			if(payment.isSuccessfailure() && payment.getStatus().name().equals("TRANSACTION_COMPLETED")) {
+				return new ResponseEntity<>(new ErrorResponse("TRANSACTION ALREADY COMPLETED FOR REFERENCE NUMBER :" + payment.getRefNo()), HttpStatus.BAD_REQUEST);
+			}
+			
 			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
 			if (!merchant.getCode().equals("00")) {
 				return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
@@ -511,6 +515,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				payment.setTranDate(LocalDate.now());
 				payment.setRcre_time(LocalDateTime.now());
 				payment.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
+				payment.setSuccessfailure(true);
 				paymentGatewayRepo.save(payment);
 				
 				wallet.setPaymentDescription(tran.getTranNarrate());

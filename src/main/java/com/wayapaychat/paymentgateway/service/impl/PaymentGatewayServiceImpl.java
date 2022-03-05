@@ -34,6 +34,7 @@ import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
 import com.wayapaychat.paymentgateway.pojo.LoginRequest;
 import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.MyUserData;
 import com.wayapaychat.paymentgateway.pojo.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.PinResponse;
@@ -41,6 +42,7 @@ import com.wayapaychat.paymentgateway.pojo.ProfileResponse;
 import com.wayapaychat.paymentgateway.pojo.ReportPayment;
 import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
+import com.wayapaychat.paymentgateway.pojo.TokenCheckResponse;
 import com.wayapaychat.paymentgateway.pojo.User;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.CardResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UniPayment;
@@ -474,8 +476,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			}
 			log.info("Merchant: " + merchant.toString());
 			MerchantData sMerchant = merchant.getData();
+			log.info("Merchant ID: " + sMerchant.getMerchantId());
 			
-			PinResponse pin = authProxy.validatePin(Long.valueOf(sMerchant.getUserId()), Long.valueOf(account.getPin()),token);
+			TokenCheckResponse auth = authProxy.getUserDataToken(token);
+			if(!auth.isStatus()) {
+				return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+			}
+			MyUserData mAuth = auth.getData();
+			
+			PinResponse pin = authProxy.validatePin(Long.valueOf(mAuth.getId()), Long.valueOf(account.getPin()),token);
 			if(!pin.isStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("INVALID PIN"), HttpStatus.BAD_REQUEST);
 			}

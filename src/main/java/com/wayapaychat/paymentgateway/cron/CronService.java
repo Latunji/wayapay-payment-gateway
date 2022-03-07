@@ -24,9 +24,9 @@ public class CronService {
 	
 	@Autowired
 	PaymentGatewayService paymentService;
-	
-	@Scheduled(cron = "*/5 * * * * *")
-	public void PostUPCardSink() {
+
+	//@Scheduled(cron = "*/5 * * * * *")
+	/*public void PostUPCardSink() {
 		List<PaymentGateway> product = paymentGatewayRepo.findAll();
 		for(PaymentGateway payment : product) {
 			PaymentGateway mPay = paymentGatewayRepo.findByRefNo(payment.getRefNo()).orElse(null);
@@ -49,5 +49,5 @@ public class CronService {
 				}
 			}
 		}
-
+*/
 }

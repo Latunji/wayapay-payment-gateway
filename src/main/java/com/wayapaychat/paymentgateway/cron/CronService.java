@@ -34,7 +34,7 @@ public class CronService {
 					//log.info("TRANSACTION STATUS: " + mPay.toString());
 					if(!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
 						WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
-						log.info("UP STATUS: " + query.toString());
+						//log.info("UP STATUS: " + query.toString());
 						if(query.getStatus().contains("APPROVED")) {
 							mPay.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
 							mPay.setSuccessfailure(true);

@@ -70,7 +70,7 @@ public class UnifiedPaymentProxy {
 	@Value("${waya.unified-payment.baseurl}")
 	private String merchantUrl;
 
-	@Value("${waya.formcallback.baseurl}")
+	@Value("${waya.callback.baseurl}")
 	private String callbackUrl;
 
 	private static final String Mode = "AES/CBC/PKCS5Padding";

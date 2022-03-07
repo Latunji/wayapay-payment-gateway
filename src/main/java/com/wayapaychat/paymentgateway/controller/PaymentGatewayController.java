@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
@@ -218,9 +219,9 @@ public class PaymentGatewayController {
 
 	}
 
-	@GetMapping(value = "/wayaCallBack", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+	@PostMapping(value = "/wayaCallBack", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ApiOperation(value = "Waya Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	public ResponseEntity<?> CallBack(WayaCallbackRequest requests) {
+	public ResponseEntity<?> CallBack(@RequestPart WayaCallbackRequest requests) {
 		log.info(requests.toString());
 		return null;
 	}

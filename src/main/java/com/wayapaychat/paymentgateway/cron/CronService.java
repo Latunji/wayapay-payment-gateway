@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.cron;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -31,8 +32,9 @@ public class CronService {
 			PaymentGateway mPay = paymentGatewayRepo.findByRefNo(payment.getRefNo()).orElse(null);
 				if(mPay != null && (!mPay.getStatus().name().equals("TRANSACTION_COMPLETED"))) {
 					log.info("TRANSACTION STATUS: " + mPay.toString());
-					if(!mPay.getTranId().isBlank()) {
+					if(!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
 						WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
+						log.info("UP STATUS: " + query.toString());
 						if(query.getStatus().contains("Approve")) {
 							mPay.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
 						}else if(query.getStatus().contains("Reject")) {

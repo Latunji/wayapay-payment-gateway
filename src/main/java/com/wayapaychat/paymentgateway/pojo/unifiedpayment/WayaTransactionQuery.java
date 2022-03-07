@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import lombok.Data;
 import lombok.ToString;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -24,6 +25,7 @@ import lombok.ToString;
 })
 @Generated("jsonschema2pojo")
 @ToString
+@Data
 public class WayaTransactionQuery {
 	
 	@JsonProperty("Order Id")

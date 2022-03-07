@@ -332,12 +332,24 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	@Override
 	public PaymentGatewayResponse PayAttitudeCallback(HttpServletRequest request, WayaPaymentCallback pay) {
 		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "PayAttitude Callback fail", null);
-		PaymentGateway mPay = paymentGatewayRepo.findByTranId(pay.getTranId()).orElse(null);
+		
+		PaymentGateway mPay = paymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
 		if (mPay != null) {
 			mPay.setEncyptCard(pay.getCardEncrypt());
 			mPay.setChannel(PaymentChannel.PAYATTITUDE);
+			
+			WayaPaymentRequest mAccount = new WayaPaymentRequest(mPay.getMerchantId(), mPay.getDescription(), mPay.getAmount(),
+					mPay.getFee(), mPay.getCurrencyCode(), mPay.getSecretKey(), 
+					new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), 
+							mPay.getCustomerPhone()), mPay.getPreferenceNo());
+			String tranId = uniPaymentProxy.postUnified(mAccount);
+			if (tranId.isBlank()) {
+				return new PaymentGatewayResponse(false, "Unable to transaction request", null);
+			}
+			mPay.setTranId(tranId);
 			paymentGatewayRepo.save(mPay);
-			WayaPayattitude attitude = new WayaPayattitude(mPay.getTranId(), pay.getCardEncrypt());
+		
+			WayaPayattitude attitude = new WayaPayattitude(tranId, pay.getCardEncrypt());
 			WayaTransactionQuery callReq = uniPaymentProxy.postPayAttitude(attitude);
 			if (callReq != null) {
 				response = new PaymentGatewayResponse(true, "Success Encrypt", callReq);
@@ -367,6 +379,20 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		}
 		return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
 	}
+	
+	@Override
+	public WayaTransactionQuery GetTransactionStatus(String tranId) {
+		WayaTransactionQuery response = null;
+		
+		try {
+			response = uniPaymentProxy.transactionQuery(tranId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return response;
+	}
+
 
 	@Override
 	public PaymentGatewayResponse encrypt(HttpServletRequest request, WayaEncypt pay) {

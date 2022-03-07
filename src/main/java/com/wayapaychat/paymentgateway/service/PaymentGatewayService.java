@@ -11,6 +11,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
@@ -50,6 +51,8 @@ public interface PaymentGatewayService {
 	PaymentGatewayResponse PayAttitudeCallback(HttpServletRequest request, WayaPaymentCallback pay);
 	
 	ResponseEntity<?> GetTransactionStatus(HttpServletRequest req, String tranId);
+	
+	WayaTransactionQuery GetTransactionStatus(String tranId);
 	
 	PaymentGatewayResponse encrypt(HttpServletRequest request, WayaEncypt pay);
 	

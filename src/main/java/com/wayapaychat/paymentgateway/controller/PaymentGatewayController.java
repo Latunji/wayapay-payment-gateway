@@ -17,9 +17,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCallbackRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
@@ -34,6 +35,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
+import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 
 import io.swagger.annotations.ApiOperation;
@@ -50,6 +52,9 @@ public class PaymentGatewayController {
 
 	@Autowired
 	PaymentGatewayService paymentGatewayService;
+
+	@Autowired
+	PaymentGatewayRepository paymentGatewayRepo;
 
 	/*
 	 * @ApiOperation(value = "Wema Transaction Query", notes =
@@ -221,9 +226,23 @@ public class PaymentGatewayController {
 
 	@PostMapping(value = "/wayaCallBack", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 	@ApiOperation(value = "Waya Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
-	public ResponseEntity<?> CallBack(WayaCallbackRequest requests) {
+	public String CallBack(WayaCallbackRequest requests) {
 		log.info(requests.toString());
-		return null;
+		PaymentGateway payment = paymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
+		if (payment == null) {
+			return "UNKNOWN PAYMENT TRANSACTION STATUS";
+		}
+		
+		if (requests.isApproved()) {
+			payment.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
+			payment.setSuccessfailure(true);
+			payment.setTranId(requests.getTrxId());
+		} else {
+			payment.setStatus(TransactionStatus.TRANSACTION_FAILED);
+			payment.setSuccessfailure(false);
+			payment.setTranId(requests.getTrxId());
+		}
+		return "WAYA PAYMENT TRANSACTION " + requests.getStatus().toUpperCase();
 	}
 
 	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {

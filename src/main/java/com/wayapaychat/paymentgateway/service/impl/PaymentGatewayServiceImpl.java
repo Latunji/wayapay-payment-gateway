@@ -144,6 +144,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	public PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account) {
 		PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocess Transaction", null);
 		try {
+			//Duplicate Reference
+			
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);

@@ -18,36 +18,39 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class CronService {
-	
+
 	@Autowired
 	PaymentGatewayRepository paymentGatewayRepo;
-	
+
 	@Autowired
 	PaymentGatewayService paymentService;
 
-	//@Scheduled(cron = "*/5 * * * * *")
-	/*public void PostUPCardSink() {
+	@Scheduled(cron = "*/5 * * * * *")
+	public void PostUPCardSink() {
 		List<PaymentGateway> product = paymentGatewayRepo.findAll();
-		for(PaymentGateway payment : product) {
+		for (PaymentGateway payment : product) {
 			PaymentGateway mPay = paymentGatewayRepo.findByRefNo(payment.getRefNo()).orElse(null);
-				if(mPay != null && (!mPay.getStatus().name().equals("TRANSACTION_COMPLETED"))) {
-					//log.info("TRANSACTION STATUS: " + mPay.toString());
-					if(!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-						WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
-						//log.info("UP STATUS: " + query.toString());
-						if(query.getStatus().contains("APPROVED")) {
-							mPay.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
-							mPay.setSuccessfailure(true);
-						}else if(query.getStatus().contains("REJECT")) {
-							mPay.setStatus(TransactionStatus.TRANSACTION_FAILED);
-							mPay.setSuccessfailure(false);
+			if (mPay != null) {
+				//log.info(mPay.toString());
+				if(mPay.getStatus() != null){
+					if (mPay.getStatus().compareTo(TransactionStatus.TRANSACTION_COMPLETED) != 0) {
+						// log.info("TRANSACTION STATUS: " + mPay.toString());
+						if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+							WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
+							log.info("UP STATUS: " + query.toString());
+							if (query.getStatus().contains("APPROVED")) {
+								mPay.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
+								mPay.setSuccessfailure(true);
+							} else if (query.getStatus().contains("REJECT")) {
+								mPay.setStatus(TransactionStatus.TRANSACTION_FAILED);
+								mPay.setSuccessfailure(false);
+							}
+							paymentGatewayRepo.save(mPay);
 						}
-						paymentGatewayRepo.save(mPay);
+
 					}
-		            
-		            
 				}
 			}
 		}
-*/
+	}
 }

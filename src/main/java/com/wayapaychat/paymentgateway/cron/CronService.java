@@ -31,14 +31,16 @@ public class CronService {
 		for(PaymentGateway payment : product) {
 			PaymentGateway mPay = paymentGatewayRepo.findByRefNo(payment.getRefNo()).orElse(null);
 				if(mPay != null && (!mPay.getStatus().name().equals("TRANSACTION_COMPLETED"))) {
-					log.info("TRANSACTION STATUS: " + mPay.toString());
+					//log.info("TRANSACTION STATUS: " + mPay.toString());
 					if(!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
 						WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
 						log.info("UP STATUS: " + query.toString());
 						if(query.getStatus().contains("APPROVED")) {
 							mPay.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
+							mPay.setSuccessfailure(true);
 						}else if(query.getStatus().contains("REJECT")) {
 							mPay.setStatus(TransactionStatus.TRANSACTION_FAILED);
+							mPay.setSuccessfailure(false);
 						}
 						paymentGatewayRepo.save(mPay);
 					}

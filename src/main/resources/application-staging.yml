@@ -40,7 +40,7 @@ waya:
      merchant: FAVE
      secret: 82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D
   callback:
-     baseurl: https://services.staging.wayabank.ng/payment-gateway/api/v1/wayaCallBack
+     baseurl: https://services.staging.wayabank.ng/payment-gateway/waya/callback
   identitymanager:
      name: IDENTITYMANAGER-SERVICE
      url: https://services.staging.wayabank.ng/identity-manager-service/api/v1

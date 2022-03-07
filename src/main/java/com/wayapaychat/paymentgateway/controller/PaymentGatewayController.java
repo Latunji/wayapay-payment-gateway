@@ -219,7 +219,7 @@ public class PaymentGatewayController {
 
 	}
 
-	@PostMapping(value = "/wayaCallBack", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value = "/wayaCallBack", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 	@ApiOperation(value = "Waya Callback URL", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	public ResponseEntity<?> CallBack(WayaCallbackRequest requests) {
 		log.info(requests.toString());

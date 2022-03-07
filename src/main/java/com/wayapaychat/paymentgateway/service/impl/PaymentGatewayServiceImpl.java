@@ -297,7 +297,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			if (mPay != null) {
 				mPay.setEncyptCard(pay.getCardEncrypt());
 				mPay.setChannel(PaymentChannel.CARD);
-				paymentGatewayRepo.save(mPay);
 				WayaPaymentRequest mAccount = new WayaPaymentRequest(mPay.getMerchantId(), mPay.getDescription(), mPay.getAmount(),
 						mPay.getFee(), mPay.getCurrencyCode(), mPay.getSecretKey(), 
 						new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), 
@@ -306,7 +305,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				if (tranId.isBlank()) {
 					return new PaymentGatewayResponse(false, "Unable to transaction request", null);
 				}
-				String callReq = uniPaymentProxy.getPaymentStatus(mPay.getTranId(), pay.getCardEncrypt());
+				mPay.setTranId(tranId);
+				paymentGatewayRepo.save(mPay);
+				String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt());
 				if (!callReq.isBlank()) {
 					// response.sendRedirect(callReq);
 					URLConnection urlConnection_ = new URL(callReq).openConnection();

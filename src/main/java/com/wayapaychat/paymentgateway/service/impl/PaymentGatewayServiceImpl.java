@@ -185,6 +185,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			customer.setFirstName(account.getCustomer().getName());
 			customer.setLastName(account.getCustomer().getName());
 			MerchantCustomer mCust = identManager.postCustomerCreate(customer, token);
+			log.info("CUSTOMER: "+ mCust.toString());
 					
 			// Fetch Profile
 			ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);

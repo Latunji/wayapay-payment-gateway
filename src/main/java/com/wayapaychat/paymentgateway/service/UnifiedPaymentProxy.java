@@ -246,12 +246,12 @@ public class UnifiedPaymentProxy {
 		HttpHeaders headers = new HttpHeaders();
 		String baseUrl = merchantUrl + "/Status/" + tranId;
 		UriComponentsBuilder builderURL = UriComponentsBuilder.fromHttpUrl(baseUrl);
-		log.info("BASE URL= " + builderURL.toUriString());
+		//log.info("BASE URL= " + builderURL.toUriString());
 		RestTemplate restTemplate = new RestTemplate();
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 		ResponseEntity<WayaTransactionQuery> resp = restTemplate.exchange(builderURL.toUriString(), HttpMethod.GET,
 				entity, WayaTransactionQuery.class);
-		log.info("Return Message: " + resp.getBody());
+		//log.info("Return Message: " + resp.getBody());
 		return resp.getBody();
 	}
 

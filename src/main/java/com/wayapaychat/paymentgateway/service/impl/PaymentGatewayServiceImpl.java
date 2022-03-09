@@ -544,7 +544,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				return new ResponseEntity<>(new ErrorResponse("INVALID PIN"), HttpStatus.BAD_REQUEST);
 			}
 			} catch (Exception ex) {
-				return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.OK);
+				log.info("PIN ERROR: " + ex.getLocalizedMessage());
+				return new ResponseEntity<>(new ErrorResponse("TRANSACTION PIN NOT SETUP OR INVALID PIN"), HttpStatus.OK);
 			}
 			/*Date dte = new Date();
 			long milliSeconds = dte.getTime();

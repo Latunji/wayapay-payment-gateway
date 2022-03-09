@@ -63,7 +63,9 @@ import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletQRResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletTransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaPaymentStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
@@ -537,6 +539,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			
 			try {
 			PinResponse pin = authProxy.validatePin(Long.valueOf(mAuth.getId()), Long.valueOf(account.getPin()),token);
+			log.info("PIN RESPONSE: " + pin.toString());
 			if(!pin.isStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("INVALID PIN"), HttpStatus.BAD_REQUEST);
 			}
@@ -857,6 +860,39 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		}
 		List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
 		return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> GetReferenceStatus(HttpServletRequest req, String refNo) {
+		WalletTransactionStatus response = new WalletTransactionStatus();
+		PaymentGateway mPay = null;
+		try {
+			mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (mPay == null) {
+			return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+		}
+		response = new WalletTransactionStatus(mPay.getPreferenceNo(), mPay.getAmount(), mPay.getDescription(), mPay.getFee(),
+				mPay.getCurrencyCode(), mPay.getStatus().name());
+		return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> postRefStatus(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
+		PaymentGateway mPay = null;
+		try {
+			mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (mPay == null) {
+			return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+		}
+		mPay.setStatus(TransactionStatus.valueOf(pay.getStatus()));
+		paymentGatewayRepo.save(mPay);
+		return new ResponseEntity<>(new SuccessResponse("Updated", "Success Updated"), HttpStatus.OK);
 	}
 
 }

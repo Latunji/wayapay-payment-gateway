@@ -16,6 +16,7 @@ import com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaPaymentStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
@@ -52,6 +53,8 @@ public interface PaymentGatewayService {
 	
 	ResponseEntity<?> GetTransactionStatus(HttpServletRequest req, String tranId);
 	
+	ResponseEntity<?> GetReferenceStatus(HttpServletRequest req, String refNo);
+	
 	WayaTransactionQuery GetTransactionStatus(String tranId);
 	
 	PaymentGatewayResponse encrypt(HttpServletRequest request, WayaEncypt pay);
@@ -61,5 +64,7 @@ public interface PaymentGatewayService {
 	ResponseEntity<?> QueryTranStatus(HttpServletRequest req);
 	
 	ResponseEntity<?> QueryMerchantTranStatus(HttpServletRequest req, String merchantId);
+	
+	ResponseEntity<?> postRefStatus(HttpServletRequest request, final String refNo, WayaPaymentStatus pay);
 
 }

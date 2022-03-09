@@ -1,7 +1,5 @@
 package com.wayapaychat.paymentgateway.pojo.unifiedpayment;
 
-import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -23,7 +21,6 @@ import lombok.ToString;
 "TranDateTime",
 "StatusDescription"
 })
-@Generated("jsonschema2pojo")
 @ToString
 @Data
 public class WayaTransactionQuery {

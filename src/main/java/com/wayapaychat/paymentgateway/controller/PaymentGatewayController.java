@@ -32,6 +32,7 @@ import com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.WayaPaymentStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
@@ -232,7 +233,7 @@ public class PaymentGatewayController {
 		if (payment == null) {
 			return "UNKNOWN PAYMENT TRANSACTION STATUS";
 		}
-		
+
 		if (requests.isApproved()) {
 			payment.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
 			payment.setSuccessfailure(true);
@@ -254,6 +255,22 @@ public class PaymentGatewayController {
 			@PathVariable("tranId") final String tranId) {
 		return paymentGatewayService.GetTransactionStatus(request, tranId);
 	}
+
+	@ApiOperation(value = "Get Reference", notes = "This endpoint transaction status", tags = { "PAYMENT-GATEWAY" })
+// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+// String.class, value = "token", paramType = "header", required = true) })
+	@GetMapping("/reference/query/{refNo}")
+	public ResponseEntity<?> getReference(HttpServletRequest request, @PathVariable("refNo") final String refNo) {
+		return paymentGatewayService.GetReferenceStatus(request, refNo);
+	}
+	
+	@ApiOperation(value = "Update Transaction status", notes = "This endpoint transaction status", tags = { "PAYMENT-GATEWAY" })
+	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
+	// String.class, value = "token", paramType = "header", required = true) })
+		@PutMapping("/transaction/status/{refNo}")
+		public ResponseEntity<?> updateRefStatus(HttpServletRequest request, @PathVariable("refNo") final String refNo, @Valid @RequestBody WayaPaymentStatus pay) {
+			return paymentGatewayService.postRefStatus(request, refNo, pay);
+		}
 
 	@ApiOperation(value = "Card Encryption", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =

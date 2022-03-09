@@ -16,5 +16,9 @@ public class CardResponse {
 	private String tranId;
 	
 	private String name;
+	
+	private String customerId;
+	
+	private boolean isCustomerAvoid;
 
 }

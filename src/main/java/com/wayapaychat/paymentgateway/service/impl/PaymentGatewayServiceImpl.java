@@ -30,8 +30,10 @@ import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.Customer;
+import com.wayapaychat.paymentgateway.pojo.CustomerRequest;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
 import com.wayapaychat.paymentgateway.pojo.LoginRequest;
+import com.wayapaychat.paymentgateway.pojo.MerchantCustomer;
 import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.MyUserData;
@@ -66,6 +68,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
+import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
@@ -90,6 +93,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Autowired
 	AuthApiClient authProxy;
+	
+	@Autowired
+	IdentityManager identManager;
 
 	@Autowired
 	PaymentGatewayRepository paymentGatewayRepo;
@@ -171,6 +177,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 					return new PaymentGatewayResponse(false, "Invalid merchant key", null);
 				}
 			}
+			//To create customer records
+			CustomerRequest customer = new CustomerRequest();
+			customer.setEmail(account.getCustomer().getEmail());
+			customer.setMerchantPublicKey(account.getWayaPublicKey());
+			customer.setPhoneNumber(account.getCustomer().getPhoneNumber());
+			customer.setFirstName(account.getCustomer().getName());
+			customer.setLastName(account.getCustomer().getName());
+			MerchantCustomer mCust = identManager.postCustomerCreate(customer, token);
+					
 			// Fetch Profile
 			ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
 
@@ -204,6 +219,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			if (!tranId.isBlank()) {
 				card.setTranId(strLong);
 				card.setName(profile.getData().getOtherDetails().getOrganisationName());
+				card.setCustomerId(mCust.getData().getCustomerId());
+				card.setCustomerAvoid(mCust.getData().getCustomerAvoided());
 				response = new PaymentGatewayResponse(true, "Success Transaction", card);
 				payment.setTranId(tranId);
 				payment.setTranDate(LocalDate.now());
@@ -517,9 +534,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			}
 			MyUserData mAuth = auth.getData();
 			
+			try {
 			PinResponse pin = authProxy.validatePin(Long.valueOf(mAuth.getId()), Long.valueOf(account.getPin()),token);
 			if(!pin.isStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("INVALID PIN"), HttpStatus.BAD_REQUEST);
+			}
+			} catch (Exception ex) {
+				return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.OK);
 			}
 			/*Date dte = new Date();
 			long milliSeconds = dte.getTime();

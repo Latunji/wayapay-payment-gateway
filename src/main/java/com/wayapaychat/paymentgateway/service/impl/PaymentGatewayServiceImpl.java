@@ -221,7 +221,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				card.setTranId(strLong);
 				card.setName(profile.getData().getOtherDetails().getOrganisationName());
 				card.setCustomerId(mCust.getData().getCustomerId());
-				card.setCustomerAvoid(mCust.getData().getCustomerAvoided());
+				card.setCustomerAvoid(mCust.getData().isCustomerAvoided());
 				response = new PaymentGatewayResponse(true, "Success Transaction", card);
 				payment.setTranId(tranId);
 				payment.setTranDate(LocalDate.now());

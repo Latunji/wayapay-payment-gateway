@@ -70,7 +70,7 @@ public class CustomerData {
 	private String status;
 	
 	@JsonProperty("customerAvoided")
-	private Boolean customerAvoided;
+	private boolean customerAvoided;
 	
 	@JsonProperty("dateCustomerAvoided")
 	private Object dateCustomerAvoided;
@@ -82,6 +82,6 @@ public class CustomerData {
 	private String merchantKeyMode;
 	
 	@JsonProperty("deleted")
-	private Boolean deleted;
+	private boolean deleted;
 
 }

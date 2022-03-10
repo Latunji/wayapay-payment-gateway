@@ -20,10 +20,10 @@ import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
 
-//import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
-//@Slf4j
+@Slf4j
 public class CronService {
 
 	@Autowired
@@ -140,7 +140,7 @@ public class CronService {
 						paymentGatewayRepo.save(sPayment);
 					}
 				}catch(Exception ex) {
-					
+					log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());
 				}
 			}
 			

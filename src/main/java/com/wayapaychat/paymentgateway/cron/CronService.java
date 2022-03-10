@@ -31,13 +31,15 @@ public class CronService {
 		for (PaymentGateway payment : product) {
 			PaymentGateway mPay = paymentGatewayRepo.findByRefNo(payment.getRefNo()).orElse(null);
 			if (mPay != null) {
-				//log.info(mPay.toString());
-				if(mPay.getStatus() != null){
-					if (mPay.getStatus().compareTo(TransactionStatus.TRANSACTION_COMPLETED) != 0) {
+				// log.info(mPay.toString());
+				if (mPay.getStatus() != null) {
+					if ((mPay.getStatus().compareTo(TransactionStatus.TRANSACTION_COMPLETED) != 0)
+							&& (mPay.getStatus().compareTo(TransactionStatus.SUCCESSFUL) != 0)
+							&& (mPay.getStatus().compareTo(TransactionStatus.FAILED) != 0)) {
 						// log.info("TRANSACTION STATUS: " + mPay.toString());
 						if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
 							WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
-							//log.info("UP STATUS: " + query.toString());
+							// log.info("UP STATUS: " + query.toString());
 							if (query.getStatus().contains("APPROVED")) {
 								mPay.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
 								mPay.setSuccessfailure(true);
@@ -48,6 +50,49 @@ public class CronService {
 							paymentGatewayRepo.save(mPay);
 						}
 
+					} else if (mPay.getStatus().compareTo(TransactionStatus.TRANSACTION_COMPLETED) == 0) {
+						if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+							WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
+							mPay.setStatus(TransactionStatus.SUCCESSFUL);
+							mPay.setSuccessfailure(true);
+							if (query.getStatus().contains("APPROVED")) {
+								mPay.setStatus(TransactionStatus.SUCCESSFUL);
+								mPay.setSuccessfailure(true);
+							} else if (query.getStatus().contains("REJECT")) {
+								mPay.setStatus(TransactionStatus.FAILED);
+								mPay.setSuccessfailure(false);
+							}
+							paymentGatewayRepo.save(mPay);
+						}
+
+					} else if (mPay.getStatus().compareTo(TransactionStatus.TRANSACTION_FAILED) == 0) {
+						if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+							WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
+							mPay.setStatus(TransactionStatus.FAILED);
+							mPay.setSuccessfailure(false);
+							if (query.getStatus().contains("APPROVED")) {
+								mPay.setStatus(TransactionStatus.SUCCESSFUL);
+								mPay.setSuccessfailure(true);
+							} else if (query.getStatus().contains("REJECT")) {
+								mPay.setStatus(TransactionStatus.FAILED);
+								mPay.setSuccessfailure(false);
+							}
+							paymentGatewayRepo.save(mPay);
+						}
+					} else if (mPay.getStatus().compareTo(TransactionStatus.TRANSACTION_PENDING) == 0) {
+						if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+							WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
+							mPay.setStatus(TransactionStatus.PENDING);
+							mPay.setSuccessfailure(false);
+							if (query.getStatus().contains("APPROVED")) {
+								mPay.setStatus(TransactionStatus.SUCCESSFUL);
+								mPay.setSuccessfailure(true);
+							} else if (query.getStatus().contains("REJECT")) {
+								mPay.setStatus(TransactionStatus.FAILED);
+								mPay.setSuccessfailure(false);
+							}
+							paymentGatewayRepo.save(mPay);
+						}
 					}
 				}
 			}

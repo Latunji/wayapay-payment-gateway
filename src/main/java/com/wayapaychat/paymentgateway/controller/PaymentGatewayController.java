@@ -235,11 +235,11 @@ public class PaymentGatewayController {
 		}
 
 		if (requests.isApproved()) {
-			payment.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
+			payment.setStatus(TransactionStatus.SUCCESSFUL);
 			payment.setSuccessfailure(true);
 			payment.setTranId(requests.getTrxId());
 		} else {
-			payment.setStatus(TransactionStatus.TRANSACTION_FAILED);
+			payment.setStatus(TransactionStatus.FAILED);
 			payment.setSuccessfailure(false);
 			payment.setTranId(requests.getTrxId());
 		}
@@ -263,14 +263,16 @@ public class PaymentGatewayController {
 	public ResponseEntity<?> getReference(HttpServletRequest request, @PathVariable("refNo") final String refNo) {
 		return paymentGatewayService.GetReferenceStatus(request, refNo);
 	}
-	
-	@ApiOperation(value = "Update Transaction status", notes = "This endpoint transaction status", tags = { "PAYMENT-GATEWAY" })
+
+	@ApiOperation(value = "Update Transaction status", notes = "This endpoint transaction status", tags = {
+			"PAYMENT-GATEWAY" })
 	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
 	// String.class, value = "token", paramType = "header", required = true) })
-		@PutMapping("/transaction/status/{refNo}")
-		public ResponseEntity<?> updateRefStatus(HttpServletRequest request, @PathVariable("refNo") final String refNo, @Valid @RequestBody WayaPaymentStatus pay) {
-			return paymentGatewayService.postRefStatus(request, refNo, pay);
-		}
+	@PutMapping("/transaction/status/{refNo}")
+	public ResponseEntity<?> updateRefStatus(HttpServletRequest request, @PathVariable("refNo") final String refNo,
+			@Valid @RequestBody WayaPaymentStatus pay) {
+		return paymentGatewayService.postRefStatus(request, refNo, pay);
+	}
 
 	@ApiOperation(value = "Card Encryption", notes = "This endpoint create client user", tags = { "PAYMENT-GATEWAY" })
 	// @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
@@ -315,6 +317,14 @@ public class PaymentGatewayController {
 	public ResponseEntity<?> getQueryTransactionStatus(HttpServletRequest request,
 			@PathVariable("merchantId") final String merchantId) {
 		return paymentGatewayService.QueryMerchantTranStatus(request, merchantId);
+	}
+
+	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {
+			"PAYMENT-GATEWAY" })
+	@GetMapping("/revenue/query/{merchantId}")
+	public ResponseEntity<?> getRevenueQueryTransactionStatus(HttpServletRequest request,
+			@PathVariable("merchantId") final String merchantId) {
+		return paymentGatewayService.QueryMerchantRevenue(request, merchantId);
 	}
 
 }

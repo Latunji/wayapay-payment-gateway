@@ -112,5 +112,7 @@ public class PaymentGateway {
 	
 	@Enumerated(EnumType.STRING)
     private PaymentChannel channel;
+	
+	private boolean tranflg;
 
 }

@@ -30,6 +30,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.entity.PaymentWallet;
+import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
+import com.wayapaychat.paymentgateway.enumm.TStatus;
+import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
 import com.wayapaychat.paymentgateway.exception.CustomException;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedPaymentCallback;
@@ -39,6 +43,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletEventPayment;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletOfficePayment;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletPaymentResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletQRGenerate;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletQRResponse;
@@ -47,6 +52,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.proxy.QRCodeProxy;
 import com.wayapaychat.paymentgateway.proxy.UnifiedPaymentApiClient;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
+import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +66,10 @@ public class UnifiedPaymentProxy {
 
 	@Autowired
 	QRCodeProxy qrCodeProxy;
+	
+	@Autowired
+	PaymentWalletRepository paymentWalletRepo;
+	
 
 	@Value("${waya.unified-payment.merchant}")
 	private String merchantId;
@@ -246,12 +256,12 @@ public class UnifiedPaymentProxy {
 		HttpHeaders headers = new HttpHeaders();
 		String baseUrl = merchantUrl + "/Status/" + tranId;
 		UriComponentsBuilder builderURL = UriComponentsBuilder.fromHttpUrl(baseUrl);
-		//log.info("BASE URL= " + builderURL.toUriString());
+		// log.info("BASE URL= " + builderURL.toUriString());
 		RestTemplate restTemplate = new RestTemplate();
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 		ResponseEntity<WayaTransactionQuery> resp = restTemplate.exchange(builderURL.toUriString(), HttpMethod.GET,
 				entity, WayaTransactionQuery.class);
-		//log.info("Return Message: " + resp.getBody());
+		// log.info("Return Message: " + resp.getBody());
 		return resp.getBody();
 	}
 
@@ -345,15 +355,75 @@ public class UnifiedPaymentProxy {
 			if (wallet.getStatus()) {
 				log.info("FUNDING WALLET");
 				for (FundEventResponse response : wallet.getData()) {
-					if(response.getPartTranType().equals("C")) {
-					  result = response;					  
+					if (response.getPartTranType().equals("C")) {
+						result = response;
 					}
 				}
 			} else {
 				log.error("WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: "
 						+ mPay.getMerchantId());
-				throw new CustomException("WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: "
-						+ mPay.getMerchantId(), HttpStatus.BAD_REQUEST);
+				throw new CustomException(
+						"WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: " + mPay.getMerchantId(),
+						HttpStatus.BAD_REQUEST);
+			}
+		} catch (Exception ex) {
+			if (ex instanceof FeignException) {
+				String httpStatus = Integer.toString(((FeignException) ex).status());
+				log.error("Feign Exception Status {}", httpStatus);
+			}
+			log.error("Higher Wahala {}", ex.getMessage());
+			log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());
+			throw new CustomException("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage() + " with Merchant: "
+					+ mPay.getMerchantId(), HttpStatus.BAD_REQUEST);
+		}
+		return result;
+	}
+
+	public FundEventResponse postTransactionPosition(String token, PaymentGateway mPay) {
+
+		FundEventResponse result = null;
+		WalletOfficePayment event = new WalletOfficePayment();
+		event.setAmount(mPay.getAmount());
+		event.setCreditEventId("WAYAPAY");
+		event.setTranCrncy("NGN");
+		if (mPay.getChannel().compareTo(PaymentChannel.CARD) == 0) {
+			event.setDebitEventId("UNIPAY");
+		} else if (mPay.getChannel().compareTo(PaymentChannel.PAYATTITUDE) == 0) {
+			event.setDebitEventId("UNIPAY");
+		} else if (mPay.getChannel().compareTo(PaymentChannel.USSD) == 0) {
+			event.setDebitEventId("CORAPAY");
+		}
+		event.setPaymentReference(mPay.getRefNo());
+		String tranParticular = mPay.getDescription() + "-" + mPay.getRefNo();
+		event.setTranNarration(tranParticular);
+		event.setTransactionCategory("WITHDRAW");
+		log.info("EVENT DEBIT: " + event.toString());
+		try {
+			PaymentWallet mWallet = new PaymentWallet();
+			WalletPaymentResponse wallet = wallProxy.fundOfficialAccount(token, event);
+			log.info(wallet.toString());
+			if (wallet.getStatus()) {
+				log.info("FUNDING WALLET");
+				for (FundEventResponse response : wallet.getData()) {
+					if (response.getPartTranType().equals("C")) {
+						result = response;
+						mWallet.setPaymentDescription(response.getTranNarrate());
+						mWallet.setPaymentReference(response.getPaymentReference());
+						mWallet.setTranAmount(response.getTranAmount());
+						mWallet.setTranDate(response.getTranDate());
+						mWallet.setTranId(response.getTranId());
+						mWallet.setRefNo(mPay.getRefNo());
+						mWallet.setSettled(TransactionSettled.NOT_SETTLED);
+						mWallet.setStatus(TStatus.APPROVED);
+						paymentWalletRepo.save(mWallet);
+					}
+				}
+			} else {
+				log.error("WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: "
+						+ mPay.getMerchantId());
+				throw new CustomException(
+						"WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: " + mPay.getMerchantId(),
+						HttpStatus.BAD_REQUEST);
 			}
 		} catch (Exception ex) {
 			if (ex instanceof FeignException) {
@@ -378,9 +448,9 @@ public class UnifiedPaymentProxy {
 		qrgen.setPaymentChannel("QR");
 		String tranParticular = account.getDescription() + "-" + account.getRefNo();
 		qrgen.setTransactionNarration(tranParticular);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        String expiryDate = sdf.format(request.getQrExpiryDate());
-        log.info("QR TIME: " + expiryDate);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		String expiryDate = sdf.format(request.getQrExpiryDate());
+		log.info("QR TIME: " + expiryDate);
 		qrgen.setQrCodeExpiryDate(expiryDate);
 		qrgen.setUserId(0);
 		log.info("Request QR: " + qrgen.toString());

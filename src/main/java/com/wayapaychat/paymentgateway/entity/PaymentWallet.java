@@ -13,6 +13,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import com.wayapaychat.paymentgateway.enumm.TStatus;
+import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,6 +41,9 @@ public class PaymentWallet {
 	
 	private BigDecimal tranAmount;
 	
+	@Column(unique = true, nullable = false)
+	private String refNo;
+	
 	private String tranId;
 	
 	private String tranDate;
@@ -50,5 +54,8 @@ public class PaymentWallet {
 	
 	@Enumerated(EnumType.STRING)
     private TStatus status;
+	
+	@Enumerated(EnumType.STRING)
+	private TransactionSettled settled;
 
 }

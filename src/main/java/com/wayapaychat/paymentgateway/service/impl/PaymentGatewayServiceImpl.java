@@ -28,6 +28,7 @@ import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TStatus;
+import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.Customer;
 import com.wayapaychat.paymentgateway.pojo.CustomerRequest;
@@ -569,7 +570,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				payment.setTranId(tran.getTranId());
 				payment.setTranDate(LocalDate.now());
 				payment.setRcre_time(LocalDateTime.now());
-				payment.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
+				payment.setStatus(TransactionStatus.SUCCESSFUL);
 				payment.setChannel(PaymentChannel.WALLET);
 				payment.setSuccessfailure(true);
 				paymentGatewayRepo.save(payment);
@@ -579,6 +580,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				wallet.setTranAmount(tran.getTranAmount());
 				wallet.setTranDate(tran.getTranDate());
 				wallet.setTranId(tran.getTranId());
+				wallet.setRefNo(payment.getRefNo());
+				wallet.setSettled(TransactionSettled.NOT_SETTLED);
 				wallet.setStatus(TStatus.APPROVED);
 				paymentWalletRepo.save(wallet);
 			}else {
@@ -894,6 +897,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		mPay.setStatus(TransactionStatus.valueOf(pay.getStatus()));
 		paymentGatewayRepo.save(mPay);
 		return new ResponseEntity<>(new SuccessResponse("Updated", "Success Updated"), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> QueryMerchantRevenue(HttpServletRequest req, String merchantId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

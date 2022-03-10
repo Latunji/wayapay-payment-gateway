@@ -4,14 +4,21 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
+import com.wayapaychat.paymentgateway.pojo.LoginRequest;
+import com.wayapaychat.paymentgateway.pojo.PaymentData;
+import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
+import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
+import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
+import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
 
 //import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +31,18 @@ public class CronService {
 
 	@Autowired
 	PaymentGatewayService paymentService;
+	
+	@Autowired
+	UnifiedPaymentProxy uniPayProxy;
+	
+	@Autowired
+	AuthApiClient authProxy;
+	
+	@Value("${service.name}")
+	private String username;
+
+	@Value("${service.pass}")
+	private String passSecret;
 
 	@Scheduled(cron = "*/5 * * * * *")
 	public void PostUPCardSink() {
@@ -96,6 +115,35 @@ public class CronService {
 					}
 				}
 			}
+		}
+	}
+	
+	@Scheduled(cron = "*/5 * * * * *")
+	public void PostWalletTransactionSink() {
+		List<PaymentGateway> payment = paymentGatewayRepo.findAll();
+		for (PaymentGateway mPayment : payment) {
+			
+			if(!mPayment.isTranflg() && (mPayment.getStatus().compareTo(TransactionStatus.SUCCESSFUL) == 0)) {
+				try {
+					PaymentGateway sPayment = paymentGatewayRepo.findByRefNo(mPayment.getRefNo()).orElse(null);
+					
+					LoginRequest auth = new LoginRequest();
+					auth.setEmailOrPhoneNumber(username);
+					auth.setPassword(passSecret);
+					TokenAuthResponse authToken = authProxy.UserLogin(auth);
+					PaymentData payData = authToken.getData();
+					String token = payData.getToken();
+					
+					FundEventResponse response = uniPayProxy.postTransactionPosition(token, mPayment);
+					if(response.getPostedFlg() && (!response.getTranId().isBlank())) {
+						sPayment.setTranflg(true);
+						paymentGatewayRepo.save(sPayment);
+					}
+				}catch(Exception ex) {
+					
+				}
+			}
+			
 		}
 	}
 }

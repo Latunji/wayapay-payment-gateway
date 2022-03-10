@@ -209,7 +209,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCustomerName(account.getCustomer().getName());
 			payment.setCustomerEmail(account.getCustomer().getEmail());
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
-			payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
+			payment.setStatus(TransactionStatus.PENDING);
 			payment.setPreferenceNo(account.getPreferenceNo());
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);

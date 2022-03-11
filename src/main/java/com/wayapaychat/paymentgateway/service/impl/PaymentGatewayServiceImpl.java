@@ -229,6 +229,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 				payment.setTranId(tranId);
 				payment.setTranDate(LocalDate.now());
 				payment.setRcre_time(LocalDateTime.now());
+				payment.setVendorDate(LocalDate.now());
 				paymentGatewayRepo.save(payment);
 			}
 			return response;

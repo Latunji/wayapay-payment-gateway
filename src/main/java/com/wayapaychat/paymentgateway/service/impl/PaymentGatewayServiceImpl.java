@@ -520,6 +520,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			if (payment == null) {
 				return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
 			}
+			payment.setChannel(PaymentChannel.WALLET);
+			paymentGatewayRepo.save(payment);
 			
 			if(payment.isSuccessfailure() && payment.getStatus().name().equals("TRANSACTION_COMPLETED")) {
 				return new ResponseEntity<>(new ErrorResponse("TRANSACTION ALREADY COMPLETED FOR REFERENCE NUMBER :" + payment.getRefNo()), HttpStatus.BAD_REQUEST);
@@ -620,7 +622,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			if (payment == null) {
 				return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
 			}
-
+			payment.setChannel(PaymentChannel.QR);
+			payment.setStatus(TransactionStatus.PENDING);
+			paymentGatewayRepo.save(payment);
+			
 			MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
 			if (!merchant.getCode().equals("00")) {
 				return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
@@ -664,7 +669,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			WalletQRResponse tranRep = uniPaymentProxy.postQRTransaction(payment, token, account);
 			if (tranRep != null) {
 				tranRep.setName(profile.getData().getOtherDetails().getOrganisationName());
-				response = new ResponseEntity<>(new SuccessResponse("SUCCESS QR", tranRep), HttpStatus.CREATED);
+				response = new ResponseEntity<>(new SuccessResponse("SUCCESS GENERATED", tranRep), HttpStatus.CREATED);
 				//payment.setTranId(account.getReferenceNo());
 				//payment.setPreferenceNo(account.getReferenceNo());
 				payment.setTranDate(LocalDate.now());

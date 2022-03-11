@@ -19,7 +19,7 @@ public class WayaPaymentRequest {
 	private String merchantId;
 	
 	@NotBlank(message = "Description must not be null")
-	@Size(min=3, max=20, message = "The Description '${validatedValue}' must be between {min} and {max} characters long")
+	@Size(min=3, max=50, message = "The Description '${validatedValue}' must be between {min} and {max} characters long")
 	private String description;
 	
 	@NotNull(message = "Amount must not Null or Blank")

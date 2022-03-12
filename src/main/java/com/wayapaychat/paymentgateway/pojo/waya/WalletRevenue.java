@@ -19,16 +19,20 @@ public class WalletRevenue {
 	
 	private BigDecimal netAmount;
 	
+	private int totalTransaction;
+	
 	private int totalSuccess;
 	
-	private int totalFail;
+	private int totalFailed;
 	
-	private int totalAbandon;
+	private int totalAbandoned;
 	
 	private int totalPending;
 	
-	private int totalSettle;
+	private int totalSettled;
 	
-	private int totalRefund;
+	private int totalRefunded;
+	
+	private String merchantId;
 
 }

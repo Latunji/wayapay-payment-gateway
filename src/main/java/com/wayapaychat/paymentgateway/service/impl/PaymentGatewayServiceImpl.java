@@ -6,6 +6,7 @@ import java.net.URLConnection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -24,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
@@ -106,6 +108,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Autowired
 	WalletProxy wallProxy;
+	
+	@Autowired
+	WayaPaymentDAO wayaPayment;
 	
 	@Autowired
 	PaymentWalletRepository paymentWalletRepo;
@@ -912,8 +917,30 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Override
 	public ResponseEntity<?> QueryMerchantRevenue(HttpServletRequest req, String merchantId) {
-		WalletRevenue revenu = new WalletRevenue();
-		return null;
+		WalletRevenue revenue = new WalletRevenue();
+		try {
+			revenue = wayaPayment.getRevenue(merchantId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (revenue == null) {
+			return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> QueryRevenue(HttpServletRequest req) {
+		List<WalletRevenue> revenue = new ArrayList<>();
+		try {
+			revenue = wayaPayment.getRevenue();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (revenue == null) {
+			return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
 	}
 
 }

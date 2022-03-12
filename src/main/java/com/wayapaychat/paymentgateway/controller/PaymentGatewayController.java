@@ -233,7 +233,7 @@ public class PaymentGatewayController {
 		if (payment == null) {
 			return "UNKNOWN PAYMENT TRANSACTION STATUS";
 		}
-
+        log.info("TRANSACTION CALLBACK STATUS: " + payment.getMerchantId());
 		if (requests.isApproved()) {
 			payment.setStatus(TransactionStatus.SUCCESSFUL);
 			payment.setSuccessfailure(true);
@@ -243,7 +243,8 @@ public class PaymentGatewayController {
 			payment.setSuccessfailure(false);
 			payment.setTranId(requests.getTrxId());
 		}
-		return "WAYA PAYMENT TRANSACTION " + requests.getStatus().toUpperCase();
+		//return "WAYA PAYMENT TRANSACTION " + requests.getStatus().toUpperCase();
+		return "pay.staging.wayapay.ng/status";
 	}
 
 	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {

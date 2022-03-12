@@ -64,6 +64,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletQRResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.WalletRevenue;
 import com.wayapaychat.paymentgateway.pojo.waya.WalletTransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaPaymentStatus;
@@ -211,6 +212,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setCustomerEmail(account.getCustomer().getEmail());
 			payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
 			payment.setStatus(TransactionStatus.PENDING);
+			payment.setChannel(PaymentChannel.WEBVIEW);
 			payment.setPreferenceNo(account.getPreferenceNo());
 			final String secretKey = "ssshhhhhhhhhhh!!!!";
 			String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
@@ -884,8 +886,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		if (mPay == null) {
 			return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
 		}
+		Customer customer = new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone());
+		
 		response = new WalletTransactionStatus(mPay.getPreferenceNo(), mPay.getAmount(), mPay.getDescription(), mPay.getFee(),
-				mPay.getCurrencyCode(), mPay.getStatus().name());
+				mPay.getCurrencyCode(), mPay.getStatus().name(), mPay.getChannel().name(),
+				mPay.getMerchantName(), customer);
 		return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
 	}
 
@@ -907,7 +912,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 	@Override
 	public ResponseEntity<?> QueryMerchantRevenue(HttpServletRequest req, String merchantId) {
-		// TODO Auto-generated method stub
+		WalletRevenue revenu = new WalletRevenue();
 		return null;
 	}
 

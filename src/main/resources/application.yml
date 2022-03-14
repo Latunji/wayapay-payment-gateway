@@ -32,6 +32,8 @@ waya:
      authurl: https://services.staging.wayabank.ng/auth-service/api/v1
      tempname: WALLET-SERVICE
      tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
+  application:
+    payment-gateway-mode: ${PAYMENT_GATEWAY_MODE:TEST}
   qrcode:
      name: QRCODE-SERVICE
      baseurl: https://services.staging.wayabank.ng/qrcode-service/api/v1

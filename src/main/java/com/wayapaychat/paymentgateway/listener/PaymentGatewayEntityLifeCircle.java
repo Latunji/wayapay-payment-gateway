@@ -34,6 +34,8 @@ public class PaymentGatewayEntityLifeCircle {
     @PostPersist
     @PostUpdate
     private void checkPaymentGatewayUpdate(PaymentGateway paymentGateway) {
+        log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION TRANSACTION ID: {}||||--------",
+                paymentGateway.getTranId());
         if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
             NotificationPojo notificationPojo = NotificationPojo
                     .builder()

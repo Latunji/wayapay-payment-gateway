@@ -68,5 +68,7 @@ public interface PaymentGatewayService {
 	ResponseEntity<?> postRefStatus(HttpServletRequest request, final String refNo, WayaPaymentStatus pay);
 	
 	ResponseEntity<?> QueryMerchantRevenue(HttpServletRequest req, String merchantId);
+	
+	ResponseEntity<?> QueryRevenue(HttpServletRequest req);
 
 }

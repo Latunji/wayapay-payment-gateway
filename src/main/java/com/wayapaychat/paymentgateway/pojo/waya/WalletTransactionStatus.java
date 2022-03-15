@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.wayapaychat.paymentgateway.pojo.Customer;
 
 import lombok.Data;
 import lombok.ToString;
@@ -43,9 +44,15 @@ public class WalletTransactionStatus {
 	
 	@JsonProperty("TranTime")
 	private String tranTime;
+	
+	private String productName;
+	
+	private String businessName;
+	
+	private Customer customer;
 
 	public WalletTransactionStatus(String orderId, BigDecimal amount, String description, BigDecimal fee,
-			String currency, String status) {
+			String currency, String status, String productName, String businessName, Customer customer) {
 		super();
 		this.orderId = orderId;
 		this.amount = amount;
@@ -53,6 +60,9 @@ public class WalletTransactionStatus {
 		this.fee = fee;
 		this.currency = currency;
 		this.status = status;
+		this.productName = productName;
+		this.businessName = businessName;
+		this.customer = customer;
 	}
 
 	public WalletTransactionStatus() {

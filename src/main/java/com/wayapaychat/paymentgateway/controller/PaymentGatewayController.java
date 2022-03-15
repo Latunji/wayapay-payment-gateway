@@ -233,7 +233,7 @@ public class PaymentGatewayController {
 		if (payment == null) {
 			return "UNKNOWN PAYMENT TRANSACTION STATUS";
 		}
-
+		log.info("TRANSACTION CALLBACK STATUS: " + payment.getMerchantId());
 		if (requests.isApproved()) {
 			payment.setStatus(TransactionStatus.SUCCESSFUL);
 			payment.setSuccessfailure(true);
@@ -243,7 +243,8 @@ public class PaymentGatewayController {
 			payment.setSuccessfailure(false);
 			payment.setTranId(requests.getTrxId());
 		}
-		return "WAYA PAYMENT TRANSACTION " + requests.getStatus().toUpperCase();
+		// return "WAYA PAYMENT TRANSACTION " + requests.getStatus().toUpperCase();
+		return "pay.staging.wayapay.ng/status";
 	}
 
 	@ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {
@@ -325,6 +326,13 @@ public class PaymentGatewayController {
 	public ResponseEntity<?> getRevenueQueryTransactionStatus(HttpServletRequest request,
 			@PathVariable("merchantId") final String merchantId) {
 		return paymentGatewayService.QueryMerchantRevenue(request, merchantId);
+	}
+
+	@ApiOperation(value = "Get All Revenue", notes = "This endpoint transaction status", tags = {
+			"PAYMENT-GATEWAY" })
+	@GetMapping("/revenue/query")
+	public ResponseEntity<?> getAllRevenueQueryTransaction(HttpServletRequest request) {
+		return paymentGatewayService.QueryRevenue(request);
 	}
 
 }

@@ -6,16 +6,19 @@ import com.wayapaychat.paymentgateway.enumm.EventCategory;
 import com.wayapaychat.paymentgateway.enumm.EventType;
 import com.wayapaychat.paymentgateway.enumm.ProductType;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
+import com.wayapaychat.paymentgateway.pojo.LoginRequest;
 import com.wayapaychat.paymentgateway.pojo.NotificationPojo;
+import com.wayapaychat.paymentgateway.pojo.PaymentData;
+import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationReceiver;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationStreamData;
+import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
@@ -27,14 +30,18 @@ import java.util.List;
 @AllArgsConstructor
 public class PaymentGatewayEntityLifeCircle {
     private final NotificationServiceProxy notificationServiceProxy;
-    private SpringTemplateEngine springTemplateEngine;
     @Value("${application.payment-gateway-mode}")
     private String mode;
+    private AuthApiClient authApiClient;
+    @Value("${service.name}")
+    private String userName;
+    @Value("${service.pass}")
+    private String password;
 
     @PostPersist
     @PostUpdate
-    private void checkPaymentGatewayUpdate(PaymentGateway paymentGateway) {
-        log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION TRANSACTION ID: {}||||--------",
+    private void checkPaymentGatewayUpdate(PaymentGateway paymentGateway) throws Exception {
+        log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
                 paymentGateway.getTranId());
         if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
             NotificationPojo notificationPojo = NotificationPojo
@@ -52,7 +59,7 @@ public class PaymentGatewayEntityLifeCircle {
         }
     }
 
-    private void processEmailAlert(NotificationPojo notificationPojo) {
+    private void processEmailAlert(NotificationPojo notificationPojo) throws Exception {
         NotificationStreamData notificationStreamData = NotificationStreamData.builder().build();
         notificationStreamData.setMessage("A transaction has successfully occurred");
 
@@ -73,7 +80,7 @@ public class PaymentGatewayEntityLifeCircle {
                 .build()));
         emailStreamData.setData(notificationStreamData);
         emailStreamData.setForMerchant(false + "");
-        notificationServiceProxy.sendEmailNotificationTransaction(notificationPojo);
+        notificationServiceProxy.sendEmailNotificationTransaction(notificationPojo, getDaemonAuthToken());
         log.info("------||||NOTIFICATION HAS BEEN SENT TO CUSTOMER EMAIL ADDRESS {}||||--------", notificationPojo.getCustomerEmailAddress());
 
         notificationStreamData.setNames(List.of(NotificationReceiver.builder()
@@ -82,7 +89,22 @@ public class PaymentGatewayEntityLifeCircle {
                 .build()));
         emailStreamData.setData(notificationStreamData);
         emailStreamData.setForMerchant(true + "");
-        notificationServiceProxy.sendEmailNotificationTransaction(notificationPojo);
+        notificationServiceProxy.sendEmailNotificationTransaction(notificationPojo, getDaemonAuthToken());
         log.info("------||||NOTIFICATION HAS BEEN SENT TO MERCHANT EMAIL ADDRESS {}||||--------", notificationPojo.getMerchantEmailAddress());
+    }
+
+    private String getDaemonAuthToken() throws Exception {
+        TokenAuthResponse authToken = authApiClient.authenticateUser(
+                LoginRequest.builder()
+                        .password(password)
+                        .emailOrPhoneNumber(userName)
+                        .build());
+        log.info("AUTHENTICATION RESPONSE: " + authToken.toString());
+        if (!authToken.getStatus()) {
+            log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------", userName, password);
+            throw new Exception("Failed to process user authentication...!");
+        }
+        PaymentData payData = authToken.getData();
+        return payData.getToken();
     }
 }

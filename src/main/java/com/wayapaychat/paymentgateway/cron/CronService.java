@@ -130,7 +130,7 @@ public class CronService {
 					LoginRequest auth = new LoginRequest();
 					auth.setEmailOrPhoneNumber(username);
 					auth.setPassword(passSecret);
-					TokenAuthResponse authToken = authProxy.UserLogin(auth);
+					TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 					PaymentData payData = authToken.getData();
 					String token = payData.getToken();
 					

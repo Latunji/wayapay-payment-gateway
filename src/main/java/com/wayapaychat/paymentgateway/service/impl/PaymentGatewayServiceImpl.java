@@ -158,7 +158,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new PaymentGatewayResponse(false, "Unable to authenticate Demon User", null);
@@ -459,7 +459,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(account.getEmailOrPhoneNumber());
 			auth.setPassword(account.getPassword());
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("AUTHENTICATION WALLET FAILED"), HttpStatus.BAD_REQUEST);
@@ -606,7 +606,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"),
@@ -685,7 +685,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"),
@@ -756,7 +756,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"),

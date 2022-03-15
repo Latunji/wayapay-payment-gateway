@@ -17,7 +17,7 @@ import javax.ws.rs.core.Response;
         configuration = PaymentGatewayClientConfiguration.class
 )
 public interface NotificationServiceProxy {
-    @PostMapping("/email-notification-contact")
+    @PostMapping("/email-notification-wayapay")
     Response sendEmailNotificationTransaction(
             @RequestBody NotificationPojo request,
             @NotNull @NotEmpty @RequestHeader(name = "Authorization") String token);

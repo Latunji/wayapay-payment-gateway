@@ -2,6 +2,8 @@ package com.wayapaychat.paymentgateway.proxy;
 
 import com.wayapaychat.paymentgateway.config.PaymentGatewayClientConfiguration;
 import com.wayapaychat.paymentgateway.pojo.NotificationPojo;
+import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
+import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +20,7 @@ import javax.ws.rs.core.Response;
 )
 public interface NotificationServiceProxy {
     @PostMapping("/email-notification-wayapay")
-    Response sendEmailNotificationTransaction(
-            @RequestBody NotificationPojo request,
+    NotificationServiceResponse sendEmailNotificationTransaction(
+            @RequestBody EmailStreamData request,
             @NotNull @NotEmpty @RequestHeader(name = "Authorization") String token);
 }

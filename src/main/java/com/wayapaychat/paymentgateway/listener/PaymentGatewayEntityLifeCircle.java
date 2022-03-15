@@ -12,11 +12,12 @@ import com.wayapaychat.paymentgateway.pojo.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationReceiver;
+import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceResponse;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationStreamData;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -24,14 +25,17 @@ import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
 import java.util.Currency;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
-@AllArgsConstructor
 public class PaymentGatewayEntityLifeCircle {
-    private final NotificationServiceProxy notificationServiceProxy;
-    @Value("${application.payment-gateway-mode}")
+    private static final String CURRENCY_DISPLAY = "NGN";
+    @Autowired
+    private NotificationServiceProxy notificationServiceProxy;
+    @Value("${waya.application.payment-gateway-mode}")
     private String mode;
+    @Autowired
     private AuthApiClient authApiClient;
     @Value("${service.name}")
     private String userName;
@@ -40,7 +44,7 @@ public class PaymentGatewayEntityLifeCircle {
 
     @PostPersist
     @PostUpdate
-    private void checkPaymentGatewayUpdate(PaymentGateway paymentGateway) throws Exception {
+    public void checkPaymentGatewayUpdate(PaymentGateway paymentGateway) throws Exception {
         log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
                 paymentGateway.getTranId());
         if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
@@ -51,8 +55,12 @@ public class PaymentGatewayEntityLifeCircle {
                     .transactionDate(paymentGateway.getVendorDate())
                     .transactionAmount(paymentGateway.getAmount())
                     .transactionMode(mode)
+                    .customerEmailAddress(paymentGateway.getCustomerEmail())
+                    .customerName(paymentGateway.getCustomerName())
+                    .merchantName(paymentGateway.getMerchantName())
+                    .merchantEmailAddress(paymentGateway.getMerchantEmail())
                     .paymentGatewayTransactionId(paymentGateway.getTranId())
-                    .currency(Currency.getInstance(paymentGateway.getCurrencyCode()).getDisplayName())
+                    .currency(getCurrencyName(paymentGateway.getCurrencyCode()))
                     .updatedAt(paymentGateway.getVendorDate() == null ? paymentGateway.getTranDate() : paymentGateway.getVendorDate())
                     .build();
             processEmailAlert(notificationPojo);
@@ -80,8 +88,9 @@ public class PaymentGatewayEntityLifeCircle {
                 .build()));
         emailStreamData.setData(notificationStreamData);
         emailStreamData.setForMerchant(false + "");
-        notificationServiceProxy.sendEmailNotificationTransaction(notificationPojo, getDaemonAuthToken());
+        NotificationServiceResponse notificationServiceResponse = notificationServiceProxy.sendEmailNotificationTransaction(emailStreamData, getDaemonAuthToken());
         log.info("------||||NOTIFICATION HAS BEEN SENT TO CUSTOMER EMAIL ADDRESS {}||||--------", notificationPojo.getCustomerEmailAddress());
+        log.info("------||||NOTIFICATION SERVICE RESPONSE {}||||--------", notificationServiceResponse);
 
         notificationStreamData.setNames(List.of(NotificationReceiver.builder()
                 .email(notificationPojo.getMerchantEmailAddress())
@@ -89,8 +98,9 @@ public class PaymentGatewayEntityLifeCircle {
                 .build()));
         emailStreamData.setData(notificationStreamData);
         emailStreamData.setForMerchant(true + "");
-        notificationServiceProxy.sendEmailNotificationTransaction(notificationPojo, getDaemonAuthToken());
+        NotificationServiceResponse notificationServiceResponse1 = notificationServiceProxy.sendEmailNotificationTransaction(emailStreamData, getDaemonAuthToken());
         log.info("------||||NOTIFICATION HAS BEEN SENT TO MERCHANT EMAIL ADDRESS {}||||--------", notificationPojo.getMerchantEmailAddress());
+        log.info("------||||NOTIFICATION SERVICE RESPONSE {}||||--------", notificationServiceResponse1);
     }
 
     private String getDaemonAuthToken() throws Exception {
@@ -106,5 +116,12 @@ public class PaymentGatewayEntityLifeCircle {
         }
         PaymentData payData = authToken.getData();
         return payData.getToken();
+    }
+
+    private String getCurrencyName(String currencyCode) {
+        Optional<Currency> currency = Currency.getAvailableCurrencies().stream().filter(c -> (c.getNumericCode() + "").equals(currencyCode)).findAny();
+        if (currency.isPresent())
+            return currency.get().getCurrencyCode();
+        return CURRENCY_DISPLAY;
     }
 }

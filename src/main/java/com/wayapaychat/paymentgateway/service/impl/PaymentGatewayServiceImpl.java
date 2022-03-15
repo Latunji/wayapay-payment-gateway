@@ -201,6 +201,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			strLong = strLong + rnd.nextInt(999999);
 			payment.setRefNo(strLong);
 			payment.setMerchantId(account.getMerchantId());
+			payment.setMerchantEmail(merchant.getData().getMerchantEmailAddress());
 			payment.setDescription(account.getDescription());
 			payment.setAmount(account.getAmount());
 			payment.setFee(account.getFee());

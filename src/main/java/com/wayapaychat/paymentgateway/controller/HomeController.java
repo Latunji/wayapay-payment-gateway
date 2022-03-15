@@ -1,15 +1,30 @@
 package com.wayapaychat.paymentgateway.controller;
 
+import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
+import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
+import com.wayapaychat.paymentgateway.listener.PaymentGatewayEntityLifeCircle;
+import org.apache.tomcat.jni.Local;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.xml.crypto.Data;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 //import org.springframework.web.bind.annotation.RestController;
 
-//@RestController
-@Controller
+@RestController
+//@Controller
 public class HomeController {
-	
+	@Autowired
+	private PaymentGatewayEntityLifeCircle paymentGatewayEntityLifeCircle;
 	@GetMapping("/callback")
     public String main(Model model, String input) {
 		System.out.println("HELLO");
@@ -37,5 +52,4 @@ public class HomeController {
 		System.out.println("HELLO");
 		System.out.println("Print Hello Waya");
     }
-
 }

@@ -21,7 +21,7 @@ public class MerchantData {
 	private String merchantProductionPublicKey;
 	private String merchantCallbackURL;
 	private String merchantWebHookURL;
-	private String wayaMerchantApiMode;
+	private String merchantKeyMode;
 	private String createdAt;
 	private String updatedAt;
 	private String modifyBy;
@@ -34,5 +34,8 @@ public class MerchantData {
     private String dateDeactivated;
     private String deactivatedBy;
     private String deactivationReason;
-
+    private String activePublicKey;
+    private String activeSecretKey;
+	private String merchantEmailAddress;
+	private String merchantPhoneNumber;
 }

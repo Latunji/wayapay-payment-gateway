@@ -1,23 +1,26 @@
 package com.wayapaychat.paymentgateway.pojo.unifiedpayment;
 
+//import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+//@JsonPropertyOrder({"secretKey", "scheme", "cardHolder", "cardNumber", "cvv", "expiry", "mobile", "pin"})
 public class UnifiedCardRequest {
 	
 	private String secretKey;
 	
 	private String scheme;
 	
-	private String cardNumber;
+	private String cardHolder;
 	
-	private String expiry;
+	private String cardNumber;
 	
 	private String cvv;
 	
-	private String cardholder;
+	private String expiry;
 	
 	private String mobile;
 	
 	private String pin;
-
+	
 	public String getSecretKey() {
 		return secretKey;
 	}
@@ -58,12 +61,12 @@ public class UnifiedCardRequest {
 		this.cvv = cvv;
 	}
 
-	public String getCardholder() {
-		return cardholder;
+	public String getCardHolder() {
+		return cardHolder;
 	}
 
-	public void setCardholder(String cardholder) {
-		this.cardholder = cardholder;
+	public void setCardHolder(String cardHolder) {
+		this.cardHolder = cardHolder;
 	}
 
 	public String getMobile() {
@@ -80,6 +83,13 @@ public class UnifiedCardRequest {
 
 	public void setPin(String pin) {
 		this.pin = pin;
+	}
+
+	@Override
+	public String toString() {
+		return "UnifiedCardRequest [secretKey=" + secretKey + ", scheme=" + scheme + ", cardHolder=" + cardHolder
+				+ ", cardNumber=" + cardNumber + ", cvv=" + cvv + ", expiry=" + expiry + ", mobile=" + mobile + ", pin="
+				+ pin + "]";
 	}
 	
 

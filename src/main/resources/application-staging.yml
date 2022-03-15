@@ -8,7 +8,7 @@ spring:
   datasource:
      username: root
      password: pONvagaJf3BTbu9l
-     url: jdbc:postgresql://postgresdb2:5432/payment-gateway-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+     url: jdbc:postgresql://postgresdb:5432/payment-gateway-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
      driver-class-name:  org.postgresql.Driver
   jpa:
     hibernate:
@@ -28,12 +28,24 @@ eureka:
 waya:
   wallet:
      auth: AUTHENTICATION-SERVICE
-     authurl: https://services.staging.mywayapay.com/auth-service/api/v1
+     authurl: https://services.staging.wayabank.ng/auth-service/api/v1
+     tempname: WALLET-SERVICE
+     tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
+  qrcode:
+     name: QRCODE-SERVICE
+     baseurl: https://services.staging.wayabank.ng/qrcode-service/api/v1
   unified-payment:
      name: unified-payment
      baseurl: https://test.payarena.com
      merchant: FAVE
      secret: 82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D
+  callback:
+     baseurl: https://services.staging.wayabank.ng/payment-gateway/api/v1/wayaCallBack
+  formcallback:
+     baseurl: https://services.staging.wayabank.ng/payment-gateway/waya/callback
   identitymanager:
      name: IDENTITYMANAGER-SERVICE
-     url: https://services.staging.mywayapay.com/identity-manager-service/api/v1
+     url: https://services.staging.wayabank.ng/identity-manager-service/api/v1
+service:
+   name: ${SERVICE_NAME:tbaadm@wayapaychat.com}
+   pass: ${SERVICE_PASS:fintemp@#123}

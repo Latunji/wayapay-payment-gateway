@@ -23,7 +23,7 @@ class ApplicationTests {
 
     @Test
     void testSendTransactionEmail() throws Exception {
-        paymentGatewayEntityLifeCircle.checkPaymentGatewayUpdate(
+        paymentGatewayEntityLifeCircle.sendTransactionNotificationAfterPaymentIsSuccessful(
                 PaymentGateway
                         .builder()
                         .amount(new BigDecimal("90000.0000"))

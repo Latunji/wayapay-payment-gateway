@@ -106,7 +106,7 @@ public class PaymentGatewayController {
 		return paymentGatewayService.USSDPaymentRequest(request, account);
 	}
 
-	@ApiOperation(value = "USSD Waya-Payment Transaction", notes = "This endpoint create client user", tags = {
+	@ApiOperation(value = "USSD Waya-Payment Transaction", notes = "This stores the transaction status from USSD", tags = {
 			"PAYMENT-GATEWAY" })
 //@ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
 //String.class, value = "token", paramType = "header", required = true) })

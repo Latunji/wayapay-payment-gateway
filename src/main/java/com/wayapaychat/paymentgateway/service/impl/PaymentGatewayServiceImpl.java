@@ -164,7 +164,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new PaymentGatewayResponse(false, "Unable to authenticate Demon User", null);
@@ -235,6 +235,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			strLong = strLong + rnd.nextInt(999999);
 			payment.setRefNo(strLong);
 			payment.setMerchantId(account.getMerchantId());
+			payment.setMerchantEmail(merchant.getData().getMerchantEmailAddress());
 			payment.setDescription(account.getDescription());
 			payment.setAmount(account.getAmount());
 			payment.setFee(account.getFee());
@@ -494,7 +495,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(account.getEmailOrPhoneNumber());
 			auth.setPassword(account.getPassword());
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("AUTHENTICATION WALLET FAILED"), HttpStatus.BAD_REQUEST);
@@ -641,7 +642,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"),
@@ -721,7 +722,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"),
@@ -792,7 +793,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			LoginRequest auth = new LoginRequest();
 			auth.setEmailOrPhoneNumber(username);
 			auth.setPassword(passSecret);
-			TokenAuthResponse authToken = authProxy.UserLogin(auth);
+			TokenAuthResponse authToken = authProxy.authenticateUser(auth);
 			log.info("Response: " + authToken.toString());
 			if (!authToken.getStatus()) {
 				return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"),

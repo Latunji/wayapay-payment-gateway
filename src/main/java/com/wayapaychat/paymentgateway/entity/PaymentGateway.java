@@ -21,14 +21,12 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
+import com.wayapaychat.paymentgateway.enumm.TransactionMode;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
+@Builder
 @Entity
 @Getter
 @Setter
@@ -107,7 +105,9 @@ public class PaymentGateway {
 	private String customerName;
 	
 	private String customerEmail;
-	
+
+	private String merchantEmail;
+
 	private String customerPhone;
 	
 	@Enumerated(EnumType.STRING)

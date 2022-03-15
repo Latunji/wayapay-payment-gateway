@@ -36,5 +36,6 @@ public class MerchantData {
     private String deactivationReason;
     private String activePublicKey;
     private String activeSecretKey;
-
+	private String merchantEmailAddress;
+	private String merchantPhoneNumber;
 }

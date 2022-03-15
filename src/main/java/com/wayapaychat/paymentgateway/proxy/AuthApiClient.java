@@ -25,7 +25,7 @@ public interface AuthApiClient {
 	public TokenCheckResponse getUserDataToken(@RequestHeader("authorization") String token);
     
     @PostMapping("/auth/login")
-	public TokenAuthResponse UserLogin(@RequestBody LoginRequest login);
+	public TokenAuthResponse authenticateUser(@RequestBody LoginRequest login);
     
     @GetMapping("/profile/{id}")
     public ProfileResponse getProfileDetail(@PathVariable("id") Long id, @RequestHeader("authorization") String token);

@@ -44,7 +44,7 @@ public class PaymentGatewayEntityLifeCircle {
 
     @PostPersist
     @PostUpdate
-    public void checkPaymentGatewayUpdate(PaymentGateway paymentGateway) throws Exception {
+    public void sendTransactionNotificationAfterPaymentIsSuccessful(PaymentGateway paymentGateway) throws Exception {
         log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
                 paymentGateway.getTranId());
         if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {

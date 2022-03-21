@@ -1,6 +1,8 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
 import java.io.BufferedInputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.LocalDate;
@@ -17,10 +19,12 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import org.jsoup.Jsoup;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -49,16 +53,6 @@ import com.wayapaychat.paymentgateway.pojo.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.TokenCheckResponse;
 import com.wayapaychat.paymentgateway.pojo.User;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.CardResponse;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UniPayment;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.UnifiedCardRequest;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPayattitude;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.pojo.ussd.USSDResponse;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
@@ -967,4 +961,23 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 		return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
 	}
 
+	@Override
+	public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests) throws URISyntaxException {
+		PaymentGateway payment = paymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
+		if (payment == null)
+			return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
+		if (requests.isApproved()) {
+			payment.setStatus(TransactionStatus.SUCCESSFUL);
+			payment.setSuccessfailure(true);
+			payment.setTranId(requests.getTrxId());
+		} else {
+			payment.setStatus(TransactionStatus.FAILED);
+			payment.setSuccessfailure(false);
+			payment.setTranId(requests.getTrxId());
+		}
+		paymentGatewayRepo.save(payment);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setLocation(new URI("https://pay.staging.wayapay.ng/status"));
+		return new ResponseEntity<>(httpHeaders, HttpStatus.PERMANENT_REDIRECT);
+	}
 }

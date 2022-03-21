@@ -3,15 +3,10 @@ package com.wayapaychat.paymentgateway.service;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaCardPayment;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaDecypt;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaEncypt;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentCallback;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaPaymentRequest;
-import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
@@ -20,6 +15,8 @@ import com.wayapaychat.paymentgateway.pojo.waya.WayaPaymentStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
+
+import java.net.URISyntaxException;
 
 public interface PaymentGatewayService {
 	
@@ -70,5 +67,7 @@ public interface PaymentGatewayService {
 	ResponseEntity<?> QueryMerchantRevenue(HttpServletRequest req, String merchantId);
 	
 	ResponseEntity<?> QueryRevenue(HttpServletRequest req);
+
+	ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest wayaCallbackRequest) throws URISyntaxException;
 
 }

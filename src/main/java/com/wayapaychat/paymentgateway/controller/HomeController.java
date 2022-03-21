@@ -20,12 +20,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 //import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+//@RestController
 //@Controller
 public class HomeController {
 	@Autowired
 	private PaymentGatewayEntityLifeCircle paymentGatewayEntityLifeCircle;
-	@GetMapping("/callback")
+//	@GetMapping("/callback")
     public String main(Model model, String input) {
 		System.out.println("HELLO");
 		//String HTMLSTring = "<!DOCTYPE html>" + "<html>" + "<head>" + "<title>JSoup Example</title>" + "</head>" + "<body>" + "<table><tr><td> <h1>HelloWorld</h1></tr>" + "</table>" + "</body>" + "</html>";
@@ -47,7 +47,7 @@ public class HomeController {
         return mInput; //view
     }
 	
-	@PostMapping("/waya/callback")
+//	@PostMapping("/waya/callback")
     public void callback(Model model) {
 		System.out.println("HELLO");
 		System.out.println("Print Hello Waya");

@@ -120,11 +120,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	/*
 	 * @Autowired public PaymentGatewayServiceImpl(WemaBankProxy proxy) { this.proxy
 	 * = proxy; }
-	 * 
+	 *
 	 * @Override public PaymentGatewayResponse
 	 * wemaTransactionQuery(HttpServletRequest request, WemaTxnQueryRequest tran) {
 	 * log.debug("Request received --- {}", "wemaTransactionQuery", tran);
-	 * 
+	 *
 	 * PaymentGatewayResponse response = new
 	 * ErrorResponse(Constant.ERROR_PROCESSING); try { ServiceResponse wemaRes =
 	 * proxy.transactionQuery(tran.getSessionid(), tran.getCraccount(),
@@ -132,7 +132,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	 * Constant.SUCCESS_CODE) { return new
 	 * SuccessResponse(Constant.OPERATION_SUCCESS, wemaRes.getData()); } else {
 	 * return new ErrorResponse(wemaRes.getStatusMessage()); }
-	 * 
+	 *
 	 * } catch (Exception ex) { log.error("Error occurred - Name Enquiry : ", ex); }
 	 * return response; }
 	 */
@@ -144,7 +144,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 	 * proxy.getAllPrefix(); if (wemaRes.getResponseCode() == Constant.SUCCESS_CODE)
 	 * { return new SuccessResponse(Constant.OPERATION_SUCCESS, wemaRes.getData());
 	 * } else { return new ErrorResponse(wemaRes.getStatusMessage()); }
-	 * 
+	 *
 	 * } catch (Exception ex) { log.error("Error occurred - Name Enquiry : ", ex); }
 	 * return response; }
 	 */
@@ -165,7 +165,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			}
 			PaymentData payData = authToken.getData();
 			String token = payData.getToken();
-			
+
 			MerchantResponse merchant = null;
 			try {
 				merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
@@ -180,7 +180,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			if (merchant == null) {
 				return new PaymentGatewayResponse(false, "Profile doesn't exist", null);
 			}
-			
+
 			if (!merchant.getCode().equals("00")) {
 				return new PaymentGatewayResponse(false, "Merchant id doesn't exist", null);
 			}
@@ -976,8 +976,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 			payment.setTranId(requests.getTrxId());
 		}
 		paymentGatewayRepo.save(payment);
-		HttpHeaders httpHeaders = new HttpHeaders();
-		httpHeaders.setLocation(new URI("https://pay.staging.wayapay.ng/status"));
-		return new ResponseEntity<>(httpHeaders, HttpStatus.PERMANENT_REDIRECT);
+		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://pay.staging.wayapay.ng/status")).build();
 	}
 }

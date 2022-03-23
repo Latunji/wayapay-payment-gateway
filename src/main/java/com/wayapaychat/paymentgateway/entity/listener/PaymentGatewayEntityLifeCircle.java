@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.listener;
+package com.wayapaychat.paymentgateway.entity.listener;
 
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;

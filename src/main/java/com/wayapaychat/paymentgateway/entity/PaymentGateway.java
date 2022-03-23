@@ -12,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+//import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -25,6 +26,7 @@ import com.wayapaychat.paymentgateway.enumm.TransactionMode;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 
 import lombok.*;
+import org.hibernate.annotations.TypeDef;
 
 @Builder
 @Entity
@@ -34,6 +36,7 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @Table(name = "m_payment_gateway")
+//@TypeDef(typeClass = JsonBinaryT.class, name = "JSONB")
 public class PaymentGateway {
 
 	@Id
@@ -45,7 +48,7 @@ public class PaymentGateway {
 
 	@Column(unique = true, nullable = false)
 	private String refNo;
-	
+
 	@Column(unique = true, nullable = false)
 	private String tranId;
 
@@ -74,7 +77,7 @@ public class PaymentGateway {
 	//private String status;
 	@Enumerated(EnumType.STRING)
     private TransactionStatus status;
-	
+
 	@Column(columnDefinition="TEXT")
 	private String encyptCard;
 
@@ -89,30 +92,33 @@ public class PaymentGateway {
 	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
 	private LocalDateTime rcre_time;
-	
+
 	private String preferenceNo;
-	
+
 	private boolean successfailure;
-	
+
 	@Column(nullable = false)
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	@JsonDeserialize(using = LocalDateDeserializer.class)
 	@JsonSerialize(using = LocalDateSerializer.class)
 	private LocalDate vendorDate;
-	
+
 	private String merchantName;
-	
+
 	private String customerName;
-	
+
 	private String customerEmail;
 
 	private String merchantEmail;
 
 	private String customerPhone;
-	
+
 	@Enumerated(EnumType.STRING)
     private PaymentChannel channel;
-	
+
 	private boolean tranflg;
 
+	private String customerIpAddress;
+	@Column(name = "payment_meta_data", columnDefinition = "JSONB")
+	private String paymentMetaData;
 }

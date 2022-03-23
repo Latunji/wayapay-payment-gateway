@@ -1,7 +1,5 @@
 package com.wayapaychat.paymentgateway.controller;
 
-import com.wayapaychat.paymentgateway.entity.PaymentGateway;
-import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.USSDWalletPayment;
@@ -14,10 +12,10 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mobile.device.Device;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 @CrossOrigin
@@ -156,14 +153,12 @@ public class PaymentGatewayController {
     // @ApiImplicitParams({@ApiImplicitParam(name = "authorization", dataTypeClass =
     // String.class, value = "token", paramType = "header", required = true) })
     @PostMapping("/request/transaction")
-    public ResponseEntity<?> PostCardRequest(HttpServletRequest request,
+    public ResponseEntity<?> PostCardRequest(HttpServletRequest request, Device device,
                                              @Valid @RequestBody WayaPaymentRequest account) {
-        PaymentGatewayResponse resp = paymentGatewayService.CardAcquireRequest(request, account);
-        if (!resp.getStatus()) {
+        PaymentGatewayResponse resp = paymentGatewayService.CardAcquireRequest(request, account,device);
+        if (!resp.getStatus())
             return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
-        }
         return new ResponseEntity<>(resp, HttpStatus.OK);
-
     }
 
     @ApiOperation(value = "Waya-Payment Card Processing", notes = "This endpoint create client user", tags = {
@@ -210,6 +205,9 @@ public class PaymentGatewayController {
 
     }
 
+    //TODO: validate that the request is from third party
+    //TODO: this seems to be vulnerable as anybody can send a post request to update payment status
+    //TODO: secrete key can be used to validate that the request came from the right source
     @PostMapping(value = "/wayaCallBack", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @ApiOperation(value = "Waya Callback URL", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})
     public ResponseEntity<?> CallBack(WayaCallbackRequest requests) throws MalformedURLException, URISyntaxException {

@@ -8,13 +8,10 @@ import javax.persistence.EntityListeners;
 import javax.persistence.Table;
 
 @EntityListeners(value = PaymentGatewayFraudRuleEntityListener.class)
+@Data
 @Builder
 @Entity
-@Getter
-@Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@ToString
 @Table(name = "m_payment_gateway_fraud_rule")
 public class PaymentGatewayFraudRule extends BaseEntity {
 }

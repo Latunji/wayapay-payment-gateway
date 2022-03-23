@@ -2,18 +2,21 @@ package com.wayapaychat.paymentgateway.entity;
 
 
 import com.wayapaychat.paymentgateway.entity.listener.PaymentGatewayEntityListener;
-import lombok.*;
+import com.wayapaychat.paymentgateway.entity.listener.PaymentGatewayFraudEventEntityListener;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.Table;
 
-@EntityListeners(value = PaymentGatewayEntityListener.class)
+@Data
+@EntityListeners(value = PaymentGatewayFraudEventEntityListener.class)
 @Builder
 @Entity
-@Getter
-@Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@ToString
 @Table(name = "m_payment_gateway_fraud_event")
-public class PaymentGatewayFraudEvent extends BaseEntity{
+public class PaymentGatewayFraudEvent extends BaseEntity {
 }

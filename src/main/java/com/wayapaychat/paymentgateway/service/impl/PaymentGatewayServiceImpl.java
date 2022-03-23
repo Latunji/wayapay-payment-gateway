@@ -119,7 +119,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
-        PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocess Transaction", null);
+        PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         DevicePojo devicePojo = PaymentGateWayCommonUtils.getClientRequestDevice(device);
         Map<String, Object> requestMetaData = new HashMap<>();
         requestMetaData.put("deviceInfo", devicePojo);

@@ -102,8 +102,7 @@ public class PaymentGatewayController {
         return paymentGatewayService.GetTransactionStatus(request, tranId);
     }
 
-    @ApiOperation(value = "Waya-Request Transaction", notes = "This endpoint create client user", tags = {
-            "PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Waya-Request Transaction", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})
     @PostMapping("/request/transaction")
     public ResponseEntity<?> PostCardRequest(HttpServletRequest request, Device device,
                                              @Valid @RequestBody WayaPaymentRequest account) throws JsonProcessingException {

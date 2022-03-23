@@ -19,7 +19,6 @@ import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
 import com.wayapaychat.paymentgateway.utils.VariableUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 

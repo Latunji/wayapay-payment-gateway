@@ -3,6 +3,7 @@ package com.wayapaychat.paymentgateway.service;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import org.springframework.http.ResponseEntity;
 
@@ -15,6 +16,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.WayaPaymentStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
+import org.springframework.mobile.device.Device;
 
 import java.net.URISyntaxException;
 
@@ -40,7 +42,7 @@ public interface PaymentGatewayService {
 	
 	ResponseEntity<?> ConsumeWalletPayment(HttpServletRequest request, WayaWalletPayment payment, String token);
 	
-	PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account);
+	PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException;
 	
 	PaymentGatewayResponse CardAcquirePayment(HttpServletRequest request, WayaCardPayment card);
 	

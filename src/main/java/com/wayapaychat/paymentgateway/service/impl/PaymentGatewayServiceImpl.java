@@ -212,7 +212,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setCustomerName(account.getCustomer().getName());
             payment.setCustomerEmail(account.getCustomer().getEmail());
             payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
-            payment.setStatus(TransactionStatus.PENDING);
+            payment.setStatus(TransactionStatus.SUCCESSFUL);
             payment.setChannel(PaymentChannel.WEBVIEW);
             payment.setPreferenceNo(account.getPreferenceNo());
             final String secretKey = "ssshhhhhhhhhhh!!!!";

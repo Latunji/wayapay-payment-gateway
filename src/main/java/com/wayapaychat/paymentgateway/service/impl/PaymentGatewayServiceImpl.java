@@ -336,7 +336,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 paymentGatewayRepo.save(mPay);
                 String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt());
                 if (!callReq.isBlank()) {
-                    // response.sendRedirect(callReq);
                     URLConnection urlConnection_ = new URL(callReq).openConnection();
                     urlConnection_.connect();
                     BufferedInputStream bufferedInputStream = new BufferedInputStream(urlConnection_.getInputStream());
@@ -862,8 +861,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         if (mPay == null) {
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
         }
-        List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
-        return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
+//        List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
+        return new ResponseEntity<>(new SuccessResponse("List Payment", mPay), HttpStatus.OK);
     }
 
     @Override

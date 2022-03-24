@@ -44,7 +44,7 @@ public class CronService {
 	@Value("${service.pass}")
 	private String passSecret;
 
-//	@Scheduled(cron = "*/5 * * * * *")
+	@Scheduled(cron = "*/5 * * * * *")
 	public void PostUPCardSink() {
 		List<PaymentGateway> product = paymentGatewayRepo.findAll();
 		for (PaymentGateway payment : product) {
@@ -118,7 +118,7 @@ public class CronService {
 		}
 	}
 	
-//	@Scheduled(cron = "*/5 * * * * *")
+	@Scheduled(cron = "*/5 * * * * *")
 	public void PostWalletTransactionSink() {
 		List<PaymentGateway> payment = paymentGatewayRepo.findAll();
 		for (PaymentGateway mPayment : payment) {

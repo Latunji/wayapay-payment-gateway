@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -45,10 +46,11 @@ public class PaymentGateway {
     private String merchantId;
     private String description;
     private BigDecimal amount;
-    private BigDecimal fee;
+    private BigDecimal fee = BigDecimal.ZERO;
     private String currencyCode;
     private String returnUrl;
     @Column(nullable = false)
+    @JsonIgnore
     private String secretKey; // hash
     private String scheme;
     private String cardNo; // hash
@@ -57,6 +59,7 @@ public class PaymentGateway {
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
     @Column(columnDefinition = "TEXT")
+    @JsonIgnore
     private String encyptCard;
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -74,6 +77,7 @@ public class PaymentGateway {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
+    @JsonIgnore
     private LocalDate vendorDate;
     private String merchantName;
     private String customerName;

@@ -44,7 +44,7 @@ public interface PaymentGatewayService {
 	
 	PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException;
 	
-	PaymentGatewayResponse CardAcquirePayment(HttpServletRequest request, WayaCardPayment card);
+	ResponseEntity<?> CardAcquirePayment(HttpServletRequest request, WayaCardPayment card);
 	
 	PaymentGatewayResponse CardAcquireCallback(HttpServletRequest request, HttpServletResponse response, WayaPaymentCallback pay);
 	

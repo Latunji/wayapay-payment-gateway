@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @MappedSuperclass()
-public class BaseEntity {
+public class GenericBaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(unique = true, nullable = false)
@@ -26,7 +27,6 @@ public class BaseEntity {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime dateCreated;
 
-    @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -37,4 +37,17 @@ public class BaseEntity {
 
     @Column(name = "modified_by")
     private Long modifiedBy;
+
+    @Column(name = "deleted")
+    private Boolean deleted;
+
+    @PrePersist
+    void onCreate() {
+        if (ObjectUtils.isEmpty(dateCreated))
+            this.dateCreated = LocalDateTime.now();
+        if (ObjectUtils.isEmpty(deleted))
+            deleted = false;
+        if (ObjectUtils.isEmpty(createdBy))
+            createdBy = 0L;
+    }
 }

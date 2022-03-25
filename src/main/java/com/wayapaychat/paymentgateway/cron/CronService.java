@@ -143,7 +143,6 @@ public class CronService {
 					log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());
 				}
 			}
-			
 		}
 	}
 }

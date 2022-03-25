@@ -9,7 +9,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import com.wayapaychat.paymentgateway.entity.listener.PaymentGatewayEntityListener;
+import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import lombok.*;
@@ -22,7 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
-@EntityListeners(value = PaymentGatewayEntityListener.class)
+@EntityListeners(value = PaymemtGatewayEntityListener.class)
 @Builder
 @Entity
 @Getter
@@ -92,4 +92,6 @@ public class PaymentGateway {
     @Type(type = "JSONB")
     @Column(name = "payment_meta_data", columnDefinition = "JSONB")
     private String paymentMetaData;
+    @Column(name = "masked_pan")
+    private String maskedPan;
 }

@@ -84,6 +84,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private String passSecret;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private FraudEventImpl paymentGatewayFraudEvent;
 
     /*
      * @Autowired public PaymentGatewayServiceImpl(WemaBankProxy proxy) { this.proxy
@@ -121,11 +123,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         DevicePojo devicePojo = PaymentGateWayCommonUtils.getClientRequestDevice(device);
-        Map<String, Object> requestMetaData = new HashMap<>();
-        requestMetaData.put("deviceInfo", devicePojo);
         try {
             // Duplicate Reference
-
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
             auth.setPassword(passSecret);
@@ -205,7 +204,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setAmount(account.getAmount());
             payment.setFee(account.getFee());
             payment.setCustomerIpAddress(PaymentGateWayCommonUtils.getClientRequestIP(request));
-            payment.setPaymentMetaData(objectMapper.writeValueAsString(requestMetaData));
             payment.setCurrencyCode(account.getCurrency());
             payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
             payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
@@ -243,7 +241,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public PaymentGatewayResponse CardAcquirePayment(HttpServletRequest request, WayaCardPayment card) {
+    public ResponseEntity<?> CardAcquirePayment(HttpServletRequest request, WayaCardPayment card) {
+        //process card fraud
+        //PaymentGateWayCommonUtils.getClientRequestIP(request)
+//        paymentGatewayFraudEvent
+        Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTransactionId());
+        Object response = null;
+        String pan = "****************";
+        if (optionalPaymentGateway.isEmpty())
+            return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
+        PaymentGateway paymentGateway = optionalPaymentGateway.get();
         String keygen = null;
         if (card.getWayaPublicKey().contains("TEST")) {
             keygen = card.getWayaPublicKey().replace("WAYAPUBK_TEST_0x", "");
@@ -258,13 +265,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
             log.info(vt);
             if (vt == null || vt.equals("")) {
-                return new PaymentGatewayResponse(false, "Invalid Encryption", null);
+                response = new PaymentGatewayResponse(false, "Invalid Encryption", null);
             }
             if (vt.length() < 16) {
-                return new PaymentGatewayResponse(false, "Invalid Card", null);
+                response = new PaymentGatewayResponse(false, "Invalid Card", null);
             }
             String[] mt = vt.split(Pattern.quote("|"));
             String cardNo = mt[0];
+            pan = cardNo;
             String cvv = mt[1];
             cardReq.setSecretKey(card.getWayaPublicKey());
             cardReq.setScheme(card.getScheme());
@@ -279,13 +287,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
             log.info(vt);
             if (vt == null || vt.equals("")) {
-                return new PaymentGatewayResponse(false, "Invalid Encryption", null);
+                response = new PaymentGatewayResponse(false, "Invalid Encryption", null);
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             if (vt.length() < 16) {
-                return new PaymentGatewayResponse(false, "Invalid Card", null);
+                response = new PaymentGatewayResponse(false, "Invalid Card", null);
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             String[] mt = vt.split(Pattern.quote("|"));
             String cardNo = mt[0];
+            pan = cardNo;
             String cvv = mt[1];
             cardReq.setSecretKey(card.getWayaPublicKey());
             cardReq.setScheme(card.getScheme());
@@ -307,12 +318,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             cardReq.setPin(card.getPin());
             log.info("Card Info: " + cardReq);
         }
-        PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Encrypt Card fail", null);
+        response = new PaymentGatewayResponse(false, "Encrypt Card fail", null);
         String encryptData = uniPaymentProxy.encryptPaymentDataAccess(cardReq);
-        if (!encryptData.isBlank()) {
+        paymentGateway.setPaymentMetaData(card.getDeviceInformation());
+        paymentGateway.setMaskedPan(PaymentGateWayCommonUtils.maskedPan(pan));
+        if (!encryptData.isBlank())
             response = new PaymentGatewayResponse(true, "Success Encrypt", encryptData);
-        }
-        return response;
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @Override

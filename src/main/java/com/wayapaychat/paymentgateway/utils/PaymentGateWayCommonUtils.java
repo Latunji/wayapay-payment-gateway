@@ -18,6 +18,12 @@ public class PaymentGateWayCommonUtils {
         return request.getRemoteAddr();
     }
 
+    public static String maskedPan(String pan) {
+        String masked = "*** **** **** ";
+        String maskedLastFourDigit = pan.substring(pan.length() - 4, pan.length() - 1);
+        return masked + maskedLastFourDigit;
+    }
+
     public static DevicePojo getClientRequestDevice(Device device) {
         DeviceType deviceType;
         DevicePlatform platform;
@@ -30,6 +36,6 @@ public class PaymentGateWayCommonUtils {
         else
             deviceType = DeviceType.BROWSER;
         platform = device.getDevicePlatform();
-        return new DevicePojo(deviceType, platform);
+        return new DevicePojo(deviceType, platform, "");
     }
 }

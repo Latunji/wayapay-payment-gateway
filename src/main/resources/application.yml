@@ -36,6 +36,8 @@ waya:
     payment-gateway-mode: ${PAYMENT_GATEWAY_MODE:TEST}
   notification-service:
     baseurl: https://services.staging.wayabank.ng/notification-service
+  logging-service:
+    base-url: https://services.staging.wayabank.ng/logs-service
   qrcode:
     name: QRCODE-SERVICE
     baseurl: https://services.staging.wayabank.ng/qrcode-service/api/v1

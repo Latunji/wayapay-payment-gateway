@@ -116,10 +116,7 @@ public class PaymentGatewayController {
             "PAYMENT-GATEWAY"})
     @PostMapping("/transaction/payment")
     public ResponseEntity<?> PostCardPayment(HttpServletRequest request, @Valid @RequestBody WayaCardPayment card) {
-        PaymentGatewayResponse resp = paymentGatewayService.CardAcquirePayment(request, card);
-        if (!resp.getStatus()) {
-            return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
-        }
+        ResponseEntity<?> resp = paymentGatewayService.CardAcquirePayment(request, card);
         return new ResponseEntity<>(resp, HttpStatus.OK);
 
     }

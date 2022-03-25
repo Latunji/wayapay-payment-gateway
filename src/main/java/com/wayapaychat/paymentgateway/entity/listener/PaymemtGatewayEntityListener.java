@@ -60,7 +60,8 @@ public class PaymemtGatewayEntityListener {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
                 paymentGateway.getTranId());
-        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
+        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
+                || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED) {
             NotificationPojo notificationPojo = NotificationPojo
                     .builder()
                     .paymentChannel(paymentGateway.getChannel())
@@ -89,8 +90,10 @@ public class PaymemtGatewayEntityListener {
         emailStreamData.setEventCategory(EventCategory.TRANSACTION);
         emailStreamData.setEventType(EventType.EMAIL);
         emailStreamData.setProductType(ProductType.WAYAPAY);
+        emailStreamData.setTransactionId(notificationPojo.getChannelTransactionId());
+        emailStreamData.setPaymentChannel(notificationPojo.getPaymentChannel());
         emailStreamData.setNarration(notificationPojo.getTransactionNarration());
-        emailStreamData.setNarration("Transaction was successful with USSD Channel");
+        emailStreamData.setNarration(String.format("Transaction was successfully processed with %s Channel",notificationPojo.getPaymentChannel()));
         emailStreamData.setAmount(notificationPojo.getTransactionAmount().toString());
         emailStreamData.setTransactionDate(notificationPojo.getUpdatedAt().toString());
         emailStreamData.setMode(variableUtil.getMode());

@@ -86,6 +86,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private ObjectMapper objectMapper;
     @Autowired
     private FraudEventImpl paymentGatewayFraudEvent;
+    @Value("${service.encrypt-all-merchant-secretekey-with}")
+    private String encryptAllMerchantSecretKeyWith;
 
     /*
      * @Autowired public PaymentGatewayServiceImpl(WemaBankProxy proxy) { this.proxy
@@ -160,10 +162,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 if (!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
                     return new PaymentGatewayResponse(false, "Invalid merchant key", null);
                 }
-            } else {
-                if (!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
-                    return new PaymentGatewayResponse(false, "Invalid merchant key", null);
-                }
+            } else if (!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
+                return new PaymentGatewayResponse(false, "Invalid merchant key", null);
             }
             // To create customer records
             CustomerRequest customer = new CustomerRequest();
@@ -213,8 +213,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setStatus(TransactionStatus.PENDING);
             payment.setChannel(PaymentChannel.WEBVIEW);
             payment.setPreferenceNo(account.getPreferenceNo());
-            final String secretKey = "ssshhhhhhhhhhh!!!!";
-            String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
+            //This key is used to encrypt the merchant secrete key
+//            final String secretKey = "ssshhhhhhhhhhh!!!!";
+            String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(vt);
             CardResponse card = new CardResponse();
             // To create temporary tranId
@@ -284,17 +285,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             cardReq.setPin(card.getPin());
             log.info("Card Info: " + cardReq);
         } else if (card.getScheme().equalsIgnoreCase("Verve")) {
-            String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
-            log.info(vt);
-            if (vt == null || vt.equals("")) {
-                response = new PaymentGatewayResponse(false, "Invalid Encryption", null);
+            String decryptedCardData = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
+            log.info(decryptedCardData);
+            if (decryptedCardData == null || decryptedCardData.equals("")) {
+                response = new PaymentGatewayResponse(false, "Oops failed to process card", null);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-            }
-            if (vt.length() < 16) {
+            } else if (decryptedCardData.length() < 16) {
                 response = new PaymentGatewayResponse(false, "Invalid Card", null);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
-            String[] mt = vt.split(Pattern.quote("|"));
+            String[] mt = decryptedCardData.split(Pattern.quote("|"));
             String cardNo = mt[0];
             pan = cardNo;
             String cvv = mt[1];

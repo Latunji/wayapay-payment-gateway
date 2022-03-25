@@ -56,3 +56,4 @@ waya:
 service:
   name: ${SERVICE_NAME:tbaadm@wayapaychat.com}
   pass: ${SERVICE_PASS:fintemp@#123}
+  encrypt-all-merchant-secretekey-with: S@$@@@@@!!!!!ads#$%#$@#!#$@$@545345fdsdf@@$353^^*(*@#$%#@$%#$@#@#$%#%#@

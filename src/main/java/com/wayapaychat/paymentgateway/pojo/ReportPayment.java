@@ -32,7 +32,6 @@ public class ReportPayment {
     private String scheme;
     private String authorization;
     private String maskedPan;
-    private String ipAddress;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)

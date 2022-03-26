@@ -231,8 +231,6 @@ public class UnifiedPaymentProxy {
             card.setSecretKey(merchantSecret);
             String json = mapper.writeValueAsString(card);
             log.info("Result JSON String = " + json);
-            // json = StringEscapeUtils.escapeJson(json);
-            // log.info("JSON = " + json);
             json = json.replace("MONYR", expMonyear);
             log.info("JSON = " + json);
             String key = sha1(merchantSecret).toLowerCase();
@@ -249,12 +247,10 @@ public class UnifiedPaymentProxy {
         HttpHeaders headers = new HttpHeaders();
         String baseUrl = merchantUrl + "/Status/" + tranId;
         UriComponentsBuilder builderURL = UriComponentsBuilder.fromHttpUrl(baseUrl);
-        // log.info("BASE URL= " + builderURL.toUriString());
         RestTemplate restTemplate = new RestTemplate();
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<WayaTransactionQuery> resp = restTemplate.exchange(builderURL.toUriString(), HttpMethod.GET,
                 entity, WayaTransactionQuery.class);
-        // log.info("Return Message: " + resp.getBody());
         return resp.getBody();
     }
 

@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,8 @@ import java.util.concurrent.CompletableFuture;
 @Validated
 @Slf4j
 public class PaymentGatewayController {
+    @Value("${waya.thirdparty.unified-payment.callback.accepted-origins}")
+    private String acceptedUnifiedPaymentCallbackOrigins;
     @Autowired
     PaymentGatewayService paymentGatewayService;
 

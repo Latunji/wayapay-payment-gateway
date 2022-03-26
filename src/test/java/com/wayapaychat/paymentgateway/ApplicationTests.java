@@ -1,9 +1,9 @@
 package com.wayapaychat.paymentgateway;
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
-import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @SpringBootTest
 class ApplicationTests {
     @Autowired
-    private PaymentGatewayRepository paymentGatewayEntityLifeCircle;
+    private PaymemtGatewayEntityListener paymemtGatewayEntityListener;
 
     @Test
     void contextLoads() {
@@ -23,7 +23,7 @@ class ApplicationTests {
 
     @Test
     void testSendTransactionEmail() throws Exception {
-        paymentGatewayEntityLifeCircle.save(PaymentGateway
+        paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(PaymentGateway
                 .builder()
                 .amount(new BigDecimal("90000.0000"))
                 .rcre_time(LocalDateTime.now())
@@ -47,8 +47,8 @@ class ApplicationTests {
                 .vendorDate(LocalDate.now())
                 .refNo(LocalDateTime.now().toString())
                 .merchantId("MER_mrereawesfdf")
-                .customerEmail("keemsisi@gmail.com")
-                .merchantEmail("keemsisi@gmail.com")
+                .customerEmail("test@wayapay.ng")
+                .merchantEmail("test@wayapay.ng")
                 .tranId(LocalDateTime.now().toString())
                 .id(1L)
                 .build());

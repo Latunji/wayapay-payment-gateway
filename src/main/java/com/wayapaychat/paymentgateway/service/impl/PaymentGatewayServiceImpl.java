@@ -110,7 +110,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     log.error("Feign Exception Status {}", httpStatus);
                 }
                 log.error("Higher Wahala {}", ex.getMessage());
-                log.error("PROFILE ERROR MESSAGE", ex.getLocalizedMessage());
+                log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
             }
             if (merchant == null) {
                 return new PaymentGatewayResponse(false, "Profile doesn't exist", null);

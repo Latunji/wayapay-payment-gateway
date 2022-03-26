@@ -74,10 +74,10 @@ public class UnifiedPaymentProxy {
     }
 
     public static String toHex(byte[] b) {
-        StringBuffer sb = new StringBuffer(b.length * 2);
+        StringBuilder sb = new StringBuilder(b.length * 2);
         String tmp = "";
-        for (int n = 0; n < b.length; n++) {
-            tmp = (java.lang.Integer.toHexString(b[n] & 0XFF));
+        for (byte value : b) {
+            tmp = (Integer.toHexString(value & 0XFF));
             if (tmp.length() == 1) {
                 sb.append("0");
             }
@@ -102,31 +102,16 @@ public class UnifiedPaymentProxy {
         try {
             log.info("ENCRYPT PASSWORD: " + password);
             log.info("ENCRYPT CONTENT: " + content);
-
-            // byte[] data = pad(content.getBytes());
             byte[] data = content.getBytes();
             byte[] keybytes = password.substring(0, 16).getBytes();
-
             Cipher cipher = Cipher.getInstance(Mode);
             SecretKeySpec spec = new SecretKeySpec(keybytes, "AES");
             cipher.init(Cipher.ENCRYPT_MODE, spec, new IvParameterSpec(keybytes));
-
             return toHex(cipher.doFinal(data));
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static String Cardencrypt(String Secretkey, String json) {
-        String mPos = null;
-        try {
-            String key = sha1(Secretkey).toLowerCase();
-            mPos = encrypt(json, key);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return mPos;
     }
 
     public static void setKey(String myKey) {

@@ -331,7 +331,7 @@ public class UnifiedPaymentProxy {
 		} catch (Exception e) {
 			System.out.println("Error while decrypting: " + e.toString());
 		}
-		return null;
+		return "";
 	}
 
 	public FundEventResponse postWalletTransaction(WayaWalletPayment account, String token, PaymentGateway mPay) {

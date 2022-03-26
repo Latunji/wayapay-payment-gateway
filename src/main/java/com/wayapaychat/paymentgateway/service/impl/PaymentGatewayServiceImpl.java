@@ -283,7 +283,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         } else if (card.getScheme().equalsIgnoreCase("Verve")) {
             String decryptedCardData = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
             log.info(decryptedCardData);
-            if (decryptedCardData == null || decryptedCardData.equals("")) {
+            if (ObjectUtils.isEmpty(decryptedCardData)) {
                 response = new PaymentGatewayResponse(false, "Oops failed to process card", null);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             } else if (decryptedCardData.length() < 16) {

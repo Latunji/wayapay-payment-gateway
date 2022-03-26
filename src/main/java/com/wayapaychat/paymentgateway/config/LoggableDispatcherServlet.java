@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wayapaychat.paymentgateway.BeanContextUtil;
+import com.wayapaychat.paymentgateway.SpringApplicationContext;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
 import com.wayapaychat.paymentgateway.pojo.LogMessage;
 import com.wayapaychat.paymentgateway.pojo.LogRequest;
@@ -76,7 +76,10 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
     private void log(HttpServletRequest request, HttpServletResponse response, HandlerExecutionChain handler, long timeTaken) {
         final String path = request.getRequestURI();
         if (path.contains("swagger") || path.startsWith("/v2/api-docs")
-                || path.startsWith("/com/wayapay/ng/backend/api/v1/auth/validate-user"))
+                || path.contains("/auth/validate-user")
+                || path.contains("/encryption")
+                || path.contains("/transaction/payment")
+                || path.contains("/transaction/processing"))
             return;
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -176,7 +179,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
                 action = "CREATE";
         }
 
-        UserService userService = (UserService) BeanContextUtil
+        UserService userService = (UserService) SpringApplicationContext
                 .getBean("userServiceImpl");
 
         LogRequest pojo = new LogRequest();

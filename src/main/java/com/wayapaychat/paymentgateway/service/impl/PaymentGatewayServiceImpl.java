@@ -202,19 +202,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> CardAcquirePayment(HttpServletRequest request, WayaCardPayment card) {
         Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTransactionId());
-        Object response = null;
-        String pan = "**** **** **** ****";
         if (optionalPaymentGateway.isEmpty())
             return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
+        Object response;
+        String pan = "**** **** **** ****";
         PaymentGateway paymentGateway = optionalPaymentGateway.get();
-        String keygen = null;
-        if (card.getWayaPublicKey().contains("TEST")) {
-            keygen = card.getWayaPublicKey().replace("WAYAPUBK_TEST_0x", "");
-            log.info(keygen);
-        } else {
-            keygen = card.getWayaPublicKey().replace("WAYAPUBK_PROD_0x", "");
-            log.info(keygen);
-        }
+        String keygen = replacePublicKeyWithEmptyString(card.getWayaPublicKey());
         UnifiedCardRequest cardReq = new UnifiedCardRequest();
         if (card.getScheme().equalsIgnoreCase("Amex") || card.getScheme().equalsIgnoreCase("Mastercard")
                 || card.getScheme().equalsIgnoreCase("Visa")) {
@@ -378,42 +371,24 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public PaymentGatewayResponse encrypt(HttpServletRequest request, WayaEncypt pay) {
-        String keygen = null;
-        if (pay.getMerchantSecretKey().contains("TEST")) {
-            keygen = pay.getMerchantSecretKey().replace("WAYAPUBK_TEST_0x", "");
-            log.info(keygen);
-        } else {
-            keygen = pay.getMerchantSecretKey().replace("WAYAPUBK_PROD_0x", "");
-            log.info(keygen);
-        }
+        String keygen = replacePublicKeyWithEmptyString(pay.getMerchantSecretKey());
         String vt = UnifiedPaymentProxy.getDataEncrypt(pay.getEncryptString(), keygen);
-        if (vt == null || vt.equals("")) {
+        if (ObjectUtils.isEmpty(vt))
             return (new PaymentGatewayResponse(false, "Encryption fail", null));
-        }
         return (new PaymentGatewayResponse(true, "Encrypted", vt));
     }
 
     @Override
     public PaymentGatewayResponse decrypt(HttpServletRequest request, WayaDecypt pay) {
-        String keygen = null;
-        if (pay.getMerchantSecretKey().contains("TEST")) {
-            keygen = pay.getMerchantSecretKey().replace("WAYAPUBK_TEST_0x", "");
-            log.info(keygen);
-        } else {
-            keygen = pay.getMerchantSecretKey().replace("WAYAPUBK_PROD_0x", "");
-            log.info(keygen);
-        }
+        String keygen = replacePublicKeyWithEmptyString(pay.getMerchantSecretKey());
         String vt = UnifiedPaymentProxy.getDataDecrypt(pay.getDecryptString(), keygen);
-        if (vt == null || vt.equals("")) {
+        if (ObjectUtils.isEmpty(vt))
             return (new PaymentGatewayResponse(false, "Decryption fail", null));
-        }
         return (new PaymentGatewayResponse(true, "Decrypted", vt));
     }
 
     @Override
     public ResponseEntity<?> WalletPaymentAuthentication(HttpServletRequest request, WayaAuthenicationRequest account) {
-        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"),
-                HttpStatus.BAD_REQUEST);
         try {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(account.getEmailOrPhoneNumber());
@@ -438,22 +413,20 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             mWallet.setToken(token);
             mWallet.setWallet(wallet.getData());
             mWallet.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
-            response = new ResponseEntity<>(new SuccessResponse("WALLET PAYMENT", mWallet), HttpStatus.CREATED);
-
+            return new ResponseEntity<>(new SuccessResponse("WALLET PAYMENT", mWallet), HttpStatus.CREATED);
         } catch (Exception ex) {
             if (ex instanceof FeignException) {
                 String httpStatus = Integer.toString(((FeignException) ex).status());
                 log.error("Feign Exception Status {}", httpStatus);
             }
-            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("Exception Occurred {}", ex.getMessage());
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
-        return response;
     }
 
     @Override
     public ResponseEntity<?> ConsumeWalletPayment(HttpServletRequest request, WayaWalletPayment account, String token) {
-        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"),
+        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocessed Transaction Request"),
                 HttpStatus.BAD_REQUEST);
         try {
             PaymentGateway payment = paymentGatewayRepo.findByRefNo(account.getRefNo()).orElse(null);
@@ -843,6 +816,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
         paymentGatewayRepo.save(payment);
         return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).location(URI.create(wayapayStatusURL)).build();
+    }
+
+    private String replacePublicKeyWithEmptyString(String pub) {
+        return pub.contains("WAYA") ?
+                pub.replace("WAYAPUBK_TEST_0x", "") :
+                pub.replace("WAYAPUBK_PROD_0x", "");
     }
 }
 

@@ -55,27 +55,21 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     // private WemaBankProxy proxy;
 
+    private final Integer DEFAULT_CARD_LENGTH = 20;
     @Autowired
     UnifiedPaymentProxy uniPaymentProxy;
-
     @Autowired
     MerchantProxy merchantProxy;
-
     @Autowired
     AuthApiClient authProxy;
-
     @Autowired
     IdentityManager identManager;
-
     @Autowired
     PaymentGatewayRepository paymentGatewayRepo;
-
     @Autowired
     WalletProxy wallProxy;
-
     @Autowired
     WayaPaymentDAO wayaPayment;
-
     @Autowired
     PaymentWalletRepository paymentWalletRepo;
     ModelMapper modelMapper = new ModelMapper();
@@ -87,7 +81,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private ObjectMapper objectMapper;
     @Autowired
     private FraudEventImpl paymentGatewayFraudEvent;
-    @Value("${service.encrypt-all-merchant-secretekey-with}")
+    @Value("${service.encrypt-all-merchant-secretkey-with}")
     private String encryptAllMerchantSecretKeyWith;
 
     /*
@@ -264,16 +258,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         UnifiedCardRequest cardReq = new UnifiedCardRequest();
         if (card.getScheme().equalsIgnoreCase("Amex") || card.getScheme().equalsIgnoreCase("Mastercard")
                 || card.getScheme().equalsIgnoreCase("Visa")) {
-            String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
-            log.info(vt);
-            if (ObjectUtils.isEmpty(vt)) {
+            String decryptedCard = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
+            log.info(decryptedCard);
+            if (ObjectUtils.isEmpty(decryptedCard)) {
                 response = new PaymentGatewayResponse(false, "Invalid Encryption", null);
                 new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-            } else if (vt.length() < 16) {
+            } else if (decryptedCard.length() < DEFAULT_CARD_LENGTH) {
                 response = new PaymentGatewayResponse(false, "Invalid Card", null);
                 new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
-            String[] mt = vt.split(Pattern.quote("|"));
+            String[] mt = decryptedCard.split(Pattern.quote("|"));
             String cardNo = mt[0];
             pan = cardNo;
             String cvv = mt[1];

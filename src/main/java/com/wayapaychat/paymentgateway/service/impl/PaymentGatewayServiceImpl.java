@@ -622,7 +622,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> USSDPaymentRequest(HttpServletRequest request, WayaUSSDRequest account) {
+    public ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, WayaUSSDRequest account) {
         ResponseEntity<?> response = ResponseEntity.badRequest().body(null);
         try {
             LoginRequest auth = new LoginRequest();

@@ -26,7 +26,7 @@ public interface PaymentGatewayService {
 	
 	ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo);
 	
-	ResponseEntity<?> USSDPaymentRequest(HttpServletRequest request, WayaUSSDRequest account);
+	ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, WayaUSSDRequest account);
 
 	ResponseEntity<?> walletAuthentication(HttpServletRequest request, WayaAuthenicationRequest account);
 	

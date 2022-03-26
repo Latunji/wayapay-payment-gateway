@@ -50,7 +50,7 @@ public class PaymentGatewayController {
     @ApiOperation(value = "USSD Waya-Request Transaction", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})
     @PostMapping("/request/ussd")
     public ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, @Valid @RequestBody WayaUSSDRequest account) {
-        return paymentGatewayService.USSDPaymentRequest(request, account);
+        return paymentGatewayService.initiateUSSDTransaction(request, account);
     }
 
     @ApiOperation(value = "USSD Waya-Payment Transaction", notes = "This stores the transaction status from USSD", tags = {"PAYMENT-GATEWAY"})

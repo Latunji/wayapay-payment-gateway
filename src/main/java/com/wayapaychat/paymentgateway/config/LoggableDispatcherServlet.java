@@ -39,17 +39,14 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
     @Override
     protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
         long startTime = System.currentTimeMillis();
-        if (!(request instanceof ContentCachingRequestWrapper)) {
+        if (!(request instanceof ContentCachingRequestWrapper))
             request = new ContentCachingRequestWrapper(request);
-        }
-        if (!(response instanceof ContentCachingResponseWrapper)) {
+        if (!(response instanceof ContentCachingResponseWrapper))
             response = new ContentCachingResponseWrapper(response);
-        }
         HandlerExecutionChain handler = null;
         try {
             handler = getHandler(request);
             super.doDispatch(request, response);
-
         } catch (HttpMediaTypeNotSupportedException ex) {
             ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -81,7 +78,6 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
                 || path.contains("/transaction/payment")
                 || path.contains("/transaction/processing"))
             return;
-
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         LogMessage logMessage = new LogMessage();
         logMessage.setHttpStatus(response.getStatus());
@@ -92,9 +88,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         logMessage.setResponse(getResponsePayload(response));
         logMessage.setJavaMethod(handler == null ? "null" : handler.getHandler().toString());
         logMessage.setRequestParams(request.getQueryString());
-
         String requestData = null;
-
         try {
             requestData = getRequestData(request);
             if (requestData != null && requestData.length() > 5000) {
@@ -105,9 +99,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         }
         logMessage.setRequestBody(Objects.toString(requestData, "null"));
         String json = gson.toJson(logMessage);
-        // Log to Console/File
         log.info(json);
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             MyUserData user = ((UserPrincipal) authentication.getPrincipal()).getUser();
@@ -163,7 +155,6 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 
     private void logRequestAndResponse(LogMessage message, Long id) {
         String httpMethod = message.getHttpMethod(), action;
-
         switch (httpMethod) {
             case "GET":
             case "PUT":
@@ -178,10 +169,8 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
             default:
                 action = "CREATE";
         }
-
         UserService userService = (UserService) SpringApplicationContext
                 .getBean("userServiceImpl");
-
         LogRequest pojo = new LogRequest();
         pojo.setAction(action);
         String mess = "Dispute Service: " + message.getPath();
@@ -190,9 +179,8 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         pojo.setJsonResponse(message.getResponse());
         pojo.setUserId(id);
         String controller = message.getJavaMethod();
-        if (controller != null && !controller.isBlank() && controller.length() > 39) {
+        if (controller != null && !controller.isBlank() && controller.length() > 39)
             controller = controller.substring(39, controller.indexOf("#"));
-        }
         pojo.setModule(controller);
         userService.saveLog(pojo);
     }

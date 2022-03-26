@@ -84,38 +84,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Value("${service.encrypt-all-merchant-secretkey-with}")
     private String encryptAllMerchantSecretKeyWith;
 
-    /*
-     * @Autowired public PaymentGatewayServiceImpl(WemaBankProxy proxy) { this.proxy
-     * = proxy; }
-     *
-     * @Override public PaymentGatewayResponse
-     * wemaTransactionQuery(HttpServletRequest request, WemaTxnQueryRequest tran) {
-     * log.debug("Request received --- {}", "wemaTransactionQuery", tran);
-     *
-     * PaymentGatewayResponse response = new
-     * ErrorResponse(Constant.ERROR_PROCESSING); try { ServiceResponse wemaRes =
-     * proxy.transactionQuery(tran.getSessionid(), tran.getCraccount(),
-     * tran.getAmount(), tran.getTxndate()); if (wemaRes.getResponseCode() ==
-     * Constant.SUCCESS_CODE) { return new
-     * SuccessResponse(Constant.OPERATION_SUCCESS, wemaRes.getData()); } else {
-     * return new ErrorResponse(wemaRes.getStatusMessage()); }
-     *
-     * } catch (Exception ex) { log.error("Error occurred - Name Enquiry : ", ex); }
-     * return response; }
-     */
-
-    /*
-     * @Override public PaymentGatewayResponse wemaAllPrefix(HttpServletRequest
-     * request) { PaymentGatewayResponse response = new
-     * ErrorResponse(Constant.ERROR_PROCESSING); try { ServiceResponse wemaRes =
-     * proxy.getAllPrefix(); if (wemaRes.getResponseCode() == Constant.SUCCESS_CODE)
-     * { return new SuccessResponse(Constant.OPERATION_SUCCESS, wemaRes.getData());
-     * } else { return new ErrorResponse(wemaRes.getStatusMessage()); }
-     *
-     * } catch (Exception ex) { log.error("Error occurred - Name Enquiry : ", ex); }
-     * return response; }
-     */
-
     @Override
     public PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
@@ -208,15 +176,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setStatus(TransactionStatus.PENDING);
             payment.setChannel(PaymentChannel.WEBVIEW);
             payment.setPreferenceNo(account.getPreferenceNo());
-            //This key is used to encrypt the merchant secrete key
-//            final String secretKey = "ssshhhhhhhhhhh!!!!";
             String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(vt);
             CardResponse card = new CardResponse();
-            // To create temporary tranId
             UUID uuid = UUID.randomUUID();
             String tranId = uuid.toString();
-            // String tranId = uniPaymentProxy.postUnified(account);
             if (!tranId.isBlank()) {
                 card.setTranId(strLong);
                 card.setName(profile.getData().getOtherDetails().getOrganisationName());
@@ -238,9 +202,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> CardAcquirePayment(HttpServletRequest request, WayaCardPayment card) {
-        //process card fraud
-        //PaymentGateWayCommonUtils.getClientRequestIP(request)
-//        paymentGatewayFraudEvent
         Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTransactionId());
         Object response = null;
         String pan = "**** **** **** ****";
@@ -286,7 +247,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             if (ObjectUtils.isEmpty(decryptedCardData)) {
                 response = new PaymentGatewayResponse(false, "Oops failed to process card", null);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-            } else if (decryptedCardData.length() < 16) {
+            } else if (decryptedCardData.length() < DEFAULT_CARD_LENGTH) {
                 response = new PaymentGatewayResponse(false, "Invalid Card", null);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
@@ -396,30 +357,23 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> GetTransactionStatus(HttpServletRequest req, String tranId) {
         WayaTransactionQuery response = null;
         try {
-            /*
-             * String vt = UnifiedPaymentProxy.getDataEncrypt(input, secretKey);
-             * log.info(vt); log.info(UnifiedPaymentProxy.getDataDecrypt(vt, secretKey));
-             */
             response = uniPaymentProxy.transactionQuery(tranId);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (response == null) {
+        if (response == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        }
         return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
     }
 
     @Override
     public WayaTransactionQuery GetTransactionStatus(String tranId) {
         WayaTransactionQuery response = null;
-
         try {
             response = uniPaymentProxy.transactionQuery(tranId);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return response;
     }
 
@@ -479,25 +433,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 log.error("WALLET ERROR: " + wallet);
                 return new ResponseEntity<>(new ErrorResponse(wallet.getMessage()), HttpStatus.BAD_REQUEST);
             }
-            // Fetch Profile
             ProfileResponse profile = authProxy.getProfileDetail(user.getId(), token);
 
             WalletAuthResponse mWallet = new WalletAuthResponse();
             mWallet.setToken(token);
             mWallet.setWallet(wallet.getData());
             mWallet.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
-            // Payment Request
-            /*
-             * PaymentGateway payment = new PaymentGateway(); Date dte = new Date(); long
-             * milliSeconds = dte.getTime(); String strLong = Long.toString(milliSeconds);
-             * payment.setRefNo(strLong); payment.setCurrencyCode("NGN");
-             * payment.setMerchantId("WALLET PAYMENT");
-             * payment.setReturnUrl("http://localhost"); payment.setSecretKey("PUBLIC KEY");
-             * String tempTranId = wallet.getTimeStamp() + strLong;
-             * payment.setTranId(tempTranId); payment.setTranDate(LocalDate.now());
-             * payment.setRcre_time(LocalDateTime.now()); mWallet.setRefNo(strLong);
-             * paymentGatewayRepo.save(payment);
-             */
             response = new ResponseEntity<>(new SuccessResponse("WALLET PAYMENT", mWallet), HttpStatus.CREATED);
 
         } catch (Exception ex) {
@@ -556,18 +497,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 return new ResponseEntity<>(new ErrorResponse("TRANSACTION PIN NOT SETUP OR INVALID PIN"),
                         HttpStatus.OK);
             }
-            /*
-             * Date dte = new Date(); long milliSeconds = dte.getTime(); String strLong =
-             * Long.toString(milliSeconds); payment.setRefNo(strLong);
-             * payment.setMerchantId(account.getMerchantId());
-             * payment.setDescription(account.getPaymentDescription());
-             * payment.setAmount(account.getAmount()); payment.setFee(account.getFee());
-             * payment.setCurrencyCode(account.getCurrency());
-             * payment.setReturnUrl(sMerchant.getMerchantCallbackURL()); final String
-             * secretKey = "ssshhhhhhhhhhh!!!!"; String vt =
-             * UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
-             * payment.setSecretKey(vt);
-             */
             PaymentWallet wallet = new PaymentWallet();
             FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, payment);
             if (tran != null) {
@@ -636,34 +565,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
             log.info("Merchant: " + merchant);
             MerchantData sMerchant = merchant.getData();
-            /*
-             * if (sMerchant.getMerchantKeyMode().equals("TEST")) { if
-             * (!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
-             * return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"),
-             * HttpStatus.BAD_REQUEST); } } else { if
-             * (!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey(
-             * ))) { return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"),
-             * HttpStatus.BAD_REQUEST); } }
-             */
-            // Fetch Profile
             ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
-            /*
-             * PaymentGateway payment = new PaymentGateway(); Date dte = new Date(); long
-             * milliSeconds = dte.getTime(); String strLong = Long.toString(milliSeconds);
-             * payment.setRefNo(strLong); payment.setMerchantId(account.getMerchantId());
-             * payment.setDescription(account.getPaymentDescription());
-             * payment.setAmount(account.getAmount()); payment.setFee(account.getFee());
-             * payment.setCurrencyCode(account.getCurrency());
-             * payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
-             * payment.setMerchantName(profile.getData().getOtherDetails().
-             * getOrganisationName());
-             * payment.setCustomerName(account.getCustomer().getName());
-             * payment.setCustomerEmail(account.getCustomer().getEmail());
-             * payment.setCustomerPhone(account.getCustomer().getPhoneNumber()); final
-             * String secretKey = "ssshhhhhhhhhhh!!!!"; String vt =
-             * UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), secretKey);
-             * payment.setSecretKey(vt);
-             */
             payment.setChannel(PaymentChannel.QR);
             payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
 
@@ -671,8 +573,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             if (tranRep != null) {
                 tranRep.setName(profile.getData().getOtherDetails().getOrganisationName());
                 response = new ResponseEntity<>(new SuccessResponse("SUCCESS GENERATED", tranRep), HttpStatus.CREATED);
-                // payment.setTranId(account.getReferenceNo());
-                // payment.setPreferenceNo(account.getReferenceNo());
                 payment.setTranDate(LocalDate.now());
                 payment.setRcre_time(LocalDateTime.now());
                 paymentGatewayRepo.save(payment);

@@ -12,5 +12,5 @@ public class WayaCardPayment {
     private String mobile;
     private String pin;
     private String deviceInformation = "{}";
-    private String transactionId;
+    private String tranId;
 }

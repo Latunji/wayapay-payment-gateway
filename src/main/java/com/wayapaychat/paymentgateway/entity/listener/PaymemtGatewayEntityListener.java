@@ -30,7 +30,7 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-public class PaymentGatewayEntityListener {
+public class PaymemtGatewayEntityListener {
     private static final String CURRENCY_DISPLAY = "NGN";
     private static NotificationServiceProxy notificationServiceProxy;
     private static AuthApiClient authApiClient;
@@ -38,19 +38,19 @@ public class PaymentGatewayEntityListener {
 
     @Autowired
     public void setAuthApiClient(AuthApiClient authApiClient) {
-        PaymentGatewayEntityListener.authApiClient = authApiClient;
+        PaymemtGatewayEntityListener.authApiClient = authApiClient;
         log.info("Initializing with dependency [" + authApiClient + "]");
     }
 
     @Autowired
     public void setNotificationServiceProxy(NotificationServiceProxy notificationServiceProxy) {
-        PaymentGatewayEntityListener.notificationServiceProxy = notificationServiceProxy;
+        PaymemtGatewayEntityListener.notificationServiceProxy = notificationServiceProxy;
         log.info("Initializing with dependency [" + notificationServiceProxy + "]");
     }
 
     @Autowired
     public void setVariableUtil(VariableUtil variableUtil) {
-        PaymentGatewayEntityListener.variableUtil = variableUtil;
+        PaymemtGatewayEntityListener.variableUtil = variableUtil;
         log.info("Initializing with dependency [" + variableUtil + "]");
     }
 
@@ -60,7 +60,8 @@ public class PaymentGatewayEntityListener {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
                 paymentGateway.getTranId());
-        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
+        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
+                || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED) {
             NotificationPojo notificationPojo = NotificationPojo
                     .builder()
                     .paymentChannel(paymentGateway.getChannel())
@@ -89,8 +90,10 @@ public class PaymentGatewayEntityListener {
         emailStreamData.setEventCategory(EventCategory.TRANSACTION);
         emailStreamData.setEventType(EventType.EMAIL);
         emailStreamData.setProductType(ProductType.WAYAPAY);
+        emailStreamData.setTransactionId(notificationPojo.getChannelTransactionId());
+        emailStreamData.setPaymentChannel(notificationPojo.getPaymentChannel());
         emailStreamData.setNarration(notificationPojo.getTransactionNarration());
-        emailStreamData.setNarration("Transaction was successful with USSD Channel");
+        emailStreamData.setNarration(String.format("Transaction was successfully processed with %s Channel",notificationPojo.getPaymentChannel()));
         emailStreamData.setAmount(notificationPojo.getTransactionAmount().toString());
         emailStreamData.setTransactionDate(notificationPojo.getUpdatedAt().toString());
         emailStreamData.setMode(variableUtil.getMode());

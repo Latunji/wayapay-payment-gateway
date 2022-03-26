@@ -1,7 +1,7 @@
 package com.wayapaychat.paymentgateway.controller;
 
 
-import com.wayapaychat.paymentgateway.service.PaymentGatewayFraudEventService;
+import com.wayapaychat.paymentgateway.service.FraudEventService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -16,5 +16,5 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @AllArgsConstructor
 public class PaymentGatewayFraudEventsController {
-    private final PaymentGatewayFraudEventService paymentGatewayFraudEventService;
+    private final FraudEventService paymentGatewayFraudEventService;
 }

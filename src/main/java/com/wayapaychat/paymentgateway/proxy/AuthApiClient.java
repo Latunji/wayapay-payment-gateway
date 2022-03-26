@@ -1,37 +1,35 @@
 package com.wayapaychat.paymentgateway.proxy;
 
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-
 import com.wayapaychat.paymentgateway.config.PaymentGatewayClientConfiguration;
-import com.wayapaychat.paymentgateway.pojo.LoginRequest;
-import com.wayapaychat.paymentgateway.pojo.PinResponse;
-import com.wayapaychat.paymentgateway.pojo.ProfileResponse;
-import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
-import com.wayapaychat.paymentgateway.pojo.TokenCheckResponse;
-
+import com.wayapaychat.paymentgateway.pojo.*;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.*;
 
 
 @FeignClient(name = "${waya.wallet.auth}", url = "${waya.wallet.authurl}", configuration = PaymentGatewayClientConfiguration.class)
 public interface AuthApiClient {
 
-    
+
     @PostMapping("/auth/validate-user")
-	public TokenCheckResponse getUserDataToken(@RequestHeader("authorization") String token);
-    
+    TokenCheckResponse getUserDataToken(@RequestHeader("authorization") String token);
+
     @PostMapping("/auth/login")
-	public TokenAuthResponse authenticateUser(@RequestBody LoginRequest login);
-    
+    TokenAuthResponse authenticateUser(@RequestBody LoginRequest login);
+
     @GetMapping("/profile/{id}")
-    public ProfileResponse getProfileDetail(@PathVariable("id") Long id, @RequestHeader("authorization") String token);
-    
+    ProfileResponse getProfileDetail(@PathVariable("id") Long id, @RequestHeader("authorization") String token);
+
     @GetMapping("/pin/validate-pin/{userId}/{pin}")
-    public PinResponse validatePin(@PathVariable("userId") Long userId, @PathVariable("pin") Long pin, @RequestHeader("authorization") String token);
-    
-    
+    PinResponse validatePin(@PathVariable("userId") Long userId, @PathVariable("pin") Long pin, @RequestHeader("authorization") String token);
+
+
+    @GetMapping("/user/email/{email}")
+    ApiResponseBody<MyUserData> getUserByEmail(@PathVariable("email") String email);
+
+    @GetMapping("/user/phone/{phoneNumber}")
+    ApiResponseBody<MyUserData> getUserByPhoneNumber(@PathVariable("phoneNumber") String phoneNumber);
+
+    @GetMapping("/user/{id}")
+    ApiResponseBody<MyUserData> getUserById(@PathVariable("id") Long id);
 }

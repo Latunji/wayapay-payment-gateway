@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 @Slf4j
-public class PaymentGatewayFraudRuleEntityListener {
+public class FraudRuleEntityListener {
 
 }

@@ -12,4 +12,5 @@ import org.springframework.mobile.device.DevicePlatform;
 public class DevicePojo {
     private DeviceType deviceType;
     private DevicePlatform platform;
+    private String deviceInformation;
 }

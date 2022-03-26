@@ -3,6 +3,7 @@ package com.wayapaychat.paymentgateway.pojo.notification;
 
 import com.wayapaychat.paymentgateway.enumm.EventCategory;
 import com.wayapaychat.paymentgateway.enumm.EventType;
+import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,4 +26,5 @@ public class EmailStreamData {
     private String transactionDate;
     private NotificationStreamData data;
     private String forMerchant;
+    private PaymentChannel paymentChannel;
 }

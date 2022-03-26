@@ -38,7 +38,7 @@ public class PaymentGatewayController {
     PaymentGatewayService paymentGatewayService;
     @Autowired
     PaymentGatewayRepository paymentGatewayRepo;
-    @Value("${waya.thirdparty.unified-payment.callback.accepted-origins}")
+    @Value("${service.thirdparty.unified-payment.callback.accepted-origins}")
     private String acceptedUnifiedPaymentCallbackOrigins;
 
     @ApiOperation(value = "QR-Code Waya-Request Transaction", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})

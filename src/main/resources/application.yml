@@ -62,4 +62,4 @@ service:
   thirdparty:
     unified-payment:
       callback:
-        accepted-origins:service: { "https://acce" }
+        accepted-origins: { "https://acce" }

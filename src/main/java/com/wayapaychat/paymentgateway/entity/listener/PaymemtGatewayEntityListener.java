@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.listener;
+package com.wayapaychat.paymentgateway.entity.listener;
 
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
@@ -16,10 +16,11 @@ import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceRespo
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationStreamData;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
+import com.wayapaychat.paymentgateway.utils.VariableUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
@@ -29,32 +30,45 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-public class PaymentGatewayEntityLifeCircle {
+public class PaymemtGatewayEntityListener {
     private static final String CURRENCY_DISPLAY = "NGN";
+    private static NotificationServiceProxy notificationServiceProxy;
+    private static AuthApiClient authApiClient;
+    private static VariableUtil variableUtil;
+
     @Autowired
-    private NotificationServiceProxy notificationServiceProxy;
-    @Value("${waya.application.payment-gateway-mode}")
-    private String mode;
+    public void setAuthApiClient(AuthApiClient authApiClient) {
+        PaymemtGatewayEntityListener.authApiClient = authApiClient;
+        log.info("Initializing with dependency [" + authApiClient + "]");
+    }
+
     @Autowired
-    private AuthApiClient authApiClient;
-    @Value("${service.name}")
-    private String userName;
-    @Value("${service.pass}")
-    private String password;
+    public void setNotificationServiceProxy(NotificationServiceProxy notificationServiceProxy) {
+        PaymemtGatewayEntityListener.notificationServiceProxy = notificationServiceProxy;
+        log.info("Initializing with dependency [" + notificationServiceProxy + "]");
+    }
+
+    @Autowired
+    public void setVariableUtil(VariableUtil variableUtil) {
+        PaymemtGatewayEntityListener.variableUtil = variableUtil;
+        log.info("Initializing with dependency [" + variableUtil + "]");
+    }
 
     @PostPersist
     @PostUpdate
     public void sendTransactionNotificationAfterPaymentIsSuccessful(PaymentGateway paymentGateway) throws Exception {
+        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
                 paymentGateway.getTranId());
-        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
+        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
+                || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED) {
             NotificationPojo notificationPojo = NotificationPojo
                     .builder()
                     .paymentChannel(paymentGateway.getChannel())
                     .merchantName(paymentGateway.getMerchantName())
                     .transactionDate(paymentGateway.getVendorDate())
                     .transactionAmount(paymentGateway.getAmount())
-                    .transactionMode(mode)
+                    .transactionMode(variableUtil.getMode())
                     .customerEmailAddress(paymentGateway.getCustomerEmail())
                     .customerName(paymentGateway.getCustomerName())
                     .merchantName(paymentGateway.getMerchantName())
@@ -76,11 +90,13 @@ public class PaymentGatewayEntityLifeCircle {
         emailStreamData.setEventCategory(EventCategory.TRANSACTION);
         emailStreamData.setEventType(EventType.EMAIL);
         emailStreamData.setProductType(ProductType.WAYAPAY);
+        emailStreamData.setTransactionId(notificationPojo.getChannelTransactionId());
+        emailStreamData.setPaymentChannel(notificationPojo.getPaymentChannel());
         emailStreamData.setNarration(notificationPojo.getTransactionNarration());
-        emailStreamData.setNarration("Transaction was successful with USSD Channel");
+        emailStreamData.setNarration(String.format("Transaction was successfully processed with %s Channel",notificationPojo.getPaymentChannel()));
         emailStreamData.setAmount(notificationPojo.getTransactionAmount().toString());
         emailStreamData.setTransactionDate(notificationPojo.getUpdatedAt().toString());
-        emailStreamData.setMode(mode);
+        emailStreamData.setMode(variableUtil.getMode());
 
         notificationStreamData.setNames(List.of(NotificationReceiver.builder()
                 .email(notificationPojo.getCustomerEmailAddress())
@@ -106,12 +122,13 @@ public class PaymentGatewayEntityLifeCircle {
     private String getDaemonAuthToken() throws Exception {
         TokenAuthResponse authToken = authApiClient.authenticateUser(
                 LoginRequest.builder()
-                        .password(password)
-                        .emailOrPhoneNumber(userName)
+                        .password(variableUtil.getPassword())
+                        .emailOrPhoneNumber(variableUtil.getUserName())
                         .build());
         log.info("AUTHENTICATION RESPONSE: " + authToken.toString());
         if (!authToken.getStatus()) {
-            log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------", userName, password);
+            log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------",
+                    variableUtil.getUserName(), variableUtil.getPassword());
             throw new Exception("Failed to process user authentication...!");
         }
         PaymentData payData = authToken.getData();

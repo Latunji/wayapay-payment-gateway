@@ -36,6 +36,8 @@ waya:
     payment-gateway-mode: ${PAYMENT_GATEWAY_MODE:TEST}
   notification-service:
     baseurl: https://services.staging.wayabank.ng/notification-service
+  logging-service:
+    base-url: https://services.staging.wayabank.ng/logs-service
   qrcode:
     name: QRCODE-SERVICE
     baseurl: https://services.staging.wayabank.ng/qrcode-service/api/v1
@@ -51,6 +53,13 @@ waya:
   identitymanager:
     name: IDENTITYMANAGER-SERVICE
     url: https://services.staging.wayabank.ng/identity-manager-service/api/v1
+
 service:
+  wayapay-payment-status-url: https://pay.staging.wayapay.ng/status
   name: ${SERVICE_NAME:tbaadm@wayapaychat.com}
   pass: ${SERVICE_PASS:fintemp@#123}
+  encrypt-all-merchant-secretkey-with: S@$@@@@@!!!!!ads#$%#$@#!#$@$@545345fdsdf@@$353^^*(*@#$%#@$%#$@#@#$%#%#@
+  thirdparty:
+    unified-payment:
+      callback:
+        accepted-origins: "https://acce"

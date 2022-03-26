@@ -57,7 +57,7 @@ public class CronService {
 							&& (mPay.getStatus().compareTo(TransactionStatus.FAILED) != 0)) {
 						// log.info("TRANSACTION STATUS: " + mPay.toString());
 						if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-							WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
+							WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
 							// log.info("UP STATUS: " + query.toString());
 							if (query.getStatus().contains("APPROVED")) {
 								mPay.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
@@ -71,7 +71,7 @@ public class CronService {
 
 					} else if (mPay.getStatus().compareTo(TransactionStatus.TRANSACTION_COMPLETED) == 0) {
 						if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-							WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
+							WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
 							mPay.setStatus(TransactionStatus.SUCCESSFUL);
 							mPay.setSuccessfailure(true);
 							if (query.getStatus().contains("APPROVED")) {
@@ -86,7 +86,7 @@ public class CronService {
 
 					} else if (mPay.getStatus().compareTo(TransactionStatus.TRANSACTION_FAILED) == 0) {
 						if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-							WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
+							WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
 							mPay.setStatus(TransactionStatus.FAILED);
 							mPay.setSuccessfailure(false);
 							if (query.getStatus().contains("APPROVED")) {
@@ -100,7 +100,7 @@ public class CronService {
 						}
 					} else if (mPay.getStatus().compareTo(TransactionStatus.TRANSACTION_PENDING) == 0) {
 						if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-							WayaTransactionQuery query = paymentService.GetTransactionStatus(mPay.getTranId());
+							WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
 							mPay.setStatus(TransactionStatus.PENDING);
 							mPay.setSuccessfailure(false);
 							if (query.getStatus().contains("APPROVED")) {
@@ -143,7 +143,6 @@ public class CronService {
 					log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());
 				}
 			}
-			
 		}
 	}
 }

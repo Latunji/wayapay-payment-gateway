@@ -842,7 +842,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setTranId(requests.getTrxId());
         }
         paymentGatewayRepo.save(payment);
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
+        return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).location(URI.create(wayapayStatusURL)).build();
     }
 }
 

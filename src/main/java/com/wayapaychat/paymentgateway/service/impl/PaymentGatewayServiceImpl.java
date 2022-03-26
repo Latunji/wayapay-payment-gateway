@@ -26,6 +26,7 @@ import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
 import com.wayapaychat.paymentgateway.utils.PaymentGateWayCommonUtils;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jsoup.Jsoup;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -265,11 +266,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 || card.getScheme().equalsIgnoreCase("Visa")) {
             String vt = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
             log.info(vt);
-            if (vt == null || vt.equals("")) {
+            if (ObjectUtils.isEmpty(vt)) {
                 response = new PaymentGatewayResponse(false, "Invalid Encryption", null);
-            }
-            if (vt.length() < 16) {
+                new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            } else if (vt.length() < 16) {
                 response = new PaymentGatewayResponse(false, "Invalid Card", null);
+                new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             String[] mt = vt.split(Pattern.quote("|"));
             String cardNo = mt[0];

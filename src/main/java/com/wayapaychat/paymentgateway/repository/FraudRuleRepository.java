@@ -4,16 +4,13 @@ import com.wayapaychat.paymentgateway.entity.FraudRule;
 import com.wayapaychat.paymentgateway.utils.FraudRuleType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Transactional
-@Repository
-public interface FraudRuleRepository extends JpaRepository<FraudRule, Long> {
+//@Transactional
+//@Repository
+public interface FraudRuleRepository {
     @Query(value = "SELECT * FROM m_fraud_event WHERE deleted = false AND id=?1", nativeQuery = true)
     List<FraudRule> findByEvenId(Long id);
 

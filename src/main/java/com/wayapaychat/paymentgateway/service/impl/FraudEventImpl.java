@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class FraudEventImpl implements FraudEventService {
-    private final FraudEventRepository fraudEventRepository;
-    private final FraudRuleImpl fraudRule;
+//    private final FraudEventRepository fraudEventRepository;
+//    private final FraudRuleImpl fraudRule;
 
 
 }

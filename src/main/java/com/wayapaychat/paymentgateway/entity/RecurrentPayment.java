@@ -7,39 +7,35 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.wayapaychat.paymentgateway.entity.listener.FraudRuleEntityListener;
+import com.wayapaychat.paymentgateway.entity.listener.FraudEventEntityListener;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.Column;
 import javax.persistence.EntityListeners;
-import javax.persistence.PrePersist;
 import java.time.LocalDateTime;
 
-@EntityListeners(value = FraudRuleEntityListener.class)
+@EntityListeners(value = FraudEventEntityListener.class)
 @Builder
-//@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-//@Table(name = "m_fraud_tracker")
-public class FraudTracker extends FraudBaseEntity {
-    @JsonIgnore
-    @Column(name = "hashed_pan")
-    private String hashedPan;
-
-    @Column(name = "violated")
-    private Boolean violated;
-
+//@Entity
+//@Table(name = "m_recurrent_payment")
+public class RecurrentPayment extends GenericBaseEntity {
+    @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private LocalDateTime dateViolated;
+    private LocalDateTime dateFirstPaymentMade;
 
-    @PrePersist
-    void onCreate() {
-        if (ObjectUtils.isEmpty(violated))
-            violated = false;
-    }
+    @Column(nullable = false)
+    private String paymentLinkId;
+
+    @Column(nullable = false)
+    private String customerId;
+
+    @JsonIgnore
+    @Column(nullable = false)
+    private String encryptedCard;
 }

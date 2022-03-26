@@ -873,7 +873,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         if (mPay == null) {
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
         }
-//        List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
+        List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
         return new ResponseEntity<>(new SuccessResponse("List Payment", mPay), HttpStatus.OK);
     }
 

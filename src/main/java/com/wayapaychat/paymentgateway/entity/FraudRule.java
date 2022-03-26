@@ -5,13 +5,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.EntityListeners;
+import javax.persistence.PrePersist;
 
 @EntityListeners(value = FraudRuleEntityListener.class)
 @Data
-@Entity
+//@Entity
 @NoArgsConstructor
-@Table(name = "m_fraud_rule")
+//@Table(name = "m_fraud_rule")
 public class FraudRule extends GenericBaseEntity {
     @Column(name = "rule_content", nullable = false)
     private String ruleContent;

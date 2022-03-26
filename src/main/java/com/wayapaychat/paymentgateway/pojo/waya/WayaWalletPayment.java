@@ -1,10 +1,6 @@
 package com.wayapaychat.paymentgateway.pojo.waya;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
 @Setter
@@ -12,23 +8,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class WayaWalletPayment {
-	
-	//private String paymentDescription;
-	
-	//private String merchantId;
-	
-	//private BigDecimal amount;
-	
-	//private String wayaPublicKey;
-	
-	private String accountNo;
-	
-	//private String currency;
-	
-	private String pin;
-	
-	//private BigDecimal fee;
-	
-	private String refNo;
-
+    private String accountNo;
+    private String pin;
+    private String refNo;
 }

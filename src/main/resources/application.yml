@@ -55,7 +55,7 @@ waya:
     url: https://services.staging.wayabank.ng/identity-manager-service/api/v1
 
 service:
-  wayapay-status-url:
+  wayapay-payment-status-url: https://pay.staging.wayapay.ng/status
   name: ${SERVICE_NAME:tbaadm@wayapaychat.com}
   pass: ${SERVICE_PASS:fintemp@#123}
   encrypt-all-merchant-secretkey-with: S@$@@@@@!!!!!ads#$%#$@#!#$@$@545345fdsdf@@$353^^*(*@#$%#@$%#$@#@#$%#%#@

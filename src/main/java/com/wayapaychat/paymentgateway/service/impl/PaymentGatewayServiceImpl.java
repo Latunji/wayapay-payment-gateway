@@ -80,7 +80,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private FraudEventImpl paymentGatewayFraudEvent;
     @Value("${service.encrypt-all-merchant-secretkey-with}")
     private String encryptAllMerchantSecretKeyWith;
-    @Value("${service.payment-status}")
+    @Value("${service.wayapay-payment-status-url}")
     private String wayapayStatusURL;
 
     @Override
@@ -842,7 +842,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setTranId(requests.getTrxId());
         }
         paymentGatewayRepo.save(payment);
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://pay.staging.wayapay.ng/status")).build();
+        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
     }
 }
 

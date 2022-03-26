@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 public class ReportPayment {
-
     private String refNo;
     private String customerName;
     private String customerEmail;

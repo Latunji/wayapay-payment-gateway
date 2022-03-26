@@ -249,7 +249,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 //        paymentGatewayFraudEvent
         Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTransactionId());
         Object response = null;
-        String pan = "****************";
+        String pan = "**** **** **** ****";
         if (optionalPaymentGateway.isEmpty())
             return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
         PaymentGateway paymentGateway = optionalPaymentGateway.get();

@@ -224,7 +224,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             String cardNo = mt[0];
             pan = cardNo;
             String cvv = mt[1];
-            cardReq.setSecretKey(card.getWayaPublicKey());
             cardReq.setScheme(card.getScheme());
             cardReq.setCardNumber(cardNo);
             cardReq.setExpiry(card.getExpiry());
@@ -247,7 +246,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             String cardNo = mt[0];
             pan = cardNo;
             String cvv = mt[1];
-            cardReq.setSecretKey(card.getWayaPublicKey());
             cardReq.setScheme(card.getScheme());
             cardReq.setCardNumber(cardNo);
             cardReq.setExpiry(card.getExpiry());
@@ -257,7 +255,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             cardReq.setPin(card.getPin());
             log.info("Card Info: " + cardReq);
         } else if (card.getScheme().equalsIgnoreCase("PayAttitude")) {
-            cardReq.setSecretKey(card.getWayaPublicKey());
             cardReq.setScheme(card.getScheme());
             cardReq.setCardNumber(card.getEncryptCardNo());
             cardReq.setExpiry(card.getExpiry());

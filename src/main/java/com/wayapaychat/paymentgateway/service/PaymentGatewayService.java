@@ -21,13 +21,6 @@ import org.springframework.mobile.device.Device;
 import java.net.URISyntaxException;
 
 public interface PaymentGatewayService {
-	
-	/*
-	 * PaymentGatewayResponse wemaTransactionQuery(HttpServletRequest request,
-	 * WemaTxnQueryRequest tran);
-	 * 
-	 * PaymentGatewayResponse wemaAllPrefix(HttpServletRequest request);
-	 */
 	ResponseEntity<?> WalletPaymentQR(HttpServletRequest request, WayaQRRequest account);
 	
 	ResponseEntity<?> PostWalletPayment(HttpServletRequest request, WayaWalletRequest account);
@@ -35,9 +28,7 @@ public interface PaymentGatewayService {
 	ResponseEntity<?> USSDPayment(HttpServletRequest request, WayaUSSDPayment account, String refNo);
 	
 	ResponseEntity<?> USSDPaymentRequest(HttpServletRequest request, WayaUSSDRequest account);
-	
-	ResponseEntity<?> USSDWalletPayment(HttpServletRequest request, USSDWalletPayment account);
-	
+
 	ResponseEntity<?> WalletPaymentAuthentication(HttpServletRequest request, WayaAuthenicationRequest account);
 	
 	ResponseEntity<?> ConsumeWalletPayment(HttpServletRequest request, WayaWalletPayment payment, String token);

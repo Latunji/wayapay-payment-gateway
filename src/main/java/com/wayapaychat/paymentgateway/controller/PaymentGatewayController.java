@@ -169,7 +169,7 @@ public class PaymentGatewayController {
 
     @ApiOperation(value = "Card Encryption", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})
     @PostMapping("/card/encryption")
-    public ResponseEntity<?> postCardEncrypt(HttpServletRequest request, @Valid @RequestBody WayaEncypt pay) {
+    public ResponseEntity<?> encryptTransactionCard(HttpServletRequest request, @Valid @RequestBody WayaEncypt pay) {
         PaymentGatewayResponse resp = paymentGatewayService.encrypt(request, pay);
         if (!resp.getStatus()) {
             return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);

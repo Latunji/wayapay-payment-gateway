@@ -62,12 +62,6 @@ public class PaymentGatewayController {
         return paymentGatewayService.USSDPayment(request, account, refNo);
     }
 
-    @ApiOperation(value = "USSD Wallet Transaction", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})
-    @PostMapping("/payment/ussd/wallet")
-    public ResponseEntity<?> PostWalletUSSD(HttpServletRequest request, @Valid @RequestBody USSDWalletPayment account) {
-        return paymentGatewayService.USSDWalletPayment(request, account);
-    }
-
     @ApiOperation(value = "Wallet Waya-Request Transaction", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})
     @PostMapping("/request/wallet")
     public ResponseEntity<?> PostPaymentWallet(HttpServletRequest request,

@@ -15,7 +15,6 @@ import java.util.Collection;
 public class UserSecurity {
 
     private final UserService userService;
-
     public UserSecurity(UserService userService) {
         this.userService = userService;
     }

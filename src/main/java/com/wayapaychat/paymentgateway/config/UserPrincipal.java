@@ -53,7 +53,6 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-
         Collection<GrantedAuthority> grantedAuthorities = this.user.getRoles().stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
@@ -69,12 +68,6 @@ public class UserPrincipal implements UserDetails {
         return this.user;
     }
 
-    /**
-     * Returns the username used to authenticate the user. Cannot return
-     * <code>null</code>.
-     *
-     * @return the username (never <code>null</code>)
-     */
     @Override
     public String getUsername() {
         return user.getEmail() != null ? this.user.getEmail() : this.user.getPhoneNumber();

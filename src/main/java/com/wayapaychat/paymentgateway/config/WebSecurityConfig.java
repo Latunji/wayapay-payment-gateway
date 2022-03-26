@@ -58,5 +58,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public HttpFirewall defaultHttpFirewall() {
         return new DefaultHttpFirewall();
     }
-
 }

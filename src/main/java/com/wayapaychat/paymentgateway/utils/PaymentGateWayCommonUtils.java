@@ -19,8 +19,8 @@ public class PaymentGateWayCommonUtils {
     }
 
     public static String maskedPan(String pan) {
-        String masked = "*** **** **** ";
-        String maskedLastFourDigit = pan.substring(pan.length() - 4, pan.length() - 1);
+        String masked = "**** **** **** ";
+        String maskedLastFourDigit = pan.substring(pan.length() - 4);
         return masked + maskedLastFourDigit;
     }
 

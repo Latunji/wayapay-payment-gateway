@@ -84,7 +84,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private String wayapayStatusURL;
 
     @Override
-    public PaymentGatewayResponse CardAcquireRequest(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
+    public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         DevicePojo devicePojo = PaymentGateWayCommonUtils.getClientRequestDevice(device);
         try {
@@ -200,7 +200,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> CardAcquirePayment(HttpServletRequest request, WayaCardPayment card) {
+    public ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) {
         Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTransactionId());
         if (optionalPaymentGateway.isEmpty())
             return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
@@ -277,8 +277,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public PaymentGatewayResponse CardAcquireCallback(HttpServletRequest request, HttpServletResponse response,
-                                                      WayaPaymentCallback pay) {
+    public PaymentGatewayResponse processCardTransaction(HttpServletRequest request, HttpServletResponse response,
+                                                         WayaPaymentCallback pay) {
         PaymentGatewayResponse mResponse = new PaymentGatewayResponse(false, "Callback fail", null);
         try {
             PaymentGateway mPay = paymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
@@ -317,7 +317,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public PaymentGatewayResponse PayAttitudeCallback(HttpServletRequest request, WayaPaymentCallback pay) {
+    public PaymentGatewayResponse payAttitudeCallback(HttpServletRequest request, WayaPaymentCallback pay) {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "PayAttitude Callback fail", null);
 
         PaymentGateway mPay = paymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
@@ -346,7 +346,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> GetTransactionStatus(HttpServletRequest req, String tranId) {
+    public ResponseEntity<?> getTransactionStatus(HttpServletRequest req, String tranId) {
         WayaTransactionQuery response = null;
         try {
             response = uniPaymentProxy.transactionQuery(tranId);
@@ -359,7 +359,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public WayaTransactionQuery GetTransactionStatus(String tranId) {
+    public WayaTransactionQuery getTransactionStatus(String tranId) {
         WayaTransactionQuery response = null;
         try {
             response = uniPaymentProxy.transactionQuery(tranId);
@@ -370,7 +370,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public PaymentGatewayResponse encrypt(HttpServletRequest request, WayaEncypt pay) {
+    public PaymentGatewayResponse encryptCard(HttpServletRequest request, WayaEncypt pay) {
         String keygen = replacePublicKeyWithEmptyString(pay.getMerchantSecretKey());
         String vt = UnifiedPaymentProxy.getDataEncrypt(pay.getEncryptString(), keygen);
         if (ObjectUtils.isEmpty(vt))
@@ -379,7 +379,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public PaymentGatewayResponse decrypt(HttpServletRequest request, WayaDecypt pay) {
+    public PaymentGatewayResponse decryptCard(HttpServletRequest request, WayaDecypt pay) {
         String keygen = replacePublicKeyWithEmptyString(pay.getMerchantSecretKey());
         String vt = UnifiedPaymentProxy.getDataDecrypt(pay.getDecryptString(), keygen);
         if (ObjectUtils.isEmpty(vt))
@@ -388,7 +388,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> WalletPaymentAuthentication(HttpServletRequest request, WayaAuthenicationRequest account) {
+    public ResponseEntity<?> walletAuthentication(HttpServletRequest request, WayaAuthenicationRequest account) {
         try {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(account.getEmailOrPhoneNumber());
@@ -425,7 +425,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> ConsumeWalletPayment(HttpServletRequest request, WayaWalletPayment account, String token) {
+    public ResponseEntity<?> processWalletPayment(HttpServletRequest request, WayaWalletPayment account, String token) {
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocessed Transaction Request"),
                 HttpStatus.BAD_REQUEST);
         try {
@@ -557,7 +557,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> PostWalletPayment(HttpServletRequest request, WayaWalletRequest account) {
+    public ResponseEntity<?> initiateWalletPayment(HttpServletRequest request, WayaWalletRequest account) {
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"),
                 HttpStatus.BAD_REQUEST);
         try {
@@ -694,7 +694,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> USSDPayment(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
+    public ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
         PaymentGateway payment = paymentGatewayRepo.findByRefMerchant(refNo, account.getMerchantId()).orElse(null);
         if (payment == null) {
             return new ResponseEntity<>(new ErrorResponse("NO PAYMENT REQUEST INITIATED"), HttpStatus.BAD_REQUEST);
@@ -724,7 +724,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> QueryMerchantTranStatus(HttpServletRequest req, String merchantId) {
+    public ResponseEntity<?> getMerchantTransactionReport(HttpServletRequest req, String merchantId) {
         List<PaymentGateway> mPay = paymentGatewayRepo.findByMerchantPayment(merchantId);
         if (mPay == null) {
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
@@ -734,7 +734,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> GetReferenceStatus(HttpServletRequest req, String refNo) {
+    public ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo) {
         WalletTransactionStatus response = new WalletTransactionStatus();
         PaymentGateway mPay = null;
         try {
@@ -754,7 +754,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> postRefStatus(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
+    public ResponseEntity<?> updateTransactionStatus(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
         PaymentGateway mPay = null;
         try {
             mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
@@ -770,7 +770,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> QueryMerchantRevenue(HttpServletRequest req, String merchantId) {
+    public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId) {
         WalletRevenue revenue = new WalletRevenue();
         try {
             revenue = wayaPayment.getRevenue(merchantId);
@@ -784,7 +784,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> QueryRevenue(HttpServletRequest req) {
+    public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
         List<WalletRevenue> revenue = new ArrayList<>();
         try {
             revenue = wayaPayment.getRevenue();

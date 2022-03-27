@@ -454,7 +454,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             MyUserData mAuth = auth.getData();
 
             try {
-                PinResponse pin = authProxy.validatePin(Long.valueOf(mAuth.getId()), Long.valueOf(account.getPin()),
+                PinResponse pin = authProxy.validatePin(mAuth.getId(), Long.valueOf(account.getPin()),
                         token);
                 log.info("PIN RESPONSE: " + pin.toString());
                 if (!pin.isStatus()) {

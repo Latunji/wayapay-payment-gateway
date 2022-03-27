@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.cron;
 
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -126,7 +127,8 @@ public class CronService {
 			if(!mPayment.isTranflg() && (mPayment.getStatus().compareTo(TransactionStatus.SUCCESSFUL) == 0)) {
 				try {
 					PaymentGateway sPayment = paymentGatewayRepo.findByRefNo(mPayment.getRefNo()).orElse(null);
-					
+					if (ObjectUtils.isEmpty(sPayment))
+						continue;
 					LoginRequest auth = new LoginRequest();
 					auth.setEmailOrPhoneNumber(username);
 					auth.setPassword(passSecret);

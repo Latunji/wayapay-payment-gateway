@@ -82,13 +82,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private String encryptAllMerchantSecretKeyWith;
     @Value("${service.wayapay-payment-status-url}")
     private String wayapayStatusURL;
+    private final Random rnd = new Random();
 
     @Override
     public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         DevicePojo devicePojo = PaymentGateWayCommonUtils.getClientRequestDevice(device);
         try {
-            // Duplicate Reference
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
             auth.setPassword(passSecret);
@@ -157,7 +157,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             Date dte = new Date();
             long milliSeconds = dte.getTime();
             String strLong = Long.toString(milliSeconds);
-            Random rnd = new Random();
             strLong = strLong + rnd.nextInt(999999);
             payment.setRefNo(strLong);
             payment.setMerchantId(account.getMerchantId());

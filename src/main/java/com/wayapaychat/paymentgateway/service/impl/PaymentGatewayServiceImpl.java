@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private static final Integer DEFAULT_CARD_LENGTH = 20;
+    private final Random rnd = new Random();
     @Autowired
     UnifiedPaymentProxy uniPaymentProxy;
     @Autowired
@@ -82,7 +83,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private String encryptAllMerchantSecretKeyWith;
     @Value("${service.wayapay-payment-status-url}")
     private String wayapayStatusURL;
-    private final Random rnd = new Random();
 
     @Override
     public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
@@ -554,8 +554,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> initiateWalletPayment(HttpServletRequest request, WayaWalletRequest account) {
-        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"),
-                HttpStatus.BAD_REQUEST);
         try {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
@@ -606,23 +604,21 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
             String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(vt);
-            response = new ResponseEntity<>(new SuccessResponse("SUCCESS WALLET", strLong), HttpStatus.CREATED);
             payment.setTranId(account.getReferenceNo());
             payment.setPreferenceNo(account.getReferenceNo());
             payment.setTranDate(LocalDate.now());
             payment.setRcre_time(LocalDateTime.now());
             paymentGatewayRepo.save(payment);
+            return new ResponseEntity<>(new SuccessResponse("SUCCESS WALLET", strLong), HttpStatus.CREATED);
 
         } catch (Exception ex) {
             log.error("Error occurred - GET QR TRANSACTION :{}", ex.getMessage());
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
-        return response;
     }
 
     @Override
     public ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, WayaUSSDRequest account) {
-        ResponseEntity<?> response = ResponseEntity.badRequest().body(null);
         try {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
@@ -680,13 +676,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             USSDResponse ussd = new USSDResponse();
             ussd.setRefNo(pay.getRefNo());
             ussd.setName(profile.getData().getOtherDetails().getOrganisationName());
-            response = new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
-
+            return new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
         } catch (Exception ex) {
             log.error("Error occurred - GET USSD TRANSACTION :{}", ex.getMessage());
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
-        return response;
     }
 
     @Override

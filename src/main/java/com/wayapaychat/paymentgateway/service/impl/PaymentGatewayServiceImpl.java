@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private static final Integer DEFAULT_CARD_LENGTH = 20;
+    private final Random rnd = new Random();
     @Autowired
     UnifiedPaymentProxy uniPaymentProxy;
     @Autowired
@@ -88,7 +89,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         DevicePojo devicePojo = PaymentGateWayCommonUtils.getClientRequestDevice(device);
         try {
-            // Duplicate Reference
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
             auth.setPassword(passSecret);
@@ -157,7 +157,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             Date dte = new Date();
             long milliSeconds = dte.getTime();
             String strLong = Long.toString(milliSeconds);
-            Random rnd = new Random();
             strLong = strLong + rnd.nextInt(999999);
             payment.setRefNo(strLong);
             payment.setMerchantId(account.getMerchantId());
@@ -455,7 +454,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             MyUserData mAuth = auth.getData();
 
             try {
-                PinResponse pin = authProxy.validatePin(Long.valueOf(mAuth.getId()), Long.valueOf(account.getPin()),
+                PinResponse pin = authProxy.validatePin(mAuth.getId(), Long.valueOf(account.getPin()),
                         token);
                 log.info("PIN RESPONSE: " + pin.toString());
                 if (!pin.isStatus()) {
@@ -555,8 +554,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> initiateWalletPayment(HttpServletRequest request, WayaWalletRequest account) {
-        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"),
-                HttpStatus.BAD_REQUEST);
         try {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
@@ -607,23 +604,21 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
             String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(vt);
-            response = new ResponseEntity<>(new SuccessResponse("SUCCESS WALLET", strLong), HttpStatus.CREATED);
             payment.setTranId(account.getReferenceNo());
             payment.setPreferenceNo(account.getReferenceNo());
             payment.setTranDate(LocalDate.now());
             payment.setRcre_time(LocalDateTime.now());
             paymentGatewayRepo.save(payment);
+            return new ResponseEntity<>(new SuccessResponse("SUCCESS WALLET", strLong), HttpStatus.CREATED);
 
         } catch (Exception ex) {
             log.error("Error occurred - GET QR TRANSACTION :{}", ex.getMessage());
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
-        return response;
     }
 
     @Override
     public ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, WayaUSSDRequest account) {
-        ResponseEntity<?> response = ResponseEntity.badRequest().body(null);
         try {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
@@ -681,13 +676,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             USSDResponse ussd = new USSDResponse();
             ussd.setRefNo(pay.getRefNo());
             ussd.setName(profile.getData().getOtherDetails().getOrganisationName());
-            response = new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
-
+            return new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
         } catch (Exception ex) {
             log.error("Error occurred - GET USSD TRANSACTION :{}", ex.getMessage());
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
-        return response;
     }
 
     @Override

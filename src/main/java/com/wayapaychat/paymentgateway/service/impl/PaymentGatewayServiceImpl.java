@@ -756,8 +756,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // PAYMENT_GATEWAY_TRANSACTION
     @Override
     public ResponseEntity<?> abandonTransaction(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
-        if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
-            throw new ApplicationException(403, "01", "Oops! Operation not allowed");
         PaymentGateway mPay = null;
         try {
             mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);

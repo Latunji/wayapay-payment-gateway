@@ -18,8 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-@EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
@@ -35,6 +33,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/test-email-notification",
                         "/callback", "/waya/callback")
                 .permitAll()
+                .antMatchers("/api/v1/report/query/**").fullyAuthenticated()
+                .antMatchers("/api/v1/revenue/query/**").fullyAuthenticated()
+                .antMatchers("/api/v1/transaction/status/**").fullyAuthenticated()
                 .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**", "/actuator/**", "/webjars/**", "/api/v1/**").permitAll()
                 .anyRequest().authenticated().and()
                 .addFilter(new AuthorizationFilter(authenticationManager())).sessionManagement()

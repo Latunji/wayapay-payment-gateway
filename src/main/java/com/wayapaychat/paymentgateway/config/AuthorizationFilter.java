@@ -61,10 +61,12 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
             throw new CustomException(tokenResponse.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        List<GrantedAuthority> grantedAuthorities = tokenResponse.getData().getRoles().stream().map(r -> {
-            log.info("Privilege List::: {}, {} and {}", r, 2, 3);
-            return new SimpleGrantedAuthority(r);
-        }).collect(Collectors.toList());
+        List<GrantedAuthority> grantedAuthorities = tokenResponse.getData().getRoles().stream()
+                .map(Enum::name)
+                .map(r -> {
+                    log.info("Privilege List::: {}, {} and {}", r, 2, 3);
+                    return new SimpleGrantedAuthority(r);
+                }).collect(Collectors.toList());
         return new UsernamePasswordAuthenticationToken(tokenResponse.getData(), null, grantedAuthorities);
 
     }

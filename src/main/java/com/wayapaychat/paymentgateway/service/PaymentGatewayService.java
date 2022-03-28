@@ -50,7 +50,7 @@ public interface PaymentGatewayService {
 	
 	PaymentGatewayResponse decryptCard(HttpServletRequest request, WayaDecypt pay);
 	
-	ResponseEntity<?> QueryTranStatus(HttpServletRequest req);
+	ResponseEntity<?> queryTranStatus(HttpServletRequest req);
 	
 	ResponseEntity<?> getMerchantTransactionReport(HttpServletRequest req, String merchantId);
 	

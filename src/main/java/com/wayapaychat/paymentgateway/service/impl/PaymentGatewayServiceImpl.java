@@ -9,6 +9,7 @@ import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
+import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.pojo.*;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.USSDResponse;
@@ -20,6 +21,7 @@ import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
+import com.wayapaychat.paymentgateway.service.GetUserDataService;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
@@ -38,6 +40,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 import java.io.BufferedInputStream;
 import java.net.URI;
 import java.net.URL;
@@ -53,23 +56,24 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private static final Integer DEFAULT_CARD_LENGTH = 20;
+    private final Random rnd = new Random();
+    private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
-    UnifiedPaymentProxy uniPaymentProxy;
+    private UnifiedPaymentProxy uniPaymentProxy;
     @Autowired
-    MerchantProxy merchantProxy;
+    private MerchantProxy merchantProxy;
     @Autowired
-    AuthApiClient authProxy;
+    private AuthApiClient authProxy;
     @Autowired
-    IdentityManager identManager;
+    private IdentityManager identManager;
     @Autowired
-    PaymentGatewayRepository paymentGatewayRepo;
+    private PaymentGatewayRepository paymentGatewayRepo;
     @Autowired
-    WalletProxy wallProxy;
+    private WalletProxy wallProxy;
     @Autowired
-    WayaPaymentDAO wayaPayment;
+    private WayaPaymentDAO wayaPayment;
     @Autowired
-    PaymentWalletRepository paymentWalletRepo;
-    ModelMapper modelMapper = new ModelMapper();
+    private PaymentWalletRepository paymentWalletRepo;
     @Value("${service.name}")
     private String username;
     @Value("${service.pass}")
@@ -82,13 +86,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private String encryptAllMerchantSecretKeyWith;
     @Value("${service.wayapay-payment-status-url}")
     private String wayapayStatusURL;
+    @Autowired
+    private PaymentGateWayCommonUtils paymentGateWayCommonUtils;
+    @Autowired
+    private GetUserDataService getUserDataService;
 
     @Override
     public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         DevicePojo devicePojo = PaymentGateWayCommonUtils.getClientRequestDevice(device);
         try {
-            // Duplicate Reference
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
             auth.setPassword(passSecret);
@@ -157,7 +164,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             Date dte = new Date();
             long milliSeconds = dte.getTime();
             String strLong = Long.toString(milliSeconds);
-            Random rnd = new Random();
             strLong = strLong + rnd.nextInt(999999);
             payment.setRefNo(strLong);
             payment.setMerchantId(account.getMerchantId());
@@ -448,14 +454,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             MerchantData sMerchant = merchant.getData();
             log.info("Merchant ID: " + sMerchant.getMerchantId());
 
-            TokenCheckResponse auth = authProxy.getUserDataToken(token);
+            TokenCheckResponse auth = getUserDataService.getUserData(token);
             if (!auth.isStatus()) {
                 return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
             }
             MyUserData mAuth = auth.getData();
 
             try {
-                PinResponse pin = authProxy.validatePin(Long.valueOf(mAuth.getId()), Long.valueOf(account.getPin()),
+                PinResponse pin = authProxy.validatePin(mAuth.getId(), Long.valueOf(account.getPin()),
                         token);
                 log.info("PIN RESPONSE: " + pin.toString());
                 if (!pin.isStatus()) {
@@ -555,8 +561,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> initiateWalletPayment(HttpServletRequest request, WayaWalletRequest account) {
-        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"),
-                HttpStatus.BAD_REQUEST);
         try {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
@@ -607,23 +611,21 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
             String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(vt);
-            response = new ResponseEntity<>(new SuccessResponse("SUCCESS WALLET", strLong), HttpStatus.CREATED);
             payment.setTranId(account.getReferenceNo());
             payment.setPreferenceNo(account.getReferenceNo());
             payment.setTranDate(LocalDate.now());
             payment.setRcre_time(LocalDateTime.now());
             paymentGatewayRepo.save(payment);
+            return new ResponseEntity<>(new SuccessResponse("SUCCESS WALLET", strLong), HttpStatus.CREATED);
 
         } catch (Exception ex) {
             log.error("Error occurred - GET QR TRANSACTION :{}", ex.getMessage());
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
-        return response;
     }
 
     @Override
     public ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, WayaUSSDRequest account) {
-        ResponseEntity<?> response = ResponseEntity.badRequest().body(null);
         try {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
@@ -681,15 +683,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             USSDResponse ussd = new USSDResponse();
             ussd.setRefNo(pay.getRefNo());
             ussd.setName(profile.getData().getOtherDetails().getOrganisationName());
-            response = new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
-
+            return new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
         } catch (Exception ex) {
             log.error("Error occurred - GET USSD TRANSACTION :{}", ex.getMessage());
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
-        return response;
     }
 
+    //TODO: !protect update transaction by USSD
     @Override
     public ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
         PaymentGateway payment = paymentGatewayRepo.findByRefMerchant(refNo, account.getMerchantId()).orElse(null);
@@ -707,7 +708,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> QueryTranStatus(HttpServletRequest req) {
+    public ResponseEntity<?> queryTranStatus(HttpServletRequest req) {
+        @NotNull final String queryWithMerchantId = paymentGateWayCommonUtils.validateUserAndGetMerchantId(null);
         List<PaymentGateway> mPay = paymentGatewayRepo.findByPayment();
         if (mPay == null) {
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
@@ -722,12 +724,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> getMerchantTransactionReport(HttpServletRequest req, String merchantId) {
-        List<PaymentGateway> mPay = paymentGatewayRepo.findByMerchantPayment(merchantId);
-        if (mPay == null) {
+        @NotNull final String queryWithMerchantId = paymentGateWayCommonUtils.validateUserAndGetMerchantId(merchantId);
+        @NotNull final List<PaymentGateway> paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment(queryWithMerchantId);
+        if (paymentGatewayList == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        }
-        List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
-        return new ResponseEntity<>(new SuccessResponse("List Payment", mPay), HttpStatus.OK);
+        final List<ReportPayment> sPay = mapList(paymentGatewayList, ReportPayment.class);
+        return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
     }
 
     @Override
@@ -750,17 +752,20 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
     }
 
+    //TODO: Protect this method to check is user has access to operate Payment gateway
+    // PAYMENT_GATEWAY_TRANSACTION
     @Override
     public ResponseEntity<?> updateTransactionStatus(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
+        if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
+            throw new ApplicationException(403, "01", "Oops! Operation not allowed");
         PaymentGateway mPay = null;
         try {
             mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (mPay == null) {
+        if (mPay == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        }
         mPay.setStatus(TransactionStatus.valueOf(pay.getStatus()));
         paymentGatewayRepo.save(mPay);
         return new ResponseEntity<>(new SuccessResponse("Updated", "Success Updated"), HttpStatus.OK);
@@ -768,29 +773,30 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId) {
+        @NotNull final String queryWithMerchantId = paymentGateWayCommonUtils.validateUserAndGetMerchantId(merchantId);
         WalletRevenue revenue = new WalletRevenue();
         try {
-            revenue = wayaPayment.getRevenue(merchantId);
+            revenue = wayaPayment.getRevenue(queryWithMerchantId);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (revenue == null) {
+        if (revenue == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        }
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
+        if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
+            throw new ApplicationException(403, "01", "Oops! Operation not allowed.");
         List<WalletRevenue> revenue = new ArrayList<>();
         try {
             revenue = wayaPayment.getRevenue();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (revenue == null) {
+        if (revenue == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        }
         return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
     }
 

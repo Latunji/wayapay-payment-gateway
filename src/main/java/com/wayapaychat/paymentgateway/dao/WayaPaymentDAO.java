@@ -1,13 +1,13 @@
 package com.wayapaychat.paymentgateway.dao;
 
-import java.util.List;
-
 import com.wayapaychat.paymentgateway.pojo.waya.WalletRevenue;
 
+import java.util.List;
+
 public interface WayaPaymentDAO {
-	
-	public List<WalletRevenue> getRevenue();
-	
-	public WalletRevenue getRevenue(String merchantId);
+
+    List<WalletRevenue> getRevenue();
+
+    WalletRevenue getRevenue(String merchantId);
 
 }

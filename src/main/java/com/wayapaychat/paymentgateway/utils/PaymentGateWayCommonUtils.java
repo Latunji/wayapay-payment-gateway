@@ -51,13 +51,11 @@ public class PaymentGateWayCommonUtils {
 
     public String validateUserAndGetMerchantId(String merchantId) {
         MyUserData user = getAuthenticatedUser();
-        if (!user.isAdmin() && ObjectUtils.isNotEmpty(merchantId))
-            throw new ApplicationException(403, "01", "Oops! Operation not allowed");
-        else if (!user.isEmailVerified() || !user.isPhoneVerified())
+        if (!user.isEmailVerified() || !user.isPhoneVerified())
             throw new ApplicationException(403, "01", "Account needs email and phone number verification");
-        else if (!user.isCorporate())
-            throw new ApplicationException(403, "01", "Only corporate user account is allowed");
-        if (ObjectUtils.isNotEmpty(merchantId))
+        else if (!user.isCorporate() && !user.isAdmin())
+            throw new ApplicationException(403, "01", "Oops! Operation not allowed");
+        if (user.isAdmin() && ObjectUtils.isNotEmpty(merchantId))
             return merchantId;
         else return this.merchantProxy.getMerchantAccount().getData().getMerchantId();
     }

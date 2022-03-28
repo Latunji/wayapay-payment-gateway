@@ -6,13 +6,15 @@ import com.wayapaychat.paymentgateway.pojo.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
+
 
 @FeignClient(name = "${waya.wallet.auth}", url = "${waya.wallet.authurl}", configuration = PaymentGatewayClientConfiguration.class)
 public interface AuthApiClient {
 
 
     @PostMapping("/auth/validate-user")
-    TokenCheckResponse getUserDataToken(@RequestHeader("authorization") String token);
+    LinkedHashMap<String,Object> getUserDataToken(@RequestHeader("authorization") String token);
 
     @PostMapping("/auth/login")
     TokenAuthResponse authenticateUser(@RequestBody LoginRequest login);

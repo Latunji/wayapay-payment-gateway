@@ -1,24 +1,27 @@
 package com.wayapaychat.paymentgateway.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.pojo.TokenCheckResponse;
+import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.wayapaychat.paymentgateway.pojo.TokenCheckResponse;
-import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
-
+import java.util.LinkedHashMap;
 
 
 @Component
+@Slf4j
 public class GetUserDataService {
 
-	@Autowired
-	private AuthApiClient authProxy;
-	
-	public TokenCheckResponse getUserData(String token) {
-		TokenCheckResponse res = authProxy.getUserDataToken(token);
-		System.out.println("::::Token::::"+res.getMessage());
-		System.out.println("::::Token::::"+res.getData().getEmail());
-		return res;
-	}
-	
+    @Autowired
+    private AuthApiClient authProxy;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    public TokenCheckResponse getUserData(String token) {
+        LinkedHashMap<String, Object> linkedHashMap = authProxy.getUserDataToken(token);
+        log.info("{}", linkedHashMap);
+        return objectMapper.convertValue(linkedHashMap, TokenCheckResponse.class);
+    }
 }

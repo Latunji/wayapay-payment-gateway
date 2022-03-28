@@ -57,7 +57,7 @@ public class PaymentGateWayCommonUtils {
             throw new ApplicationException(403, "01", "Account needs email and phone number verification");
         else if (!user.isCorporate())
             throw new ApplicationException(403, "01", "Only corporate user account is allowed");
-        if (ObjectUtils.isEmpty(merchantId))
+        if (ObjectUtils.isNotEmpty(merchantId))
             return merchantId;
         else return this.merchantProxy.getMerchantAccount().getData().getMerchantId();
     }

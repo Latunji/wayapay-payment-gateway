@@ -773,9 +773,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (revenue == null) {
+        if (revenue == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        }
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
 
@@ -789,9 +788,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (revenue == null) {
+        if (revenue == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        }
         return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
     }
 

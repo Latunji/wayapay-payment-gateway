@@ -276,7 +276,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         paymentGateway.setMaskedPan(PaymentGateWayCommonUtils.maskedPan(pan));
         if (!encryptData.isBlank())
             response = new PaymentGatewayResponse(true, "Success Encrypt", encryptData);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @Override

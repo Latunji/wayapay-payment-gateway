@@ -38,4 +38,7 @@ public class MerchantProxy {
 		return null;
 	}
 
+	public MerchantResponse getMerchantAccount() {
+		return identManager.getMerchantAccount();
+	}
 }

@@ -2,6 +2,8 @@ package com.wayapaychat.paymentgateway.pojo;
 
 import java.util.List;
 
+import com.wayapaychat.paymentgateway.enumm.Permit;
+import com.wayapaychat.paymentgateway.enumm.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,8 +29,9 @@ public class MyUserData {
     private boolean emailVerified;
     private boolean pinCreated;
     private boolean corporate;
-    private List<String> roles;
-    private List<String> permits;
+    private boolean isAdmin;
+    private List<Role> roles;
+    private List<Permit> permits;
     private String transactionLimit;
     
     public MyUserData(String email) {

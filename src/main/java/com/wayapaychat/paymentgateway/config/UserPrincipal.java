@@ -54,10 +54,12 @@ public class UserPrincipal implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> grantedAuthorities = this.user.getRoles().stream()
+                .map(Enum::name)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
         grantedAuthorities.addAll(
                 this.user.getPermits().stream()
+                        .map(Enum::name)
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toSet())
         );

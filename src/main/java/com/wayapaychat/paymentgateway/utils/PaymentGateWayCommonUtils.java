@@ -3,6 +3,7 @@ package com.wayapaychat.paymentgateway.utils;
 import com.wayapaychat.paymentgateway.enumm.DeviceType;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.pojo.DevicePojo;
+import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.MyUserData;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import lombok.AllArgsConstructor;
@@ -57,7 +58,12 @@ public class PaymentGateWayCommonUtils {
             throw new ApplicationException(403, "01", "Oops! Operation not allowed");
         if (user.isAdmin() && ObjectUtils.isNotEmpty(merchantId))
             return merchantId;
-        else return this.merchantProxy.getMerchantAccount().getData().getMerchantId();
+        else {
+            MerchantData merchantResponse = this.merchantProxy.getMerchantAccount().getData();
+            if (ObjectUtils.isEmpty(merchantResponse))
+                throw new ApplicationException(403, "01", "Oops! Merchant account not found");
+            return merchantResponse.getMerchantId();
+        }
     }
 
     public MyUserData getAuthenticatedUser() {

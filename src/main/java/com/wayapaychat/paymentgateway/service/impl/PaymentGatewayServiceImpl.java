@@ -687,6 +687,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
     }
 
+    //TODO: !protect update transaction by USSD
     @Override
     public ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
         PaymentGateway payment = paymentGatewayRepo.findByRefMerchant(refNo, account.getMerchantId()).orElse(null);
@@ -747,6 +748,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
     }
 
+    //TODO: Protect this method to check is user has access to operate Payment gateway
+    // PAYMENT_GATEWAY_TRANSACTION
     @Override
     public ResponseEntity<?> updateTransactionStatus(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
         if (!paymentGateWayCommonUtils.getAuthenticatedUser().isAdmin())

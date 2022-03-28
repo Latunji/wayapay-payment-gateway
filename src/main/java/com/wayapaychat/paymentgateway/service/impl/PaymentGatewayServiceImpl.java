@@ -21,6 +21,7 @@ import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
+import com.wayapaychat.paymentgateway.service.GetUserDataService;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
@@ -87,6 +88,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private String wayapayStatusURL;
     @Autowired
     private PaymentGateWayCommonUtils paymentGateWayCommonUtils;
+    @Autowired
+    private GetUserDataService getUserDataService;
 
     @Override
     public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
@@ -451,7 +454,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             MerchantData sMerchant = merchant.getData();
             log.info("Merchant ID: " + sMerchant.getMerchantId());
 
-            TokenCheckResponse auth = authProxy.getUserDataToken(token);
+            TokenCheckResponse auth = getUserDataService.getUserData(token);
             if (!auth.isStatus()) {
                 return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
             }
@@ -706,6 +709,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> queryTranStatus(HttpServletRequest req) {
+        @NotNull final String queryWithMerchantId = paymentGateWayCommonUtils.validateUserAndGetMerchantId(null);
         List<PaymentGateway> mPay = paymentGatewayRepo.findByPayment();
         if (mPay == null) {
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
@@ -752,7 +756,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // PAYMENT_GATEWAY_TRANSACTION
     @Override
     public ResponseEntity<?> updateTransactionStatus(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
-        if (!paymentGateWayCommonUtils.getAuthenticatedUser().isAdmin())
+        if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
             throw new ApplicationException(403, "01", "Oops! Operation not allowed");
         PaymentGateway mPay = null;
         try {
@@ -783,7 +787,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
-        if (!paymentGateWayCommonUtils.getAuthenticatedUser().isAdmin())
+        if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
             throw new ApplicationException(403, "01", "Oops! Operation not allowed.");
         List<WalletRevenue> revenue = new ArrayList<>();
         try {

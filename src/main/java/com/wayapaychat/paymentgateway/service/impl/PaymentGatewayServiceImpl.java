@@ -755,7 +755,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     //TODO: Protect this method to check is user has access to operate Payment gateway
     // PAYMENT_GATEWAY_TRANSACTION
     @Override
-    public ResponseEntity<?> updateTransactionStatus(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
+    public ResponseEntity<?> abandonTransaction(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
         if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
             throw new ApplicationException(403, "01", "Oops! Operation not allowed");
         PaymentGateway mPay = null;
@@ -766,7 +766,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
         if (mPay == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        mPay.setStatus(TransactionStatus.valueOf(pay.getStatus()));
+        mPay.setStatus(TransactionStatus.ABANDONED);
         paymentGatewayRepo.save(mPay);
         return new ResponseEntity<>(new SuccessResponse("Updated", "Success Updated"), HttpStatus.OK);
     }

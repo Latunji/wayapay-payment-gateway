@@ -783,8 +783,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
-        if (!paymentGateWayCommonUtils.getAuthenticatedUser().isCorporate())
-            throw new ApplicationException(403, "01", "Oops! Operation not allowed. Account is not a corporate.");
+        if (!paymentGateWayCommonUtils.getAuthenticatedUser().isAdmin())
+            throw new ApplicationException(403, "01", "Oops! Operation not allowed.");
         List<WalletRevenue> revenue = new ArrayList<>();
         try {
             revenue = wayaPayment.getRevenue();

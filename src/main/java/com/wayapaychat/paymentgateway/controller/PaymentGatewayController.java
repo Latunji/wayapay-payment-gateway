@@ -171,7 +171,7 @@ public class PaymentGatewayController {
     @ApiOperation(value = "Update Transaction status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
     @PutMapping("/transaction/status/{refNo}")
     public ResponseEntity<?> updateTransactionStatus(@PathVariable("refNo") final String refNo) {
-        return paymentGatewayService.updateTransactionStatus(refNo);
+        return paymentGatewayService.updatePaymentStatus(refNo);
     }
 
     @ApiOperation(value = "Card Encryption", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})

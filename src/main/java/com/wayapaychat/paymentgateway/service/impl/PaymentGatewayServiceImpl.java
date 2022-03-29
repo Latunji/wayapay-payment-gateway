@@ -821,6 +821,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     private void preprocessTransactionStatus(PaymentGateway payment) {
         WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
+        log.info("-----UNIFIED PAYMENT RESPONSE {}----------", response);
         if (ObjectUtils.isNotEmpty(response)) {
             if (response.getStatus().toUpperCase().equals(TStatus.APPROVED.name())) {
                 payment.setStatus(TransactionStatus.SUCCESSFUL);

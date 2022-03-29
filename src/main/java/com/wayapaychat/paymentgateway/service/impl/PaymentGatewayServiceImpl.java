@@ -804,22 +804,33 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests) {
         PaymentGateway payment = paymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
+        return preprocessTransactionStatus(payment);
+    }
+
+    @Override
+    public ResponseEntity<?> updateTransactionStatus(String refNo) {
+        PaymentGateway payment = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
+        return preprocessTransactionStatus(payment);
+    }
+
+    private ResponseEntity<?> preprocessTransactionStatus(PaymentGateway payment) {
         if (payment == null)
             return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
-        TStatus callbackTransactionStatus = TStatus.valueOf(requests.getStatus());
-        if (requests.isApproved() && (
-                callbackTransactionStatus == TStatus.APPROVED || callbackTransactionStatus == TStatus.SUCCESSFUL
-        )) {
-            payment.setStatus(TransactionStatus.SUCCESSFUL);
-            payment.setSuccessfailure(true);
-            payment.setTranId(requests.getTrxId());
-        } else {
-            payment.setStatus(TransactionStatus.FAILED);
-            payment.setSuccessfailure(false);
-            payment.setTranId(requests.getTrxId());
+        WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
+        if (ObjectUtils.isNotEmpty(response)) {
+            if (TStatus.valueOf(response.getStatus().toUpperCase()) == TStatus.APPROVED) {
+                payment.setStatus(TransactionStatus.SUCCESSFUL);
+                payment.setSuccessfailure(true);
+                payment.setTranId(response.getOrderId());
+            } else {
+                payment.setStatus(TransactionStatus.FAILED);
+                payment.setSuccessfailure(false);
+                payment.setTranId(response.getOrderId());
+            }
+            paymentGatewayRepo.save(payment);
         }
-        paymentGatewayRepo.save(payment);
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
+
     }
 
     private String replacePublicKeyWithEmptyString(String pub) {

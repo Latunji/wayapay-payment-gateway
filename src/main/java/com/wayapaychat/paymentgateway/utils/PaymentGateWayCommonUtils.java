@@ -52,8 +52,10 @@ public class PaymentGateWayCommonUtils {
 
     public String validateUserAndGetMerchantId(String merchantId) {
         MyUserData user = getAuthenticatedUser();
-        if (!user.isEmailVerified() || !user.isPhoneVerified())
-            throw new ApplicationException(403, "01", "Account needs email and phone number verification");
+        if (!user.isEmailVerified())
+            throw new ApplicationException(403, "01", "Account needs email verification");
+//        if (!user.isPhoneVerified())
+//            throw new ApplicationException(403, "01", "Account needs email verification");
         else if (!user.getAdmin() && ObjectUtils.isNotEmpty(merchantId))
             throw new ApplicationException(403, "01", "Oops! Operation not allowed");
         else if (!user.isCorporate() && ObjectUtils.isEmpty(merchantId))

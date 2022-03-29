@@ -74,6 +74,7 @@ public class PaymemtGatewayEntityListener {
                     .merchantName(paymentGateway.getMerchantName())
                     .merchantEmailAddress(paymentGateway.getMerchantEmail())
                     .paymentGatewayTransactionId(paymentGateway.getTranId())
+                    .channelTransactionId(paymentGateway.getRefNo())
                     .currency(getCurrencyName(paymentGateway.getCurrencyCode()))
                     .updatedAt(paymentGateway.getVendorDate() == null ? paymentGateway.getTranDate() : paymentGateway.getVendorDate())
                     .build();
@@ -93,10 +94,12 @@ public class PaymemtGatewayEntityListener {
         emailStreamData.setTransactionId(notificationPojo.getChannelTransactionId());
         emailStreamData.setPaymentChannel(notificationPojo.getPaymentChannel());
         emailStreamData.setNarration(notificationPojo.getTransactionNarration());
-        emailStreamData.setNarration(String.format("Transaction was successfully processed with %s Channel",notificationPojo.getPaymentChannel()));
+        emailStreamData.setNarration("Transaction successful");
         emailStreamData.setAmount(notificationPojo.getTransactionAmount().toString());
         emailStreamData.setTransactionDate(notificationPojo.getUpdatedAt().toString());
         emailStreamData.setMode(variableUtil.getMode());
+        emailStreamData.setCustomerName(notificationPojo.getCustomerName());
+        emailStreamData.setMerchantName(notificationPojo.getMerchantName());
 
         notificationStreamData.setNames(List.of(NotificationReceiver.builder()
                 .email(notificationPojo.getCustomerEmailAddress())

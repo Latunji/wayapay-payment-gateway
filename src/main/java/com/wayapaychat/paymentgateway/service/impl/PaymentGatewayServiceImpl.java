@@ -274,6 +274,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         String encryptData = uniPaymentProxy.encryptPaymentDataAccess(cardReq);
         paymentGateway.setPaymentMetaData(card.getDeviceInformation());
+        paymentGateway.setScheme(card.getScheme());
         paymentGateway.setMaskedPan(PaymentGateWayCommonUtils.maskedPan(pan));
         if (!encryptData.isBlank()) {
             response = new PaymentGatewayResponse(true, "Success Encrypt", encryptData);

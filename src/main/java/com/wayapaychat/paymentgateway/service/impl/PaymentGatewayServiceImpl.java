@@ -804,21 +804,25 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests) {
         PaymentGateway payment = paymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
-        return preprocessTransactionStatus(payment);
+        if (payment == null)
+            return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
+        preprocessTransactionStatus(payment);
+        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
     }
 
     @Override
-    public ResponseEntity<?> updateTransactionStatus(String refNo) {
+    public ResponseEntity<?> updatePaymentStatus(String refNo) {
         PaymentGateway payment = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
-        return preprocessTransactionStatus(payment);
-    }
-
-    private ResponseEntity<?> preprocessTransactionStatus(PaymentGateway payment) {
         if (payment == null)
             return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
+        preprocessTransactionStatus(payment);
+        return ResponseEntity.ok().body("Transaction status updated successful");
+    }
+
+    private void preprocessTransactionStatus(PaymentGateway payment) {
         WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
         if (ObjectUtils.isNotEmpty(response)) {
-            if (TStatus.valueOf(response.getStatus().toUpperCase()) == TStatus.APPROVED) {
+            if (response.getStatus().toUpperCase().equals(TStatus.APPROVED.name())) {
                 payment.setStatus(TransactionStatus.SUCCESSFUL);
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());
@@ -829,8 +833,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
             paymentGatewayRepo.save(payment);
         }
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
-
     }
 
     private String replacePublicKeyWithEmptyString(String pub) {

@@ -811,7 +811,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> updateTransactionStatus(String refNo) {
+    public ResponseEntity<?> updatePaymentStatus(String refNo) {
         PaymentGateway payment = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
         if (payment == null)
             return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");

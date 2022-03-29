@@ -62,5 +62,5 @@ public interface PaymentGatewayService {
 
 	ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest wayaCallbackRequest) throws URISyntaxException;
 
-	ResponseEntity<?> updateTransactionStatus(String refNo);
+	ResponseEntity<?> updatePaymentStatus(String refNo);
 }

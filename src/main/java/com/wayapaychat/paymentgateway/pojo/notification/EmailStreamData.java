@@ -23,6 +23,8 @@ public class EmailStreamData {
     private ProductType productType;
     private String transactionId;
     private String mode;
+    private String customerName;
+    private String merchantName;
     private String transactionDate;
     private NotificationStreamData data;
     private String forMerchant;

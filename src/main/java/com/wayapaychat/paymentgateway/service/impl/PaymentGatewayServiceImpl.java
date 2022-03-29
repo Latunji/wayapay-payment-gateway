@@ -279,6 +279,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             response = new PaymentGatewayResponse(true, "Success Encrypt", encryptData);
             httpStatus = HttpStatus.OK;
         }
+        paymentGatewayRepo.save(paymentGateway);
         return new ResponseEntity<>(response, httpStatus);
     }
 

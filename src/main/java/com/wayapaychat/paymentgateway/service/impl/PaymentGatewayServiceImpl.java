@@ -271,12 +271,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.info("Card Info: " + cardReq);
         }
         response = new PaymentGatewayResponse(false, "Encrypt Card fail", null);
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         String encryptData = uniPaymentProxy.encryptPaymentDataAccess(cardReq);
         paymentGateway.setPaymentMetaData(card.getDeviceInformation());
         paymentGateway.setMaskedPan(PaymentGateWayCommonUtils.maskedPan(pan));
-        if (!encryptData.isBlank())
+        if (!encryptData.isBlank()) {
             response = new PaymentGatewayResponse(true, "Success Encrypt", encryptData);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            httpStatus = HttpStatus.OK;
+        }
+        return new ResponseEntity<>(response, httpStatus);
     }
 
     @Override
@@ -755,9 +758,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     //TODO: Protect this method to check is user has access to operate Payment gateway
     // PAYMENT_GATEWAY_TRANSACTION
     @Override
-    public ResponseEntity<?> updateTransactionStatus(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
-        if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
-            throw new ApplicationException(403, "01", "Oops! Operation not allowed");
+    public ResponseEntity<?> abandonTransaction(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
         PaymentGateway mPay = null;
         try {
             mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
@@ -766,7 +767,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
         if (mPay == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        mPay.setStatus(TransactionStatus.valueOf(pay.getStatus()));
+        mPay.setStatus(TransactionStatus.ABANDONED);
         paymentGatewayRepo.save(mPay);
         return new ResponseEntity<>(new SuccessResponse("Updated", "Success Updated"), HttpStatus.OK);
     }
@@ -803,22 +804,33 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests) {
         PaymentGateway payment = paymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
+        return preprocessTransactionStatus(payment);
+    }
+
+    @Override
+    public ResponseEntity<?> updateTransactionStatus(String refNo) {
+        PaymentGateway payment = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
+        return preprocessTransactionStatus(payment);
+    }
+
+    private ResponseEntity<?> preprocessTransactionStatus(PaymentGateway payment) {
         if (payment == null)
             return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
-        TStatus callbackTransactionStatus = TStatus.valueOf(requests.getStatus());
-        if (requests.isApproved() && (
-                callbackTransactionStatus == TStatus.APPROVED || callbackTransactionStatus == TStatus.SUCCESSFUL
-        )) {
-            payment.setStatus(TransactionStatus.SUCCESSFUL);
-            payment.setSuccessfailure(true);
-            payment.setTranId(requests.getTrxId());
-        } else {
-            payment.setStatus(TransactionStatus.FAILED);
-            payment.setSuccessfailure(false);
-            payment.setTranId(requests.getTrxId());
+        WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
+        if (ObjectUtils.isNotEmpty(response)) {
+            if (TStatus.valueOf(response.getStatus().toUpperCase()) == TStatus.APPROVED) {
+                payment.setStatus(TransactionStatus.SUCCESSFUL);
+                payment.setSuccessfailure(true);
+                payment.setTranId(response.getOrderId());
+            } else {
+                payment.setStatus(TransactionStatus.FAILED);
+                payment.setSuccessfailure(false);
+                payment.setTranId(response.getOrderId());
+            }
+            paymentGatewayRepo.save(payment);
         }
-        paymentGatewayRepo.save(payment);
-        return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).location(URI.create(wayapayStatusURL)).build();
+        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
+
     }
 
     private String replacePublicKeyWithEmptyString(String pub) {

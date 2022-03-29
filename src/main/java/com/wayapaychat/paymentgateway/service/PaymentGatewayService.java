@@ -54,7 +54,7 @@ public interface PaymentGatewayService {
 	
 	ResponseEntity<?> getMerchantTransactionReport(HttpServletRequest req, String merchantId);
 	
-	ResponseEntity<?> updateTransactionStatus(HttpServletRequest request, final String refNo, WayaPaymentStatus pay);
+	ResponseEntity<?> abandonTransaction(HttpServletRequest request, final String refNo, WayaPaymentStatus pay);
 	
 	ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId);
 	
@@ -62,4 +62,5 @@ public interface PaymentGatewayService {
 
 	ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest wayaCallbackRequest) throws URISyntaxException;
 
+	ResponseEntity<?> updateTransactionStatus(String refNo);
 }

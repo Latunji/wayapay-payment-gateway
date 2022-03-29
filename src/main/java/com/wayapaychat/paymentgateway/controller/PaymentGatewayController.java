@@ -161,10 +161,17 @@ public class PaymentGatewayController {
     }
 
     @ApiOperation(value = "Update Transaction status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
+    @PutMapping("/transaction/abandon/{refNo}")
+    public ResponseEntity<?> abandonTransaction(HttpServletRequest request, @PathVariable("refNo") final String refNo,
+                                                @Valid @RequestBody WayaPaymentStatus pay) {
+        return paymentGatewayService.abandonTransaction(request, refNo, pay);
+    }
+
+
+    @ApiOperation(value = "Update Transaction status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
     @PutMapping("/transaction/status/{refNo}")
-    public ResponseEntity<?> updateTransactionStatus(HttpServletRequest request, @PathVariable("refNo") final String refNo,
-                                                     @Valid @RequestBody WayaPaymentStatus pay) {
-        return paymentGatewayService.updateTransactionStatus(request, refNo, pay);
+    public ResponseEntity<?> updateTransactionStatus(@PathVariable("refNo") final String refNo) {
+        return paymentGatewayService.updateTransactionStatus(refNo);
     }
 
     @ApiOperation(value = "Card Encryption", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})

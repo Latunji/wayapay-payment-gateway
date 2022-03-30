@@ -298,7 +298,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone()),
                         mPay.getPreferenceNo());
                 String tranId = uniPaymentProxy.postUnified(mAccount);
-                if (tranId.isBlank()) {
+                if (ObjectUtils.isEmpty(tranId)) {
                     return new PaymentGatewayResponse(false, "Failed to process transaction authentication. Please try again later!", null);
                 }
                 mPay.setTranId(tranId);
@@ -338,7 +338,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone()),
                     mPay.getPreferenceNo());
             String tranId = uniPaymentProxy.postUnified(mAccount);
-            if (tranId.isBlank() || ObjectUtils.isEmpty(tranId)) {
+            if (ObjectUtils.isEmpty(tranId)) {
                 return new PaymentGatewayResponse(false, "Failed to process transaction authentication. Please try again later!", null);
             }
             mPay.setTranId(tranId);

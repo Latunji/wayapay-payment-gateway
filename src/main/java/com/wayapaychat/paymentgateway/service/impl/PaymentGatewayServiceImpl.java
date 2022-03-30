@@ -690,7 +690,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             ussd.setName(profile.getData().getOtherDetails().getOrganisationName());
             return new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
         } catch (Exception ex) {
-            log.error("Error occurred - GET USSD TRANSACTION :{}", ex.getMessage());
+            log.error("Error occurred - GET USSD TRANSACTION :{0}",ex);
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
     }

@@ -1,14 +1,11 @@
 package com.wayapaychat.paymentgateway.utils;
 
 import com.wayapaychat.paymentgateway.enumm.DeviceType;
-import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.pojo.DevicePojo;
-import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.MyUserData;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DevicePlatform;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -51,21 +48,24 @@ public class PaymentGateWayCommonUtils {
     }
 
     public String validateUserAndGetMerchantId(String merchantId) {
-        MyUserData user = getAuthenticatedUser();
-        if (!user.isEmailVerified() || !user.isPhoneVerified())
-            throw new ApplicationException(403, "01", "Account needs email and phone number verification");
-        else if (!user.getAdmin() && ObjectUtils.isNotEmpty(merchantId))
-            throw new ApplicationException(403, "01", "Oops! Operation not allowed");
-        else if (!user.isCorporate() && ObjectUtils.isEmpty(merchantId))
-            throw new ApplicationException(403, "01", "Oops! Operation allowed to only corporate account");
-        if (user.getAdmin() && ObjectUtils.isNotEmpty(merchantId))
-            return merchantId;
-        else {
-            MerchantData merchantResponse = this.merchantProxy.getMerchantAccount().getData();
-            if (ObjectUtils.isEmpty(merchantResponse))
-                throw new ApplicationException(403, "01", "Oops! Merchant account not found");
-            return merchantResponse.getMerchantId();
-        }
+//        MyUserData user = getAuthenticatedUser();
+//        if (!user.isEmailVerified())
+//            throw new ApplicationException(403, "01", "Account needs email verification");
+////        if (!user.isPhoneVerified())
+////            throw new ApplicationException(403, "01", "Account needs email verification");
+//        else if (!user.getAdmin() && ObjectUtils.isNotEmpty(merchantId))
+//            throw new ApplicationException(403, "01", "Oops! Operation not allowed");
+//        else if (!user.isCorporate() && ObjectUtils.isEmpty(merchantId))
+//            throw new ApplicationException(403, "01", "Oops! Operation allowed to only corporate account");
+//        if (user.getAdmin() && ObjectUtils.isNotEmpty(merchantId))
+//            return merchantId;
+//        else {
+//            MerchantData merchantResponse = this.merchantProxy.getMerchantAccount().getData();
+//            if (ObjectUtils.isEmpty(merchantResponse))
+//                throw new ApplicationException(403, "01", "Oops! Merchant account not found");
+//            return merchantResponse.getMerchantId();
+//        }
+        return merchantId;
     }
 
     public MyUserData getAuthenticatedUser() {

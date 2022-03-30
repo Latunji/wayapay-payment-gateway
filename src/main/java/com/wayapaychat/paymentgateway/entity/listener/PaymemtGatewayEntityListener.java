@@ -27,6 +27,7 @@ import javax.persistence.PostUpdate;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
@@ -56,30 +57,37 @@ public class PaymemtGatewayEntityListener {
 
     @PostPersist
     @PostUpdate
-    public void sendTransactionNotificationAfterPaymentIsSuccessful(PaymentGateway paymentGateway) throws Exception {
-        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-        log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
-                paymentGateway.getTranId());
-        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
-                || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED) {
-            NotificationPojo notificationPojo = NotificationPojo
-                    .builder()
-                    .paymentChannel(paymentGateway.getChannel())
-                    .merchantName(paymentGateway.getMerchantName())
-                    .transactionDate(paymentGateway.getVendorDate())
-                    .transactionAmount(paymentGateway.getAmount())
-                    .transactionMode(variableUtil.getMode())
-                    .customerEmailAddress(paymentGateway.getCustomerEmail())
-                    .customerName(paymentGateway.getCustomerName())
-                    .merchantName(paymentGateway.getMerchantName())
-                    .merchantEmailAddress(paymentGateway.getMerchantEmail())
-                    .paymentGatewayTransactionId(paymentGateway.getTranId())
-                    .channelTransactionId(paymentGateway.getRefNo())
-                    .currency(getCurrencyName(paymentGateway.getCurrencyCode()))
-                    .updatedAt(paymentGateway.getVendorDate() == null ? paymentGateway.getTranDate() : paymentGateway.getVendorDate())
-                    .build();
-            processEmailAlert(notificationPojo);
-        }
+    public void sendTransactionNotificationAfterPaymentIsSuccessful(PaymentGateway paymentGateway) {
+        CompletableFuture.runAsync(() -> {
+            SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+            log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
+                    paymentGateway.getTranId());
+            if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
+                    || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED) {
+                NotificationPojo notificationPojo = NotificationPojo
+                        .builder()
+                        .paymentChannel(paymentGateway.getChannel())
+                        .merchantName(paymentGateway.getMerchantName())
+                        .transactionDate(paymentGateway.getVendorDate())
+                        .transactionAmount(paymentGateway.getAmount())
+                        .transactionMode(variableUtil.getMode())
+                        .customerEmailAddress(paymentGateway.getCustomerEmail())
+                        .customerName(paymentGateway.getCustomerName())
+                        .merchantName(paymentGateway.getMerchantName())
+                        .merchantEmailAddress(paymentGateway.getMerchantEmail())
+                        .paymentGatewayTransactionId(paymentGateway.getTranId())
+                        .channelTransactionId(paymentGateway.getRefNo())
+                        .currency(getCurrencyName(paymentGateway.getCurrencyCode()))
+                        .updatedAt(paymentGateway.getVendorDate() == null ? paymentGateway.getTranDate() : paymentGateway.getVendorDate())
+                        .build();
+                try {
+                    processEmailAlert(notificationPojo);
+                } catch (Exception e) {
+                    log.error("{0}",e);
+                }
+            }
+        });
+
     }
 
     private void processEmailAlert(NotificationPojo notificationPojo) throws Exception {

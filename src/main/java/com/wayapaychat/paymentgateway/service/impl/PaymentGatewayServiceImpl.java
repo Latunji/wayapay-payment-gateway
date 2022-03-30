@@ -274,11 +274,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         String encryptData = uniPaymentProxy.encryptPaymentDataAccess(cardReq);
         paymentGateway.setPaymentMetaData(card.getDeviceInformation());
+        paymentGateway.setScheme(card.getScheme());
         paymentGateway.setMaskedPan(PaymentGateWayCommonUtils.maskedPan(pan));
         if (!encryptData.isBlank()) {
             response = new PaymentGatewayResponse(true, "Success Encrypt", encryptData);
             httpStatus = HttpStatus.OK;
         }
+        paymentGatewayRepo.save(paymentGateway);
         return new ResponseEntity<>(response, httpStatus);
     }
 
@@ -688,7 +690,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             ussd.setName(profile.getData().getOtherDetails().getOrganisationName());
             return new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
         } catch (Exception ex) {
-            log.error("Error occurred - GET USSD TRANSACTION :{}", ex.getMessage());
+            log.error("Error occurred - GET USSD TRANSACTION :{0}",ex);
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
     }

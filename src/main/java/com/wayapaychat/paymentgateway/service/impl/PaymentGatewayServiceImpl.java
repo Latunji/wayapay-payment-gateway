@@ -684,6 +684,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
             payment.setChannel(PaymentChannel.USSD);
             payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
+            payment.setVendorDate(LocalDate.now());
             PaymentGateway pay = paymentGatewayRepo.save(payment);
             USSDResponse ussd = new USSDResponse();
             ussd.setRefNo(pay.getRefNo());

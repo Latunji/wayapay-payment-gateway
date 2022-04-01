@@ -831,7 +831,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());
             } else {
-                payment.setStatus(TransactionStatus.valueOf(response.getStatus()));
+                payment.setStatus(TransactionStatus.valueOf(response.getStatus().toUpperCase()));
                 payment.setSuccessfailure(false);
                 payment.setTranId(response.getOrderId());
             }

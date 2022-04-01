@@ -831,7 +831,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());
             } else {
-                payment.setStatus(TransactionStatus.valueOf(response.getStatus().toUpperCase()));
+                TransactionStatus transactionStatus = Arrays.stream(TransactionStatus.values()).map(Enum::name)
+                        .collect(Collectors.toList())
+                        .contains(response.getStatus().toUpperCase()) ? TransactionStatus.valueOf(response.getStatus().toUpperCase()) : TransactionStatus.FAILED;
+                payment.setStatus(transactionStatus);
                 payment.setSuccessfailure(false);
                 payment.setTranId(response.getOrderId());
             }

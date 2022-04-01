@@ -1,7 +1,7 @@
 package com.wayapaychat.paymentgateway.pojo;
 
 
-import com.wayapaychat.paymentgateway.utils.Constant;
+import com.wayapaychat.paymentgateway.common.enums.Constant;
 
 public class ErrorResponse extends PaymentGatewayResponse {
 

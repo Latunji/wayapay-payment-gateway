@@ -94,4 +94,6 @@ public class PaymentGateway {
     private String paymentMetaData;
     @Column(name = "masked_pan")
     private String maskedPan;
+    @Column(name = "payment_link")
+    private String paymentLinkId;
 }

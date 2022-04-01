@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.utils;
+package com.wayapaychat.paymentgateway.common.utils;
 
 import com.wayapaychat.paymentgateway.enumm.Role;
 import com.wayapaychat.paymentgateway.pojo.MyUserData;

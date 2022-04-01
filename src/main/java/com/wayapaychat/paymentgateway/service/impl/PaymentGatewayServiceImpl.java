@@ -25,7 +25,7 @@ import com.wayapaychat.paymentgateway.service.GetUserDataService;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
-import com.wayapaychat.paymentgateway.utils.PaymentGateWayCommonUtils;
+import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -699,18 +699,19 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     //TODO: !protect update transaction by USSD
     @Override
     public ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
+        //TODO: Query the transaction status again before updating the transaction
         PaymentGateway payment = paymentGatewayRepo.findByRefMerchant(refNo, account.getMerchantId()).orElse(null);
         if (payment == null) {
             return new ResponseEntity<>(new ErrorResponse("NO PAYMENT REQUEST INITIATED"), HttpStatus.BAD_REQUEST);
         }
-        TransactionStatus channel = TransactionStatus.valueOf(account.getStatus());
-        payment.setStatus(channel);
+        TransactionStatus status = TransactionStatus.valueOf(account.getStatus());
+        payment.setStatus(status);
         payment.setTranId(account.getTranId());
         payment.setSuccessfailure(account.isSuccessfailure());
         LocalDate toDate = account.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         payment.setVendorDate(toDate);
-        PaymentGateway mPayment = paymentGatewayRepo.save(payment);
-        return new ResponseEntity<>(new SuccessResponse("TRANSACTION UPDATE", mPayment), HttpStatus.OK);
+        ReportPayment reportPayment = modelMapper.map(paymentGatewayRepo.save(payment),ReportPayment.class);
+        return new ResponseEntity<>(new SuccessResponse("TRANSACTION UPDATE", reportPayment), HttpStatus.OK);
     }
 
     @Override

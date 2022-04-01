@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.utils;
+package com.wayapaychat.paymentgateway.common.utils;
 
 import java.security.Key;
 import java.util.Base64;

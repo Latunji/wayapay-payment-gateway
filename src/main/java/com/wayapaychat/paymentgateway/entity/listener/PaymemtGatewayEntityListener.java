@@ -16,7 +16,7 @@ import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceRespo
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationStreamData;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
-import com.wayapaychat.paymentgateway.utils.VariableUtil;
+import com.wayapaychat.paymentgateway.common.utils.VariableUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

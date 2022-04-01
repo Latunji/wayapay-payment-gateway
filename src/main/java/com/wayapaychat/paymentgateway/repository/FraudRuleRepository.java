@@ -1,7 +1,7 @@
 package com.wayapaychat.paymentgateway.repository;
 
 import com.wayapaychat.paymentgateway.entity.FraudRule;
-import com.wayapaychat.paymentgateway.utils.FraudRuleType;
+import com.wayapaychat.paymentgateway.common.enums.FraudRuleType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.utils;
+package com.wayapaychat.paymentgateway.common.utils;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

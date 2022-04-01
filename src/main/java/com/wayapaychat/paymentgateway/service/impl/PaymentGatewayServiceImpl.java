@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
@@ -25,7 +26,6 @@ import com.wayapaychat.paymentgateway.service.GetUserDataService;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
-import com.wayapaychat.paymentgateway.utils.PaymentGateWayCommonUtils;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -298,8 +298,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone()),
                         mPay.getPreferenceNo());
                 String tranId = uniPaymentProxy.postUnified(mAccount);
-                if (tranId.isBlank()) {
-                    return new PaymentGatewayResponse(false, "Unable to transaction request", null);
+                if (ObjectUtils.isEmpty(tranId)) {
+                    return new PaymentGatewayResponse(false, "Failed to process transaction authentication. Please try again later!", null);
                 }
                 mPay.setTranId(tranId);
                 paymentGatewayRepo.save(mPay);
@@ -338,8 +338,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone()),
                     mPay.getPreferenceNo());
             String tranId = uniPaymentProxy.postUnified(mAccount);
-            if (tranId.isBlank()) {
-                return new PaymentGatewayResponse(false, "Unable to transaction request", null);
+            if (ObjectUtils.isEmpty(tranId)) {
+                return new PaymentGatewayResponse(false, "Failed to process transaction authentication. Please try again later!", null);
             }
             mPay.setTranId(tranId);
             paymentGatewayRepo.save(mPay);
@@ -691,26 +691,26 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             ussd.setName(profile.getData().getOtherDetails().getOrganisationName());
             return new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
         } catch (Exception ex) {
-            log.error("Error occurred - GET USSD TRANSACTION :{0}",ex);
+            log.error("Error occurred - GET USSD TRANSACTION :{0}", ex);
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 
-    //TODO: !protect update transaction by USSD
     @Override
     public ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
+        //TODO: Query the transaction status again before updating the transaction
         PaymentGateway payment = paymentGatewayRepo.findByRefMerchant(refNo, account.getMerchantId()).orElse(null);
         if (payment == null) {
             return new ResponseEntity<>(new ErrorResponse("NO PAYMENT REQUEST INITIATED"), HttpStatus.BAD_REQUEST);
         }
-        TransactionStatus channel = TransactionStatus.valueOf(account.getStatus());
-        payment.setStatus(channel);
+        TransactionStatus status = TransactionStatus.valueOf(account.getStatus());
+        payment.setStatus(status);
         payment.setTranId(account.getTranId());
         payment.setSuccessfailure(account.isSuccessfailure());
         LocalDate toDate = account.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         payment.setVendorDate(toDate);
-        PaymentGateway mPayment = paymentGatewayRepo.save(payment);
-        return new ResponseEntity<>(new SuccessResponse("TRANSACTION UPDATE", mPayment), HttpStatus.OK);
+        ReportPayment reportPayment = modelMapper.map(paymentGatewayRepo.save(payment), ReportPayment.class);
+        return new ResponseEntity<>(new SuccessResponse("TRANSACTION UPDATE", reportPayment), HttpStatus.OK);
     }
 
     @Override
@@ -826,7 +826,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
         log.info("-----UNIFIED PAYMENT RESPONSE {}----------", response);
         if (ObjectUtils.isNotEmpty(response)) {
-            if (response.getStatus().toUpperCase().equals(TStatus.APPROVED.name())) {
+            if (ObjectUtils.isNotEmpty(response.getStatus()) && response.getStatus().toUpperCase().equals(TStatus.APPROVED.name())) {
                 payment.setStatus(TransactionStatus.SUCCESSFUL);
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());

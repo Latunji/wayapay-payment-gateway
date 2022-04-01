@@ -10,7 +10,7 @@ import com.wayapaychat.paymentgateway.pojo.LogMessage;
 import com.wayapaychat.paymentgateway.pojo.LogRequest;
 import com.wayapaychat.paymentgateway.pojo.MyUserData;
 import com.wayapaychat.paymentgateway.service.UserService;
-import com.wayapaychat.paymentgateway.utils.PaymentGateWayCommonUtils;
+import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;

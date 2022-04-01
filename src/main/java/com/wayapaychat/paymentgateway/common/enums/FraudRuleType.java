@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.utils;
+package com.wayapaychat.paymentgateway.common.enums;
 
 public enum FraudRuleType {
 

@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
@@ -25,7 +26,6 @@ import com.wayapaychat.paymentgateway.service.GetUserDataService;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
-import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -691,12 +691,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             ussd.setName(profile.getData().getOtherDetails().getOrganisationName());
             return new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
         } catch (Exception ex) {
-            log.error("Error occurred - GET USSD TRANSACTION :{0}",ex);
+            log.error("Error occurred - GET USSD TRANSACTION :{0}", ex);
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 
-    //TODO: !protect update transaction by USSD
     @Override
     public ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
         //TODO: Query the transaction status again before updating the transaction
@@ -710,7 +709,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         payment.setSuccessfailure(account.isSuccessfailure());
         LocalDate toDate = account.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         payment.setVendorDate(toDate);
-        ReportPayment reportPayment = modelMapper.map(paymentGatewayRepo.save(payment),ReportPayment.class);
+        ReportPayment reportPayment = modelMapper.map(paymentGatewayRepo.save(payment), ReportPayment.class);
         return new ResponseEntity<>(new SuccessResponse("TRANSACTION UPDATE", reportPayment), HttpStatus.OK);
     }
 
@@ -827,7 +826,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
         log.info("-----UNIFIED PAYMENT RESPONSE {}----------", response);
         if (ObjectUtils.isNotEmpty(response)) {
-            if (response.getStatus().toUpperCase().equals(TStatus.APPROVED.name())) {
+            if (ObjectUtils.isNotEmpty(response.getStatus()) && response.getStatus().toUpperCase().equals(TStatus.APPROVED.name())) {
                 payment.setStatus(TransactionStatus.SUCCESSFUL);
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());

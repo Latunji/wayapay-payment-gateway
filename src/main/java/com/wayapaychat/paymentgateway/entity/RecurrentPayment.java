@@ -9,20 +9,21 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.wayapaychat.paymentgateway.common.enums.Interval;
 import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
-import com.wayapaychat.paymentgateway.entity.listener.FraudEventEntityListener;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.time.LocalDateTime;
 
-@EntityListeners(value = FraudEventEntityListener.class)
+//@EntityListeners(value = FraudEventEntityListener.class)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "m_recurrent_payment")
+//@Entity
+//@Table(name = "m_recurrent_payment")
 public class RecurrentPayment extends GenericBaseEntity {
     @Column(nullable = false, name = "first_payment_date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -48,6 +49,7 @@ public class RecurrentPayment extends GenericBaseEntity {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime lastChargeDate;
 
+    //paymentLinkId and customerId can be used to get the latest customer recurrent transaction on PaymentGateway
     @Column(name = "payment_link_id")
     private String paymentLinkId;
 

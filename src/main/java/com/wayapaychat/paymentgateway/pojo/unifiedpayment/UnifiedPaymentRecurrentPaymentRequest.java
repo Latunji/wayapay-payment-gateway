@@ -21,6 +21,6 @@ public class UnifiedPaymentRecurrentPaymentRequest {
     private String CustomerEmail;
     private String CustomerName;
     private String Description;
-    @Value(value = "${waya.callback}")
+    @Value(value = "${waya.callback.baseurl}")
     private String ReturnUrl;
 }

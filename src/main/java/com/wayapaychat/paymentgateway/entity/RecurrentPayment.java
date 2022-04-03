@@ -66,7 +66,7 @@ public class RecurrentPayment extends GenericBaseEntity {
     @Column(name = "payment_link_type")
     private PaymentLinkType paymentLinkType;
 
-    @Column(name = "payment_link_id")
+    @Column(name = "customer_id")
     private String customerId;
 
     @Column(name = "merchant_id")
@@ -86,7 +86,6 @@ public class RecurrentPayment extends GenericBaseEntity {
     @Column(nullable = false, name = "interval_type")
     private Interval intervalType;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "interval")
     private Integer interval;
 

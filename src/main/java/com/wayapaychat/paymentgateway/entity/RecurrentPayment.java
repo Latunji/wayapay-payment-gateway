@@ -13,6 +13,8 @@ import com.wayapaychat.paymentgateway.entity.listener.FraudEventEntityListener;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -56,6 +58,10 @@ public class RecurrentPayment extends GenericBaseEntity {
     @Column(name = "plan_id")
     private String planId;
 
+
+    @Column(name = "recurrent_payment_id")
+    private String recurrentPaymentId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_link_type")
     private PaymentLinkType paymentLinkType;
@@ -94,4 +100,16 @@ public class RecurrentPayment extends GenericBaseEntity {
     @JsonIgnore
     @Column(name = "up_session_id")
     private String upSessionId;
+
+    @PrePersist
+    void prePersist() {
+        if (ObjectUtils.isEmpty(active))
+            this.active = false;
+        if (ObjectUtils.isEmpty(applyDateAfterFirstPayment))
+            this.applyDateAfterFirstPayment = false;
+        if (ObjectUtils.isEmpty(recurrentPaymentId))
+            recurrentPaymentId = "REC_PAY_" + RandomStringUtils.randomAlphanumeric(5)
+                    + System.currentTimeMillis()
+                    + RandomStringUtils.randomAlphanumeric(5);
+    }
 }

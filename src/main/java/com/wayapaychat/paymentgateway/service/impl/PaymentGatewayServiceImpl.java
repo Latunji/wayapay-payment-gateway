@@ -258,7 +258,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 cardRequest.setFrequency(paymentLinkResponsePojo.getTotalCount().toString());
                 cardRequest.setOrderExpirationPeriod(paymentLinkResponsePojo.getInterval());
             }
-            recurrentPaymentRepository.save(recurrentPayment);
+            recurrentPayment = recurrentPaymentRepository.save(recurrentPayment);
+            paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
+            paymentGateway.setIsFromRecurrentPayment(true);
         }
         return recurrentPayment;
     }
@@ -274,9 +276,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         if (card.isRecurrentPayment()) {
             if (ObjectUtils.isEmpty(card.getRecurrentPaymentDTO().getPaymentLinkId()))
                 throw new ApplicationException(400, "01", "Recurrent payment link Id is required");
-            recurrentPayment = preprocessRecurrentPayment(upCardPaymentRequest, card, paymentGateway);
-            paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
-            paymentGateway.setIsFromRecurrentPayment(true);
+            preprocessRecurrentPayment(upCardPaymentRequest, card, paymentGateway);
         }
         upCardPaymentRequest.setScheme(card.getScheme());
         upCardPaymentRequest.setExpiry(card.getExpiry());

@@ -209,7 +209,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return response;
     }
 
-    private RecurrentPayment preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
+    @Override
+    public RecurrentPayment preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
         //TODO: UP For pay attitude, These fields are not present to tell when the
         // The recurring payment should happen
         // frequency , OrderExpirationPeriod

@@ -4,6 +4,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.entity.RecurrentPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import org.springframework.http.ResponseEntity;
 
@@ -33,7 +35,9 @@ public interface PaymentGatewayService {
 	ResponseEntity<?> processWalletPayment(HttpServletRequest request, WayaWalletPayment payment, String token);
 	
 	PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException;
-	
+
+	RecurrentPayment preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway);
+
 	ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card);
 	
 	PaymentGatewayResponse processCardTransaction(HttpServletRequest request, HttpServletResponse response, WayaPaymentCallback pay);

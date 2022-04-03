@@ -44,7 +44,7 @@ public class PaymentGatewayController {
     @ApiOperation(value = "QR-Code Waya-Request Transaction", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})
     @PostMapping("/generate/qr-code")
     public ResponseEntity<?> generateQRCode(HttpServletRequest request, @Valid @RequestBody WayaQRRequest account) {
-        return paymentGatewayService.WalletPaymentQR(request, account);
+        return paymentGatewayService.walletPaymentQR(request, account);
     }
 
     @ApiOperation(value = "USSD Waya-Request Transaction", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})

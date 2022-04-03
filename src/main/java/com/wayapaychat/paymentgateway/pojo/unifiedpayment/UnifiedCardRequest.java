@@ -13,4 +13,10 @@ public class UnifiedCardRequest {
     private String expiry;
     private String mobile;
     private String pin;
+    private String endRecurr;
+    private String frequency;
+    private boolean isRecurring;
+    private Integer OrderExpirationPeriod;
+    private String orderType;
+    private Integer count;
 }

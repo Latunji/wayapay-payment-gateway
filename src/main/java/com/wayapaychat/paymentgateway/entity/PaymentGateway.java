@@ -86,6 +86,7 @@ public class PaymentGateway {
     private String customerPhone;
     @Enumerated(EnumType.STRING)
     private PaymentChannel channel;
+    private String customerId;
     private boolean tranflg;
     @Column(name = "customer_ip_address", columnDefinition = "VARCHAR(100)")
     private String customerIpAddress;
@@ -96,4 +97,8 @@ public class PaymentGateway {
     private String maskedPan;
     @Column(name = "payment_link")
     private String paymentLinkId;
+    @Column(name = "recurrent_payment_id")
+    private Long recurrentPaymentId;
+    @Column(name = "is_from_recurrent_payment")
+    private Boolean isFromRecurrentPayment;
 }

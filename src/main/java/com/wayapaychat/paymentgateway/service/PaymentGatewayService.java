@@ -20,7 +20,7 @@ import org.springframework.mobile.device.Device;
 import java.net.URISyntaxException;
 
 public interface PaymentGatewayService {
-	ResponseEntity<?> WalletPaymentQR(HttpServletRequest request, WayaQRRequest account);
+	ResponseEntity<?> walletPaymentQR(HttpServletRequest request, WayaQRRequest account);
 	
 	ResponseEntity<?> initiateWalletPayment(HttpServletRequest request, WayaWalletRequest account);
 	

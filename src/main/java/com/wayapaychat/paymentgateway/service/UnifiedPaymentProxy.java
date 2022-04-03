@@ -26,6 +26,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -127,12 +128,12 @@ public class UnifiedPaymentProxy {
         }
     }
 
-    public static String getDataEncrypt(String strToEncrypt, String secret) {
+    public static String getDataEncrypt(String dataToEncrypt, String secret) {
         try {
             setKey(secret);
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes(StandardCharsets.UTF_8)));
+            return Base64.getEncoder().encodeToString(cipher.doFinal(dataToEncrypt.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {
             System.out.println("Error while encrypting: " + e.getLocalizedMessage() + " : " + e.getMessage());
         }
@@ -207,25 +208,19 @@ public class UnifiedPaymentProxy {
     }
 
     public String encryptPaymentDataAccess(UnifiedCardRequest card) {
-        String jsonString = null;
         ObjectMapper mapper = new ObjectMapper();
         try {
-            String expMonyear = card.getExpiry();
-            log.info(expMonyear);
-            card.setExpiry("MONYR");
             card.setSecretKey(merchantSecret);
-            String json = mapper.writeValueAsString(card);
-            log.info("Result JSON String = " + json);
-            json = json.replace("MONYR", expMonyear);
-            log.info("JSON = " + json);
-            String key = sha1(merchantSecret).toLowerCase();
-            log.info(key);
-            jsonString = encrypt(json, key);
-            log.info("JSON Serial = " + jsonString);
+            @NotNull final String json = mapper.writeValueAsString(card);
+            log.info("-----||||JSON {}||||-----", json);
+            @NotNull final String key = sha1(merchantSecret).toLowerCase();
+            @NotNull final String ENCRYPTED_STRING = encrypt(json, key);
+            log.info("-----||||ENCRYPTED CARD REQUEST BODY {}||||----- " + ENCRYPTED_STRING);
+            return ENCRYPTED_STRING;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        return jsonString;
+        return null;
     }
 
     public WayaTransactionQuery transactionQuery(String tranId) {

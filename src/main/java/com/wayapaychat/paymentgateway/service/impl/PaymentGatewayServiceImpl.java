@@ -1,11 +1,11 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
+import com.wayapaychat.paymentgateway.entity.RecurrentPayment;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
@@ -22,6 +22,7 @@ import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
+import com.wayapaychat.paymentgateway.repository.RecurrentPaymentRepository;
 import com.wayapaychat.paymentgateway.service.GetUserDataService;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
@@ -48,6 +49,7 @@ import java.net.URLConnection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -74,6 +76,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private WayaPaymentDAO wayaPayment;
     @Autowired
     private PaymentWalletRepository paymentWalletRepo;
+    @Autowired
+    private RecurrentPaymentRepository recurrentPaymentRepository;
     @Value("${service.name}")
     private String username;
     @Value("${service.pass}")
@@ -92,9 +96,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private GetUserDataService getUserDataService;
 
     @Override
-    public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException {
+    public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
-        DevicePojo devicePojo = PaymentGateWayCommonUtils.getClientRequestDevice(device);
         try {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(username);
@@ -109,7 +112,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
             MerchantResponse merchant = null;
             try {
-                merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
+                merchant = merchantProxy.getMerchantInfo(token, transactionRequestPojo.getMerchantId());
             } catch (Exception ex) {
                 if (ex instanceof FeignException) {
                     String httpStatus = Integer.toString(((FeignException) ex).status());
@@ -128,21 +131,21 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.info("Merchant: " + merchant);
             MerchantData sMerchant = merchant.getData();
             if (sMerchant.getMerchantKeyMode().equals("TEST")) {
-                if (!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
+                if (!transactionRequestPojo.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
                     return new PaymentGatewayResponse(false, "Invalid merchant key", null);
                 }
-            } else if (!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
+            } else if (!transactionRequestPojo.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
                 return new PaymentGatewayResponse(false, "Invalid merchant key", null);
             }
             // To create customer records
             CustomerRequest customer = new CustomerRequest();
-            customer.setEmail(account.getCustomer().getEmail());
-            customer.setMerchantPublicKey(account.getWayaPublicKey());
-            customer.setPhoneNumber(account.getCustomer().getPhoneNumber());
-            customer.setFirstName(account.getCustomer().getName());
-            customer.setLastName(account.getCustomer().getName());
-            MerchantCustomer mCust = identManager.postCustomerCreate(customer, token);
-            log.info("CUSTOMER: " + mCust.toString());
+            customer.setEmail(transactionRequestPojo.getCustomer().getEmail());
+            customer.setMerchantPublicKey(transactionRequestPojo.getWayaPublicKey());
+            customer.setPhoneNumber(transactionRequestPojo.getCustomer().getPhoneNumber());
+            customer.setFirstName(transactionRequestPojo.getCustomer().getName());
+            customer.setLastName(transactionRequestPojo.getCustomer().getName());
+            MerchantCustomer merchantCustomer = identManager.postCustomerCreate(customer, token);
+            log.info("CUSTOMER: " + merchantCustomer.toString());
 
             // Fetch Profile
             ProfileResponse profile = null;
@@ -166,31 +169,32 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             String strLong = Long.toString(milliSeconds);
             strLong = strLong + rnd.nextInt(999999);
             payment.setRefNo(strLong);
-            payment.setMerchantId(account.getMerchantId());
+            payment.setMerchantId(transactionRequestPojo.getMerchantId());
             payment.setMerchantEmail(merchant.getData().getMerchantEmailAddress());
-            payment.setDescription(account.getDescription());
-            payment.setAmount(account.getAmount());
-            payment.setFee(account.getFee());
+            payment.setDescription(transactionRequestPojo.getDescription());
+            payment.setAmount(transactionRequestPojo.getAmount());
+            payment.setFee(transactionRequestPojo.getFee());
             payment.setCustomerIpAddress(PaymentGateWayCommonUtils.getClientRequestIP(request));
-            payment.setCurrencyCode(account.getCurrency());
+            payment.setCurrencyCode(transactionRequestPojo.getCurrency());
             payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
             payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
-            payment.setCustomerName(account.getCustomer().getName());
-            payment.setCustomerEmail(account.getCustomer().getEmail());
-            payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
+            payment.setCustomerName(transactionRequestPojo.getCustomer().getName());
+            payment.setCustomerEmail(transactionRequestPojo.getCustomer().getEmail());
+            payment.setCustomerPhone(transactionRequestPojo.getCustomer().getPhoneNumber());
             payment.setStatus(TransactionStatus.PENDING);
             payment.setChannel(PaymentChannel.WEBVIEW);
-            payment.setPreferenceNo(account.getPreferenceNo());
-            String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
-            payment.setSecretKey(vt);
+            payment.setCustomerId(merchantCustomer.getData().getCustomerId());
+            payment.setPaymentLinkId(transactionRequestPojo.getPaymentLinkId());
+            payment.setPreferenceNo(transactionRequestPojo.getPreferenceNo());
+            String encryptedMerchantSecretKey = UnifiedPaymentProxy.getDataEncrypt(transactionRequestPojo.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
+            payment.setSecretKey(encryptedMerchantSecretKey);
             CardResponse card = new CardResponse();
-            UUID uuid = UUID.randomUUID();
-            String tranId = uuid.toString();
+            String tranId = UUID.randomUUID() + "";
             if (!tranId.isBlank()) {
                 card.setTranId(strLong);
                 card.setName(profile.getData().getOtherDetails().getOrganisationName());
-                card.setCustomerId(mCust.getData().getCustomerId());
-                card.setCustomerAvoid(mCust.getData().isCustomerAvoided());
+                card.setCustomerId(merchantCustomer.getData().getCustomerId());
+                card.setCustomerAvoid(merchantCustomer.getData().isCustomerAvoided());
                 response = new PaymentGatewayResponse(true, "Success Transaction", card);
                 payment.setTranId(tranId);
                 payment.setTranDate(LocalDate.now());
@@ -205,16 +209,86 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return response;
     }
 
+    private RecurrentPayment preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
+        //TODO: UP For pay attitude, These fields are not present to tell when the
+        // The recurring payment should happen
+        // frequency , OrderExpirationPeriod
+        @NotNull final String ORDER_TYPE = "Purchase";
+        @NotNull final String DATE_SEPARATOR = "/";
+        @NotNull final String PAY_ATTITUDE = "PayAttitude";
+        PaymentLinkResponsePojo paymentLinkResponsePojo = identManager.getPaymentLinkDetailsById(card.getRecurrentPaymentDTO().getPaymentLinkId());
+        RecurrentPayment recurrentPayment = null;
+        cardRequest.setRecurring(true);
+        if (paymentLinkResponsePojo.getLinkCanExpire() && ObjectUtils.isNotEmpty(paymentLinkResponsePojo.getExpiryDate())) {
+            if (paymentLinkResponsePojo.getExpiryDate().isAfter(LocalDateTime.now())) {
+                throw new ApplicationException(403, "01", "Payment link has expired and can't not be used to process payment");
+            }
+        } else {
+            recurrentPayment = RecurrentPayment.
+                    builder()
+                    .active(false)
+                    .paymentLinkId(paymentLinkResponsePojo.getPaymentLinkId())
+                    .paymentLinkType(paymentLinkResponsePojo.getPaymentLinkType())
+                    .intervalType(paymentLinkResponsePojo.getIntervalType())
+                    .recurrentAmount(paymentLinkResponsePojo.getPayableAmount())
+                    .nextChargeDate(LocalDateTime.now().plusDays(paymentLinkResponsePojo.getInterval()))
+                    .customerId(paymentGateway.getCustomerId())
+                    .totalCount(paymentLinkResponsePojo.getTotalCount())
+                    .merchantId(paymentGateway.getMerchantId())
+                    .planId(paymentLinkResponsePojo.getPlanId())
+                    .startDateAfterFirstPayment(paymentLinkResponsePojo.getStartDateAfterFirstPayment())
+                    .build();
+            if (card.getScheme().equals(PAY_ATTITUDE)) {
+                cardRequest.setCount(0);
+                cardRequest.setOrderType(ORDER_TYPE);
+            }
+            if (ObjectUtils.isNotEmpty(paymentLinkResponsePojo.getStartDateAfterFirstPayment())) {
+                cardRequest.setEndRecurr(LocalDateTime.now()
+                        .plusDays(paymentLinkResponsePojo.getInterval())
+                        .format(DateTimeFormatter.ISO_DATE)
+                        .replace("-", DATE_SEPARATOR));
+                cardRequest.setFrequency(paymentLinkResponsePojo.getTotalCount().toString());
+                cardRequest.setOrderExpirationPeriod(paymentLinkResponsePojo.getInterval());
+            } else {
+                String endDateAfterFistPaymentIsMade = LocalDateTime.now()
+                        .plusDays((long) paymentLinkResponsePojo.getInterval() * paymentLinkResponsePojo.getTotalCount())
+                        .format(DateTimeFormatter.ISO_DATE)
+                        .replace("-", DATE_SEPARATOR);
+                cardRequest.setEndRecurr(endDateAfterFistPaymentIsMade);
+                cardRequest.setFrequency(paymentLinkResponsePojo.getTotalCount().toString());
+                cardRequest.setOrderExpirationPeriod(paymentLinkResponsePojo.getInterval());
+            }
+            recurrentPaymentRepository.save(recurrentPayment);
+        }
+        return recurrentPayment;
+    }
+
     @Override
     public ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) {
+        UnifiedCardRequest upCardPaymentRequest = new UnifiedCardRequest();
         Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTranId());
+        RecurrentPayment recurrentPayment;
         if (optionalPaymentGateway.isEmpty())
             return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
+        PaymentGateway paymentGateway = optionalPaymentGateway.get();
+        if (card.isRecurrentPayment()) {
+            if (ObjectUtils.isEmpty(card.getRecurrentPaymentDTO().getPaymentLinkId()))
+                throw new ApplicationException(400, "01", "Recurrent payment link Id is required");
+            recurrentPayment = preprocessRecurrentPayment(upCardPaymentRequest, card, paymentGateway);
+            paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
+            paymentGateway.setIsFromRecurrentPayment(true);
+        }
+        upCardPaymentRequest.setScheme(card.getScheme());
+        upCardPaymentRequest.setExpiry(card.getExpiry());
+        upCardPaymentRequest.setCardHolder(card.getCardholder());
+        upCardPaymentRequest.setMobile(card.getMobile());
+        upCardPaymentRequest.setPin(card.getPin());
+        upCardPaymentRequest.setCardNumber(card.getEncryptCardNo());
+
         Object response;
         String pan = "**** **** **** ****";
-        PaymentGateway paymentGateway = optionalPaymentGateway.get();
         String keygen = replacePublicKeyWithEmptyString(card.getWayaPublicKey());
-        UnifiedCardRequest cardReq = new UnifiedCardRequest();
+
         if (card.getScheme().equalsIgnoreCase("Amex") || card.getScheme().equalsIgnoreCase("Mastercard")
                 || card.getScheme().equalsIgnoreCase("Visa")) {
             String decryptedCard = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
@@ -224,20 +298,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             } else if (decryptedCard.length() < DEFAULT_CARD_LENGTH) {
                 response = new PaymentGatewayResponse(false, "Invalid Card", null);
-                new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             String[] mt = decryptedCard.split(Pattern.quote("|"));
-            String cardNo = mt[0];
-            pan = cardNo;
+            pan = mt[0];
             String cvv = mt[1];
-            cardReq.setScheme(card.getScheme());
-            cardReq.setCardNumber(cardNo);
-            cardReq.setExpiry(card.getExpiry());
-            cardReq.setCvv(cvv);
-            cardReq.setCardHolder(card.getCardholder());
-            cardReq.setMobile(card.getMobile());
-            cardReq.setPin(card.getPin());
-            log.info("Card Info: " + cardReq);
+            upCardPaymentRequest.setCardNumber(pan);
+            upCardPaymentRequest.setCvv(cvv);
+            log.info("Card Info: " + upCardPaymentRequest);
         } else if (card.getScheme().equalsIgnoreCase("Verve")) {
             String decryptedCardData = UnifiedPaymentProxy.getDataDecrypt(card.getEncryptCardNo(), keygen);
             log.info(decryptedCardData);
@@ -247,32 +315,24 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             } else if (decryptedCardData.length() < DEFAULT_CARD_LENGTH) {
                 response = new PaymentGatewayResponse(false, "Invalid Card", null);
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            } else if (ObjectUtils.isEmpty(card.getCardholder()) || ObjectUtils.isEmpty(card.getExpiry())
+                    || ObjectUtils.isEmpty(card.getPin()) || ObjectUtils.isEmpty(card.getMobile())) {
+                response = new PaymentGatewayResponse(false, "Verve requires all fields to be provided", null);
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             String[] mt = decryptedCardData.split(Pattern.quote("|"));
-            String cardNo = mt[0];
-            pan = cardNo;
+            pan = mt[0];
             String cvv = mt[1];
-            cardReq.setScheme(card.getScheme());
-            cardReq.setCardNumber(cardNo);
-            cardReq.setExpiry(card.getExpiry());
-            cardReq.setCvv(cvv);
-            cardReq.setCardHolder(card.getCardholder());
-            cardReq.setMobile(card.getMobile());
-            cardReq.setPin(card.getPin());
-            log.info("Card Info: " + cardReq);
+            upCardPaymentRequest.setCardNumber(pan);
+            upCardPaymentRequest.setCvv(cvv);
+            log.info("Card Info: " + upCardPaymentRequest);
         } else if (card.getScheme().equalsIgnoreCase("PayAttitude")) {
-            cardReq.setScheme(card.getScheme());
-            cardReq.setCardNumber(card.getEncryptCardNo());
-            cardReq.setExpiry(card.getExpiry());
-            cardReq.setCvv(card.getEncryptCardNo());
-            cardReq.setCardHolder(card.getCardholder());
-            cardReq.setMobile(card.getMobile());
-            cardReq.setPin(card.getPin());
-            log.info("Card Info: " + cardReq);
+            upCardPaymentRequest.setCvv(card.getEncryptCardNo());
+            log.info("Card Info: " + upCardPaymentRequest);
         }
         response = new PaymentGatewayResponse(false, "Encrypt Card fail", null);
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
-        String encryptData = uniPaymentProxy.encryptPaymentDataAccess(cardReq);
+        String encryptData = uniPaymentProxy.encryptPaymentDataAccess(upCardPaymentRequest);
         paymentGateway.setPaymentMetaData(card.getDeviceInformation());
         paymentGateway.setScheme(card.getScheme());
         paymentGateway.setMaskedPan(PaymentGateWayCommonUtils.maskedPan(pan));
@@ -285,8 +345,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public PaymentGatewayResponse processCardTransaction(HttpServletRequest request, HttpServletResponse response,
-                                                         WayaPaymentCallback pay) {
+    public PaymentGatewayResponse processCardTransaction(HttpServletRequest request, HttpServletResponse response, WayaPaymentCallback pay) {
         PaymentGatewayResponse mResponse = new PaymentGatewayResponse(false, "Callback fail", null);
         try {
             PaymentGateway mPay = paymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
@@ -321,7 +380,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             return new PaymentGatewayResponse(false, "Transaction Not Completed", null);
         }
         return mResponse;
-
     }
 
     @Override
@@ -514,8 +572,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> WalletPaymentQR(HttpServletRequest request, WayaQRRequest account) {
-        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocess Transaction Request"),
+    public ResponseEntity<?> walletPaymentQR(HttpServletRequest request, WayaQRRequest account) {
+        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocessed Transaction Request"),
                 HttpStatus.BAD_REQUEST);
         try {
             LoginRequest auth = new LoginRequest();

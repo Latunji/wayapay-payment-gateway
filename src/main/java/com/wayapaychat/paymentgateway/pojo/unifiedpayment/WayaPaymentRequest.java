@@ -45,6 +45,8 @@ public class WayaPaymentRequest {
 	private Customer customer;
 	
 	private String preferenceNo;
+	private String paymentLinkId;
+	private boolean recurrentPayment;
 
 	public WayaPaymentRequest(String merchantId, String description, BigDecimal amount,
 			BigDecimal fee, String currency, String wayaPublicKey, Customer customer, 

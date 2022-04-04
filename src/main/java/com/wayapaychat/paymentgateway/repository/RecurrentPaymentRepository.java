@@ -17,4 +17,7 @@ public interface RecurrentPaymentRepository extends JpaRepository<RecurrentPayme
 
     @Query(value = "SELECT * FROM m_recurrent_payment WHERE deleted = false AND payment_link_id = ?2", nativeQuery = true)
     Page<RecurrentPayment> findByPaymentLinkId(String paymentLinkId, Pageable pageable);
+
+    @Query(value = "SELECT * FROM m_recurrent_payment WHERE deleted = false AND current_transaction_ref_no = ?1", nativeQuery = true)
+    Optional<RecurrentPayment> getByTransactionRef(String currentTransactionRefNo);
 }

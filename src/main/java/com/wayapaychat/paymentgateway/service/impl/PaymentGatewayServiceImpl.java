@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
@@ -217,18 +218,35 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         @NotNull final String DATE_SEPARATOR = "/";
         @NotNull final String PAY_ATTITUDE = "PayAttitude";
         PaymentLinkResponse paymentLinkResponse = identManager.getPaymentLinkDetailsById(card.getPaymentLinkId()).getData();
-//        if (paymentLinkResponse.getPaymentLinkType() == PaymentLinkType.ONE_TIME_PAYMENT_LINK)
-//            throw new ApplicationException(403, "01", "One time payment link can't be used for recurrent payment");
+        if (paymentLinkResponse.getPaymentLinkType() == PaymentLinkType.ONE_TIME_PAYMENT_LINK)
+            throw new ApplicationException(403, "01", "One time payment link can't be used for recurrent payment");
+        else if (paymentLinkResponse.getIntervalType() == null) {
+            throw new ApplicationException(403, "01", "Payment link does not have interval type. " +
+                    "Kindly provide one with recurrent interval to charge customer");
+        }
+        Optional<RecurrentPayment> optionalRecurrentPayment = recurrentPaymentRepository.getByTransactionRef(paymentGateway.getRefNo());
         RecurrentPayment recurrentPayment = null;
-        cardRequest.setRecurring(true);
+        if (optionalRecurrentPayment.isPresent()) {
+            recurrentPayment = optionalRecurrentPayment.get();
+            if (recurrentPayment.getActive())
+                throw new ApplicationException(403, "01", "Recurrent payment still active. Payment can't be processed");
+            else {
+                recurrentPayment.setCurrentTransactionRefNo(paymentGateway.getRefNo());
+                recurrentPayment.setDateModified(LocalDateTime.now());
+                recurrentPayment.setModifiedBy(0L);
+                return recurrentPayment;
+            }
+        }
+
         if (paymentLinkResponse.getLinkCanExpire() && ObjectUtils.isNotEmpty(paymentLinkResponse.getExpiryDate())) {
             if (paymentLinkResponse.getExpiryDate().isAfter(LocalDateTime.now())) {
                 throw new ApplicationException(403, "01", "Payment link has expired and can't not be used to process payment");
-            } else if (paymentLinkResponse.getIntervalType() == null) {
+            }
+        } else {
+            if (paymentLinkResponse.getIntervalType() == null) {
                 throw new ApplicationException(403, "01", "Payment link does not have interval type. " +
                         "Kindly provide one with recurrent interval to charge customer");
             }
-        } else {
             recurrentPayment = RecurrentPayment.
                     builder()
                     .active(false)
@@ -241,6 +259,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     .customerId(paymentGateway.getCustomerId())
                     .totalCount(paymentLinkResponse.getTotalCount())
                     .merchantId(paymentGateway.getMerchantId())
+                    .currentTransactionRefNo(paymentGateway.getRefNo())
                     .planId(paymentLinkResponse.getPlanId())
                     .startDateAfterFirstPayment(paymentLinkResponse.getStartDateAfterFirstPayment())
                     .build();
@@ -265,6 +284,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 cardRequest.setOrderExpirationPeriod(paymentLinkResponse.getInterval());
             }
             recurrentPayment = recurrentPaymentRepository.save(recurrentPayment);
+            cardRequest.setRecurring(true);
             paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
             paymentGateway.setIsFromRecurrentPayment(true);
         }
@@ -284,6 +304,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 throw new ApplicationException(400, "01", "Recurrent payment link Id is required");
             preprocessRecurrentPayment(upCardPaymentRequest, card, paymentGateway);
         }
+        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL)
+            return new ResponseEntity<>(new ErrorResponse("Transaction already successful"), HttpStatus.FORBIDDEN);
         upCardPaymentRequest.setScheme(card.getScheme());
         upCardPaymentRequest.setExpiry(card.getExpiry());
         upCardPaymentRequest.setCardHolder(card.getCardholder());
@@ -341,7 +363,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         String encryptData = uniPaymentProxy.encryptPaymentDataAccess(upCardPaymentRequest);
         paymentGateway.setPaymentMetaData(card.getDeviceInformation());
         paymentGateway.setScheme(card.getScheme());
-        paymentGateway.setPaymentLinkId(card.getPaymentLinkId());
         paymentGateway.setMaskedPan(PaymentGateWayCommonUtils.maskedPan(pan));
         if (!encryptData.isBlank()) {
             response = new PaymentGatewayResponse(true, "Success Encrypt", encryptData);

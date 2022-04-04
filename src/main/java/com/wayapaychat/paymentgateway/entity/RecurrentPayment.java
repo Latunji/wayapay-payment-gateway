@@ -12,6 +12,7 @@ import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
 import com.wayapaychat.paymentgateway.entity.listener.FraudEventEntityListener;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -20,6 +21,7 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Data
 @EntityListeners(value = FraudEventEntityListener.class)
 @Builder
 @NoArgsConstructor
@@ -71,6 +73,9 @@ public class RecurrentPayment extends GenericBaseEntity {
 
     @Column(name = "merchant_id")
     private String merchantId;
+
+    @Column(name = "current_transaction_ref_no")
+    private String currentTransactionRefNo;
 
     @JsonIgnore
     @Column(name = "card_token_reference")

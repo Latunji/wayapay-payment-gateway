@@ -197,15 +197,12 @@ public class UnifiedPaymentProxy {
 
     public String getPaymentStatus(String tranId, String encryptData, boolean isFromRecurrentPayment) {
         String subPathURL = isFromRecurrentPayment ? "/Home/RecurringTransaction/" : "/Home/TransactionPost/";
-        String Response = null;
-        String homeDirectory = System.getProperty("os.name");
-        log.info("User Home= " + homeDirectory);
-        String baseUrl = merchantUrl + subPathURL + tranId;
-        UriComponentsBuilder builderURL = UriComponentsBuilder.fromHttpUrl(baseUrl).queryParam("mid", merchantId)
+        UriComponentsBuilder builderURL = UriComponentsBuilder
+                .fromHttpUrl(merchantUrl + subPathURL + tranId)
+                .queryParam("mid", merchantId)
                 .queryParam("payload", encryptData);
         log.info("PAYMENT URL= " + builderURL.toUriString());
-        Response = builderURL.toUriString();
-        return Response;
+        return builderURL.toUriString();
     }
 
     public String encryptPaymentDataAccess(UnifiedCardRequest card) {

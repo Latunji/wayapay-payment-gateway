@@ -226,10 +226,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
         Optional<RecurrentPayment> optionalRecurrentPayment = recurrentPaymentRepository.getByTransactionRef(paymentGateway.getRefNo());
         RecurrentPayment recurrentPayment = null;
+
         if (optionalRecurrentPayment.isPresent()) {
             recurrentPayment = optionalRecurrentPayment.get();
             if (recurrentPayment.getActive())
                 throw new ApplicationException(403, "01", "Recurrent payment still active. Payment can't be processed");
+            if (recurrentPayment.getNextChargeDate().isBefore(LocalDateTime.now()))
+                throw new ApplicationException(403, "01", "Recurrent payment has not yet expired.");
             else {
                 recurrentPayment.setCurrentTransactionRefNo(paymentGateway.getRefNo());
                 recurrentPayment.setDateModified(LocalDateTime.now());

@@ -184,7 +184,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setStatus(TransactionStatus.PENDING);
             payment.setChannel(PaymentChannel.WEBVIEW);
             payment.setCustomerId(merchantCustomer.getData().getCustomerId());
-            payment.setPaymentLinkId(transactionRequestPojo.getPaymentLinkId());
             payment.setPreferenceNo(transactionRequestPojo.getPreferenceNo());
             String encryptedMerchantSecretKey = UnifiedPaymentProxy.getDataEncrypt(transactionRequestPojo.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(encryptedMerchantSecretKey);
@@ -363,7 +362,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
                 mPay.setTranId(tranId);
                 paymentGatewayRepo.save(mPay);
-                String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt());
+                String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt(),mPay.getIsFromRecurrentPayment());
                 if (!callReq.isBlank()) {
                     URLConnection urlConnection_ = new URL(callReq).openConnection();
                     urlConnection_.connect();
@@ -759,9 +758,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo) {
         //TODO: Query the transaction status again before updating the transaction
         PaymentGateway payment = paymentGatewayRepo.findByRefMerchant(refNo, account.getMerchantId()).orElse(null);
-        if (payment == null) {
+        if (payment == null)
             return new ResponseEntity<>(new ErrorResponse("NO PAYMENT REQUEST INITIATED"), HttpStatus.BAD_REQUEST);
-        }
         TransactionStatus status = TransactionStatus.valueOf(account.getStatus());
         payment.setStatus(status);
         payment.setTranId(account.getTranId());
@@ -799,7 +797,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo) {
-        WalletTransactionStatus response = new WalletTransactionStatus();
+        WalletTransactionStatus response;
         PaymentGateway mPay = null;
         try {
             mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);

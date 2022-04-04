@@ -23,5 +23,5 @@ public interface IdentityManager {
 	MerchantResponse getMerchantAccount();
 
     @GetMapping("/webpos/payment-link/no-auth/fetch/{paymentLinkId}")
-    PaymentLinkResponsePojo getPaymentLinkDetailsById(@NotNull final String paymentLinkId);
+    PaymentLinkResponsePojo getPaymentLinkDetailsById(@PathVariable("paymentLinkId") String paymentLinkId);
 }

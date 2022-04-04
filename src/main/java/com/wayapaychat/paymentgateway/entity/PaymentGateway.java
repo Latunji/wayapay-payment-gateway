@@ -13,6 +13,7 @@ import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListen
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import lombok.*;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -101,4 +102,10 @@ public class PaymentGateway {
     private Long recurrentPaymentId;
     @Column(name = "is_from_recurrent_payment")
     private Boolean isFromRecurrentPayment;
+
+    @PrePersist
+    void prePersist(){
+        if (ObjectUtils.isEmpty(isFromRecurrentPayment))
+            isFromRecurrentPayment = false;
+    }
 }

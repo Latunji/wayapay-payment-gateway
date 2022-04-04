@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.wayapaychat.paymentgateway.common.enums.Interval;
 import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
+import com.wayapaychat.paymentgateway.pojo.MerchantData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,28 +18,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentLinkResponsePojo {
-    private String merchantId;
-    private String paymentLinkId;
-    private String successMessage;
-    private PaymentLinkType paymentLinkType;
-    private String paymentLinkName;
-    private String description;
-    private BigDecimal payableAmount;
-    private String currency;
-    private String amountText;
-    private String customerPaymentLink;
-    private String otherDetailsJSON;
-    private String status;
-    private String merchantKeyMode;
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    private LocalDateTime expiryDate;
-    private Integer interval;
-    private Interval intervalType;
-    private Integer totalCount;
-    private String planId;
-    private Boolean linkCanExpire;
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    private LocalDateTime startDateAfterFirstPayment;
+    private String code;
+    private String date;
+    private String message;
+    private PaymentLinkResponse data;
 }

@@ -216,47 +216,53 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         @NotNull final String ORDER_TYPE = "Purchase";
         @NotNull final String DATE_SEPARATOR = "/";
         @NotNull final String PAY_ATTITUDE = "PayAttitude";
-        PaymentLinkResponsePojo paymentLinkResponsePojo = identManager.getPaymentLinkDetailsById(card.getRecurrentPaymentDTO().getPaymentLinkId());
+        PaymentLinkResponse paymentLinkResponse = identManager.getPaymentLinkDetailsById(card.getPaymentLinkId()).getData();
+//        if (paymentLinkResponse.getPaymentLinkType() == PaymentLinkType.ONE_TIME_PAYMENT_LINK)
+//            throw new ApplicationException(403, "01", "One time payment link can't be used for recurrent payment");
         RecurrentPayment recurrentPayment = null;
         cardRequest.setRecurring(true);
-        if (paymentLinkResponsePojo.getLinkCanExpire() && ObjectUtils.isNotEmpty(paymentLinkResponsePojo.getExpiryDate())) {
-            if (paymentLinkResponsePojo.getExpiryDate().isAfter(LocalDateTime.now())) {
+        if (paymentLinkResponse.getLinkCanExpire() && ObjectUtils.isNotEmpty(paymentLinkResponse.getExpiryDate())) {
+            if (paymentLinkResponse.getExpiryDate().isAfter(LocalDateTime.now())) {
                 throw new ApplicationException(403, "01", "Payment link has expired and can't not be used to process payment");
+            } else if (paymentLinkResponse.getIntervalType() == null) {
+                throw new ApplicationException(403, "01", "Payment link does not have interval type. " +
+                        "Kgindly provide one with recurrent interval to charge customer");
             }
         } else {
             recurrentPayment = RecurrentPayment.
                     builder()
                     .active(false)
-                    .paymentLinkId(paymentLinkResponsePojo.getPaymentLinkId())
-                    .paymentLinkType(paymentLinkResponsePojo.getPaymentLinkType())
-                    .intervalType(paymentLinkResponsePojo.getIntervalType())
-                    .recurrentAmount(paymentLinkResponsePojo.getPayableAmount())
-                    .nextChargeDate(LocalDateTime.now().plusDays(paymentLinkResponsePojo.getInterval()))
+                    .paymentLinkId(paymentLinkResponse.getPaymentLinkId())
+                    .paymentLinkType(paymentLinkResponse.getPaymentLinkType())
+                    .intervalType(paymentLinkResponse.getIntervalType())
+                    .interval(paymentLinkResponse.getInterval())
+                    .recurrentAmount(paymentLinkResponse.getPayableAmount())
+                    .nextChargeDate(LocalDateTime.now().plusDays(paymentLinkResponse.getInterval()))
                     .customerId(paymentGateway.getCustomerId())
-                    .totalCount(paymentLinkResponsePojo.getTotalCount())
+                    .totalCount(paymentLinkResponse.getTotalCount())
                     .merchantId(paymentGateway.getMerchantId())
-                    .planId(paymentLinkResponsePojo.getPlanId())
-                    .startDateAfterFirstPayment(paymentLinkResponsePojo.getStartDateAfterFirstPayment())
+                    .planId(paymentLinkResponse.getPlanId())
+                    .startDateAfterFirstPayment(paymentLinkResponse.getStartDateAfterFirstPayment())
                     .build();
             if (card.getScheme().equals(PAY_ATTITUDE)) {
                 cardRequest.setCount(0);
                 cardRequest.setOrderType(ORDER_TYPE);
             }
-            if (ObjectUtils.isNotEmpty(paymentLinkResponsePojo.getStartDateAfterFirstPayment())) {
+            if (ObjectUtils.isNotEmpty(paymentLinkResponse.getStartDateAfterFirstPayment())) {
                 cardRequest.setEndRecurr(LocalDateTime.now()
-                        .plusDays(paymentLinkResponsePojo.getInterval())
+                        .plusDays(paymentLinkResponse.getInterval())
                         .format(DateTimeFormatter.ISO_DATE)
                         .replace("-", DATE_SEPARATOR));
-                cardRequest.setFrequency(paymentLinkResponsePojo.getTotalCount().toString());
-                cardRequest.setOrderExpirationPeriod(paymentLinkResponsePojo.getInterval());
+                cardRequest.setFrequency(paymentLinkResponse.getTotalCount().toString());
+                cardRequest.setOrderExpirationPeriod(paymentLinkResponse.getInterval());
             } else {
                 String endDateAfterFistPaymentIsMade = LocalDateTime.now()
-                        .plusDays((long) paymentLinkResponsePojo.getInterval() * paymentLinkResponsePojo.getTotalCount())
+                        .plusDays((long) paymentLinkResponse.getInterval() * paymentLinkResponse.getTotalCount())
                         .format(DateTimeFormatter.ISO_DATE)
                         .replace("-", DATE_SEPARATOR);
                 cardRequest.setEndRecurr(endDateAfterFistPaymentIsMade);
-                cardRequest.setFrequency(paymentLinkResponsePojo.getTotalCount().toString());
-                cardRequest.setOrderExpirationPeriod(paymentLinkResponsePojo.getInterval());
+                cardRequest.setFrequency(paymentLinkResponse.getTotalCount().toString());
+                cardRequest.setOrderExpirationPeriod(paymentLinkResponse.getInterval());
             }
             recurrentPayment = recurrentPaymentRepository.save(recurrentPayment);
             paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
@@ -274,7 +280,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
         PaymentGateway paymentGateway = optionalPaymentGateway.get();
         if (card.isRecurrentPayment()) {
-            if (ObjectUtils.isEmpty(card.getRecurrentPaymentDTO().getPaymentLinkId()))
+            if (ObjectUtils.isEmpty(card.getPaymentLinkId()))
                 throw new ApplicationException(400, "01", "Recurrent payment link Id is required");
             preprocessRecurrentPayment(upCardPaymentRequest, card, paymentGateway);
         }
@@ -335,6 +341,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         String encryptData = uniPaymentProxy.encryptPaymentDataAccess(upCardPaymentRequest);
         paymentGateway.setPaymentMetaData(card.getDeviceInformation());
         paymentGateway.setScheme(card.getScheme());
+        paymentGateway.setPaymentLinkId(card.getPaymentLinkId());
         paymentGateway.setMaskedPan(PaymentGateWayCommonUtils.maskedPan(pan));
         if (!encryptData.isBlank()) {
             response = new PaymentGatewayResponse(true, "Success Encrypt", encryptData);
@@ -362,7 +369,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
                 mPay.setTranId(tranId);
                 paymentGatewayRepo.save(mPay);
-                String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt(),mPay);
+                String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt(), mPay);
                 if (!callReq.isBlank()) {
                     URLConnection urlConnection_ = new URL(callReq).openConnection();
                     urlConnection_.connect();
@@ -376,7 +383,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error("----|||| ERROR OCCURRED {0} ||||----", ex);
             return new PaymentGatewayResponse(false, "Transaction Not Completed", null);
         }
         return mResponse;

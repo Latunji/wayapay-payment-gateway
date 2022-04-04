@@ -20,5 +20,5 @@ public class WayaCardPayment {
     private String deviceInformation = "{}";
     private String tranId;
     private boolean recurrentPayment;
-    private RecurrentPaymentPojo recurrentPaymentDTO;
+    private String paymentLinkId;
 }

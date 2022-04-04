@@ -286,6 +286,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         recurrentPayment = recurrentPaymentRepository.save(recurrentPayment);
         cardRequest.setRecurring(true);
         paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
+        paymentGateway.setPaymentLinkId(recurrentPayment.getPaymentLinkId());
         paymentGateway.setIsFromRecurrentPayment(true);
         return recurrentPayment;
     }
@@ -895,7 +896,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests) {
         PaymentGateway payment = paymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
         if (payment == null)
-            return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
+            return ResponseEntity.badRequest().body("Ooops! TRANSACTION DOES NOT EXIST... FAILED TO COMPLETE TRANSACTION.");
         preprocessTransactionStatus(payment);
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
     }

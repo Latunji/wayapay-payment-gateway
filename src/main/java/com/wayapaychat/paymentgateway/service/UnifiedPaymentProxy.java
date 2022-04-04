@@ -34,6 +34,8 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -196,9 +198,13 @@ public class UnifiedPaymentProxy {
     }
 
     public String getPaymentStatus(String tranId, String encryptData, PaymentGateway paymentGateway) {
-        String subPathURL = paymentGateway.getIsFromRecurrentPayment() ?
-                String.format("/Home/RecurringTransaction/%s", merchantId) : "/Home/TransactionPost/";
+//        String subPathURL = paymentGateway.getIsFromRecurrentPayment() ?
+//                "/Home/RecurringTransaction/" : "/Home/TransactionPost/";
+        String subPathURL = "/Home/TransactionPost/";
         UriComponentsBuilder builderURL = UriComponentsBuilder
+//                .fromHttpUrl(paymentGateway.getIsFromRecurrentPayment() ?
+//                        merchantUrl + subPathURL + merchantId :
+//                        merchantUrl + subPathURL + tranId)
                 .fromHttpUrl(merchantUrl + subPathURL + tranId)
                 .queryParam("mid", merchantId)
                 .queryParam("payload", encryptData);
@@ -207,10 +213,23 @@ public class UnifiedPaymentProxy {
     }
 
     public String encryptPaymentDataAccess(UnifiedCardRequest card) {
+        Map<String, Object> dataToEncrypt = new HashMap<>();
+        dataToEncrypt.put("secretKey",merchantSecret);
+        dataToEncrypt.put("scheme",card.getScheme());
+        dataToEncrypt.put("cardHolder",card.getCardHolder());
+        dataToEncrypt.put("cardNumber",card.getCardNumber());
+        dataToEncrypt.put("cvv",card.getCvv());
+        dataToEncrypt.put("expiry",card.getExpiry());
+        dataToEncrypt.put("pin",card.getPin());
+        if(card.isRecurring()){
+            dataToEncrypt.put("endRecurr",card.getEndRecurr());
+            dataToEncrypt.put("frequency",card.getFrequency());
+            dataToEncrypt.put("OrderExpirationPeriod",card.getOrderExpirationPeriod());
+        }
         ObjectMapper mapper = new ObjectMapper();
         try {
-            card.setSecretKey(merchantSecret);
-            @NotNull final String json = mapper.writeValueAsString(card);
+//            card.setSecretKey(merchantSecret);
+            @NotNull final String json = mapper.writeValueAsString(dataToEncrypt);
             log.info("-----||||JSON {}||||-----", json);
             @NotNull final String key = sha1(merchantSecret).toLowerCase();
             @NotNull final String ENCRYPTED_STRING = encrypt(json, key);

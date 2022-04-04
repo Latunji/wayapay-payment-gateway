@@ -226,7 +226,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 throw new ApplicationException(403, "01", "Payment link has expired and can't not be used to process payment");
             } else if (paymentLinkResponse.getIntervalType() == null) {
                 throw new ApplicationException(403, "01", "Payment link does not have interval type. " +
-                        "Kgindly provide one with recurrent interval to charge customer");
+                        "Kindly provide one with recurrent interval to charge customer");
             }
         } else {
             recurrentPayment = RecurrentPayment.

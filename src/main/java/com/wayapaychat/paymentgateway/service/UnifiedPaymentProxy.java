@@ -195,8 +195,9 @@ public class UnifiedPaymentProxy {
         return null;
     }
 
-    public String getPaymentStatus(String tranId, String encryptData, boolean isFromRecurrentPayment) {
-        String subPathURL = isFromRecurrentPayment ? "/Home/RecurringTransaction/" : "/Home/TransactionPost/";
+    public String getPaymentStatus(String tranId, String encryptData, PaymentGateway paymentGateway) {
+        String subPathURL = paymentGateway.getIsFromRecurrentPayment() ?
+                String.format("/Home/RecurringTransaction/%s", merchantId) : "/Home/TransactionPost/";
         UriComponentsBuilder builderURL = UriComponentsBuilder
                 .fromHttpUrl(merchantUrl + subPathURL + tranId)
                 .queryParam("mid", merchantId)

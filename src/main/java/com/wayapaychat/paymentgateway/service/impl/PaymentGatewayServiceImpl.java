@@ -362,7 +362,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
                 mPay.setTranId(tranId);
                 paymentGatewayRepo.save(mPay);
-                String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt(),mPay.getIsFromRecurrentPayment());
+                String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt(),mPay);
                 if (!callReq.isBlank()) {
                     URLConnection urlConnection_ = new URL(callReq).openConnection();
                     urlConnection_.connect();

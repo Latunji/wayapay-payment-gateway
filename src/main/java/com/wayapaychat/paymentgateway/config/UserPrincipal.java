@@ -1,6 +1,6 @@
 package com.wayapaychat.paymentgateway.config;
 
-import com.wayapaychat.paymentgateway.pojo.MyUserData;
+import com.wayapaychat.paymentgateway.pojo.AuthenticatedUser;
 import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,13 +12,13 @@ import java.util.stream.Collectors;
 @ToString
 public class UserPrincipal implements UserDetails {
 
-    private final MyUserData user;
+    private final AuthenticatedUser user;
 
-    public UserPrincipal(MyUserData user) {
+    public UserPrincipal(AuthenticatedUser user) {
         this.user = user;
     }
 
-    public static UserPrincipal create(MyUserData user) {
+    public static UserPrincipal create(AuthenticatedUser user) {
         return new UserPrincipal(user);
     }
 
@@ -66,7 +66,7 @@ public class UserPrincipal implements UserDetails {
         return grantedAuthorities;
     }
 
-    public MyUserData getUser() {
+    public AuthenticatedUser getUser() {
         return this.user;
     }
 

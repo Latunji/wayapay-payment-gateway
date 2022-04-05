@@ -45,6 +45,7 @@ public class UnifiedPaymentProxy {
     private static final String Mode = "AES/CBC/PKCS5Padding";
     private static SecretKeySpec secretKey;
     private static byte[] key;
+    private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
     WalletProxy wallProxy;
     @Autowired
@@ -61,7 +62,6 @@ public class UnifiedPaymentProxy {
     private String merchantUrl;
     @Value("${waya.callback.baseurl}")
     private String callbackUrl;
-    private final ModelMapper modelMapper = new ModelMapper();
 
     @SuppressWarnings("unused")
     private static byte[] fromHex(String inputString) {
@@ -83,9 +83,8 @@ public class UnifiedPaymentProxy {
         String tmp = "";
         for (byte value : b) {
             tmp = (Integer.toHexString(value & 0XFF));
-            if (tmp.length() == 1) {
+            if (tmp.length() == 1)
                 sb.append("0");
-            }
             sb.append(tmp);
         }
         return sb.toString().toUpperCase();
@@ -103,12 +102,12 @@ public class UnifiedPaymentProxy {
         return sha1;
     }
 
-    public static String encrypt(String content, String password) {
+    public static String encrypt(String content, String merchantSecretSha1) {
         try {
-            log.info("ENCRYPT PASSWORD: " + password);
+            log.info("ENCRYPT PASSWORD: " + merchantSecretSha1);
             log.info("ENCRYPT CONTENT: " + content);
             byte[] data = content.getBytes();
-            byte[] keybytes = password.substring(0, 16).getBytes();
+            byte[] keybytes = merchantSecretSha1.substring(0, 16).getBytes();
             Cipher cipher = Cipher.getInstance(Mode);
             SecretKeySpec spec = new SecretKeySpec(keybytes, "AES");
             cipher.init(Cipher.ENCRYPT_MODE, spec, new IvParameterSpec(keybytes));
@@ -199,20 +198,24 @@ public class UnifiedPaymentProxy {
         return null;
     }
 
-    public String getPaymentStatus(String tranId, String encryptData, boolean recurrent) {
+    public String buildUnifiedPaymentURLWithPayload(String tranId, String encryptData, boolean recurrent) {
         String subPathURL = recurrent ?
                 "/Home/RecurringTransaction/" : "/Home/TransactionPost/";
-        UriComponentsBuilder builderURL = UriComponentsBuilder
-                .fromHttpUrl(recurrent ?
-                        merchantUrl + subPathURL + merchantId :
-                        merchantUrl + subPathURL + tranId)
-                .queryParam("mid", merchantId)
-                .queryParam("payload", encryptData);
+        UriComponentsBuilder builderURL = null;
+        if (recurrent) {
+            builderURL = UriComponentsBuilder
+                    .fromHttpUrl(merchantUrl + subPathURL + merchantId);
+        } else {
+            builderURL = UriComponentsBuilder
+                    .fromHttpUrl(merchantUrl + subPathURL + tranId)
+                    .queryParam("mid", merchantId);
+        }
+        builderURL.queryParam("payload", encryptData);
         log.info("PAYMENT URL= " + builderURL.toUriString());
         return builderURL.toUriString();
     }
 
-    public String encryptPaymentDataAccess(UnifiedCardRequest card) {
+    public String encryptPaymentDataAccess(UnifiedCardRequest card) throws JsonProcessingException {
         Object objectToEncrypt = null;
         Map<String, Object> dataToEncrypt = new HashMap<>();
         dataToEncrypt.put("secretKey", merchantSecret);
@@ -236,23 +239,24 @@ public class UnifiedPaymentProxy {
             unifiedRecurrentCardRequest.setEndRecurr(card.getEndRecurr());
             unifiedRecurrentCardRequest.setFrequency(card.getFrequency());
             unifiedRecurrentCardRequest.setIsRecurring(card.isRecurring());
-            unifiedRecurrentCardRequest.setOrderExpirationPeriod(card.getOrderExpirationPeriod());
+            unifiedRecurrentCardRequest.setOrderExpirationPeriod(0);
             objectToEncrypt = unifiedRecurrentCardRequest;
         } else {
             objectToEncrypt = dataToEncrypt;
         }
+        return encryptUnifiedPaymentPayload(objectToEncrypt);
+    }
+
+
+    private String encryptUnifiedPaymentPayload(Object objectToEncrypt) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        try {
-            @NotNull final String json = mapper.writeValueAsString(objectToEncrypt);
-            log.info("-----||||JSON {}||||-----", json);
-            @NotNull final String key = sha1(merchantSecret).toLowerCase();
-            @NotNull final String ENCRYPTED_STRING = encrypt(json, key);
-            log.info("-----||||ENCRYPTED CARD REQUEST BODY {}||||----- " + ENCRYPTED_STRING);
-            return ENCRYPTED_STRING;
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return null;
+        @NotNull final String json = mapper.writeValueAsString(objectToEncrypt);
+        log.info("-----||||JSON {}||||-----", json);
+        @NotNull final String MERCHANT_SECRET_SHA1 = sha1(merchantSecret).toLowerCase();
+        @NotNull final String ENCRYPTED_STRING = encrypt(json, MERCHANT_SECRET_SHA1);
+        System.out.println(MERCHANT_SECRET_SHA1);
+        log.info("-----||||ENCRYPTED CARD REQUEST BODY {}||||----- " + ENCRYPTED_STRING);
+        return ENCRYPTED_STRING;
     }
 
     public WayaTransactionQuery transactionQuery(String tranId) {
@@ -431,5 +435,25 @@ public class UnifiedPaymentProxy {
             log.error("WALLET TRANSACTION: " + ex.getLocalizedMessage());
         }
         return wallet;
+    }
+
+
+    public void recurrentTransaction(PaymentGateway paymentGateway) throws JsonProcessingException {
+        UnifiedPaymentRecurrentPaymentRequest unifiedPaymentRecurrentPaymentRequest = new UnifiedPaymentRecurrentPaymentRequest();
+        unifiedPaymentRecurrentPaymentRequest.setAmount(paymentGateway.getAmount());
+        unifiedPaymentRecurrentPaymentRequest.setSecretKey(merchantSecret);
+        unifiedPaymentRecurrentPaymentRequest.setScheme(paymentGateway.getScheme().toLowerCase());
+        unifiedPaymentRecurrentPaymentRequest.setFee(0);
+        unifiedPaymentRecurrentPaymentRequest.setSessionId(paymentGateway.getSessionId());
+        unifiedPaymentRecurrentPaymentRequest.setCurrency(paymentGateway.getCurrencyCode());
+        unifiedPaymentRecurrentPaymentRequest.setCustomerEmail(paymentGateway.getCustomerEmail());
+        unifiedPaymentRecurrentPaymentRequest.setCustomerName(paymentGateway.getCustomerName());
+        unifiedPaymentRecurrentPaymentRequest.setDescription(paymentGateway.getDescription());
+        unifiedPaymentRecurrentPaymentRequest.setReturnUrl(callbackUrl);
+        @NotNull final String ENCRYPTED_DATA = encryptUnifiedPaymentPayload(unifiedPaymentRecurrentPaymentRequest);
+        @NotNull final String PAYLOAD_WITH_URL = buildUnifiedPaymentURLWithPayload(
+                paymentGateway.getTranId(), ENCRYPTED_DATA,
+                paymentGateway.getIsFromRecurrentPayment());
+        log.info("----|||| RECURRENT_PAYMENT_URL ||||----\n{}", PAYLOAD_WITH_URL);
     }
 }

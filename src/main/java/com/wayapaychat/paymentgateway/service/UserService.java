@@ -5,11 +5,11 @@ import com.wayapaychat.paymentgateway.pojo.*;
 
 public interface UserService {
 
-    ApiResponseBody<MyUserData> getUserDataByEmail(String email);
+    ApiResponseBody<AuthenticatedUser> getUserDataByEmail(String email);
 
-    ApiResponseBody<MyUserData> getUserDataById(Long id);
+    ApiResponseBody<AuthenticatedUser> getUserDataById(Long id);
 
-    ApiResponseBody<MyUserData> getUserDataByPhoneNumber(String phonenumber);
+    ApiResponseBody<AuthenticatedUser> getUserDataByPhoneNumber(String phonenumber);
 
     void saveLog(LogRequest logPojo);
 }

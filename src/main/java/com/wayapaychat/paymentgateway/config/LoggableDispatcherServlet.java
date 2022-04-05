@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wayapaychat.paymentgateway.SpringApplicationContext;
+import com.wayapaychat.paymentgateway.pojo.AuthenticatedUser;
 import com.wayapaychat.paymentgateway.pojo.ErrorResponse;
 import com.wayapaychat.paymentgateway.pojo.LogMessage;
 import com.wayapaychat.paymentgateway.pojo.LogRequest;
-import com.wayapaychat.paymentgateway.pojo.MyUserData;
 import com.wayapaychat.paymentgateway.service.UserService;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -102,7 +102,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         log.info(json);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
-            MyUserData user = ((UserPrincipal) authentication.getPrincipal()).getUser();
+            AuthenticatedUser user = ((UserPrincipal) authentication.getPrincipal()).getUser();
             if (user != null) {
                 CompletableFuture.runAsync(() -> logRequestAndResponse(logMessage, user.getId()));
             }

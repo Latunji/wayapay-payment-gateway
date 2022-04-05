@@ -27,11 +27,11 @@ public interface AuthApiClient {
 
 
     @GetMapping("/user/email/{email}")
-    ApiResponseBody<MyUserData> getUserByEmail(@PathVariable("email") String email);
+    ApiResponseBody<AuthenticatedUser> getUserByEmail(@PathVariable("email") String email);
 
     @GetMapping("/user/phone/{phoneNumber}")
-    ApiResponseBody<MyUserData> getUserByPhoneNumber(@PathVariable("phoneNumber") String phoneNumber);
+    ApiResponseBody<AuthenticatedUser> getUserByPhoneNumber(@PathVariable("phoneNumber") String phoneNumber);
 
     @GetMapping("/user/{id}")
-    ApiResponseBody<MyUserData> getUserById(@PathVariable("id") Long id);
+    ApiResponseBody<AuthenticatedUser> getUserById(@PathVariable("id") Long id);
 }

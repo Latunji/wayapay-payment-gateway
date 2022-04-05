@@ -1,6 +1,5 @@
 package com.wayapaychat.paymentgateway.pojo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wayapaychat.paymentgateway.enumm.Permit;
 import com.wayapaychat.paymentgateway.enumm.Role;
 import lombok.*;
@@ -12,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class MyUserData {
+public class AuthenticatedUser {
     private Long id;
     private String email;
     private String phoneNumber;
@@ -28,7 +27,7 @@ public class MyUserData {
     private List<Role> roles;
     private List<Permit> permits;
     private String transactionLimit;
-    public MyUserData(String email) {
+    public AuthenticatedUser(String email) {
         this.email = email;
     }
 }

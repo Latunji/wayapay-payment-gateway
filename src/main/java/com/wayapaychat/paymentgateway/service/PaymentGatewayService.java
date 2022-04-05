@@ -4,9 +4,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.wayapaychat.paymentgateway.common.utils.QueryCustomerTransaction;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.RecurrentPayment;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
@@ -38,7 +41,7 @@ public interface PaymentGatewayService {
 
 	RecurrentPayment preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway);
 
-	ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card);
+	ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) throws JsonProcessingException;
 	
 	PaymentGatewayResponse processCardTransaction(HttpServletRequest request, HttpServletResponse response, WayaPaymentCallback pay);
 	
@@ -67,4 +70,8 @@ public interface PaymentGatewayService {
 	ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest wayaCallbackRequest) throws URISyntaxException;
 
 	ResponseEntity<?> updatePaymentStatus(String refNo);
+
+	ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransaction queryCustomerTransaction, Pageable pageable);
+
+	Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransaction queryPojo, Pageable pageable);
 }

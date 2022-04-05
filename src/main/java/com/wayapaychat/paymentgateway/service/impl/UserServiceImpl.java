@@ -17,7 +17,7 @@ public class UserServiceImpl implements UserService {
 	private static AuthApiClient authApiClient;
 	private final LoggingProxy loggingProxy;
 	
-	public ApiResponseBody<MyUserData> getUserDataByEmail(String email) {
+	public ApiResponseBody<AuthenticatedUser> getUserDataByEmail(String email) {
 		try{
 			return authApiClient.getUserByEmail(email);
 		}catch(Exception e){
@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 	
-	public ApiResponseBody<MyUserData> getUserDataById(Long id) {
+	public ApiResponseBody<AuthenticatedUser> getUserDataById(Long id) {
 		try{
 			return authApiClient.getUserById(id);
 		}catch(Exception e){
@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 	
-	public ApiResponseBody<MyUserData> getUserDataByPhoneNumber(String phonenumber) {
+	public ApiResponseBody<AuthenticatedUser> getUserDataByPhoneNumber(String phonenumber) {
 		try{
 			return authApiClient.getUserByPhoneNumber(phonenumber);
 		}catch(Exception e){

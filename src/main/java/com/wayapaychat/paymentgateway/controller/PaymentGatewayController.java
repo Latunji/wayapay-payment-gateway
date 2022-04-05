@@ -1,6 +1,9 @@
 package com.wayapaychat.paymentgateway.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.wayapaychat.paymentgateway.common.utils.PageableResponseUtil;
+import com.wayapaychat.paymentgateway.common.utils.QueryCustomerTransaction;
+import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
@@ -8,6 +11,9 @@ import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
+import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @CrossOrigin
@@ -36,6 +43,8 @@ import java.util.concurrent.CompletableFuture;
 public class PaymentGatewayController {
     @Autowired
     PaymentGatewayService paymentGatewayService;
+    @Autowired
+    UnifiedPaymentProxy unifiedPayment;
     @Autowired
     PaymentGatewayRepository paymentGatewayRepo;
     @Value("${service.thirdparty.unified-payment.callback.accepted-origins}")
@@ -101,7 +110,7 @@ public class PaymentGatewayController {
 
     @ApiOperation(value = "Waya-Payment Card Processing", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})
     @PostMapping("/transaction/payment")
-    public ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, @Valid @RequestBody WayaCardPayment card) {
+    public ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, @Valid @RequestBody WayaCardPayment card) throws JsonProcessingException {
         ResponseEntity<?> resp = paymentGatewayService.processPaymentWithCard(request, card);
         return new ResponseEntity<>(resp, HttpStatus.OK);
 
@@ -225,4 +234,29 @@ public class PaymentGatewayController {
         return paymentGatewayService.getAllTransactionRevenue(request);
     }
 
+    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/transactions/{customerId}")
+    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
+    @ApiOperation(value = "Filter search customers", notes = "Search customers")
+    public ResponseEntity<PaymentGatewayResponse> filterSearchAllCustomerSubscription(
+            QueryCustomerTransaction queryCustomerTransaction,
+            @PathVariable("customerId") final String customerId) {
+        queryCustomerTransaction.setCustomerId(customerId);
+        return paymentGatewayService.filterSearchCustomerTransactions(
+                queryCustomerTransaction, PageableResponseUtil.createPageRequest(queryCustomerTransaction.getPage(),
+                        queryCustomerTransaction.getSize(), queryCustomerTransaction.getOrder(),
+                        queryCustomerTransaction.getSortBy(), true, "tran_date"
+                ));
+    }
+
+
+//    @ApiOperation(value = "Get All Revenue", notes = "Test recurrent transaction")
+//    @GetMapping("/test-recurrent-payment")
+//    public ResponseEntity<String> testRecurrentPayment() throws JsonProcessingException {
+//        Optional<PaymentGateway> paymentGateway = paymentGatewayRepo.findByTranId("18145");
+//        if (paymentGateway.isPresent()) {
+//            PaymentGateway paymentGateway1 = paymentGateway.get();
+//            unifiedPayment.recurrentTransaction(paymentGateway1);
+//        }
+//        return null;
+//    }
 }

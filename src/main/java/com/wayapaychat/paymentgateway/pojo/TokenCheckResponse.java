@@ -18,5 +18,5 @@ public class TokenCheckResponse {
 	private Date timeStamp;
 	private boolean status;
 	private String message;
-	private MyUserData data;
+	private AuthenticatedUser data;
 }

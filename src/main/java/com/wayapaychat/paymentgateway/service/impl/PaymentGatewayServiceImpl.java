@@ -1,8 +1,10 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
+import com.wayapaychat.paymentgateway.common.utils.QueryCustomerTransaction;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
@@ -35,6 +37,8 @@ import org.jsoup.Jsoup;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mobile.device.Device;
@@ -243,7 +247,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 recurrentPayment.setCurrentTransactionRefNo(paymentGateway.getRefNo());
                 recurrentPayment.setDateModified(LocalDateTime.now());
                 recurrentPayment.setModifiedBy(0L);
-                preprocessCardRequest(paymentLinkResponse,cardRequest);
+                preprocessCardRequest(paymentLinkResponse, cardRequest);
                 return recurrentPayment;
             }
         }
@@ -269,7 +273,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 //            cardRequest.setCount(0);
 //            cardRequest.setOrderType(ORDER_TYPE);
         }
-        preprocessCardRequest(paymentLinkResponse,cardRequest);
+        preprocessCardRequest(paymentLinkResponse, cardRequest);
         recurrentPayment = recurrentPaymentRepository.save(recurrentPayment);
         paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
         paymentGateway.setPaymentLinkId(recurrentPayment.getPaymentLinkId());
@@ -277,7 +281,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return recurrentPayment;
     }
 
-    private void preprocessCardRequest(PaymentLinkResponse paymentLinkResponse, UnifiedCardRequest cardRequest){
+    private void preprocessCardRequest(PaymentLinkResponse paymentLinkResponse, UnifiedCardRequest cardRequest) {
         if (ObjectUtils.isNotEmpty(paymentLinkResponse.getStartDateAfterFirstPayment())) {
             cardRequest.setEndRecurr(LocalDateTime.now()
                     .plusDays(paymentLinkResponse.getInterval())
@@ -297,7 +301,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) {
+    public ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) throws JsonProcessingException {
         UnifiedCardRequest upCardPaymentRequest = new UnifiedCardRequest();
         Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTranId());
         RecurrentPayment recurrentPayment;
@@ -335,7 +339,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
             String[] mt = decryptedCard.split(Pattern.quote("|"));
             if (mt.length < 2)
-                throw new ApplicationException(400,"01", "Card missing all correct fields. Ensure card is encrypted properly.");
+                throw new ApplicationException(400, "01", "Card missing all correct fields. Ensure card is encrypted properly.");
             pan = mt[0];
             String cvv = mt[1];
             upCardPaymentRequest.setCardNumber(pan);
@@ -357,7 +361,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
             String[] mt = decryptedCardData.split(Pattern.quote("|"));
             if (mt.length < 2)
-                throw new ApplicationException(400,"01", "Card missing all correct fields. Ensure card is encrypted properly.");
+                throw new ApplicationException(400, "01", "Card missing all correct fields. Ensure card is encrypted properly.");
             pan = mt[0];
             String cvv = mt[1];
             upCardPaymentRequest.setCardNumber(pan);
@@ -400,7 +404,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
                 mPay.setTranId(tranId);
                 paymentGatewayRepo.save(mPay);
-                String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt(), false);
+                String callReq = uniPaymentProxy.buildUnifiedPaymentURLWithPayload(tranId, pay.getCardEncrypt(), false);
                 if (!callReq.isBlank()) {
                     URLConnection urlConnection_ = new URL(callReq).openConnection();
                     urlConnection_.connect();
@@ -560,7 +564,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             if (!auth.isStatus()) {
                 return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
             }
-            MyUserData mAuth = auth.getData();
+            AuthenticatedUser mAuth = auth.getData();
 
             try {
                 PinResponse pin = authProxy.validatePin(mAuth.getId(), Long.valueOf(account.getPin()),
@@ -917,6 +921,30 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
         preprocessTransactionStatus(payment);
         return ResponseEntity.ok().body("Transaction status updated successful");
+    }
+
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransaction queryPojo, Pageable pageable) {
+        MerchantData merchantResponse = merchantProxy.getMerchantAccount().getData();
+        queryPojo.setMerchantId(merchantResponse.getMerchantId());
+        return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
+                getCustomerTransaction(queryPojo, pageable)), HttpStatus.OK);
+    }
+
+    @Override
+    public Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransaction queryPojo, Pageable pageable) {
+        Page<PaymentGateway> result;
+        String merchantId = queryPojo.getMerchantId();
+        if (ObjectUtils.isNotEmpty(queryPojo.getChannel()))
+            result = paymentGatewayRepo.findByCustomerIdChannel(queryPojo.getCustomerId(), merchantId, queryPojo.getChannel().name(), pageable);
+        if (ObjectUtils.isNotEmpty(queryPojo.getStatus()) && ObjectUtils.isNotEmpty(queryPojo.getChannel()))
+            result = paymentGatewayRepo.findByCustomerIdChannelStatus(
+                    queryPojo.getCustomerId(), merchantId,
+                    queryPojo.getStatus().name(), queryPojo.getChannel().name(), pageable);
+        if (ObjectUtils.isNotEmpty(queryPojo.getStatus()))
+            result = paymentGatewayRepo.findByStatus(queryPojo.getCustomerId(), merchantId, queryPojo.getStatus().name(), pageable);
+        else result = paymentGatewayRepo.findByCustomerId(queryPojo.getCustomerId(), merchantId, pageable);
+        return result;
     }
 
     private void preprocessTransactionStatus(PaymentGateway payment) {

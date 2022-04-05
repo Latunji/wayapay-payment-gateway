@@ -46,6 +46,7 @@ waya:
     baseurl: https://test.payarena.com
     merchant: FAVE
     secret: 82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D
+#    secret: 3A9EE0AE62D80053FEC34E42C8FA11F6E9E8F64ABBB8D39B
   callback:
     baseurl: https://services.staging.wayabank.ng/payment-gateway/api/v1/wayaCallBack
   formcallback:

@@ -130,7 +130,7 @@ public class PaymemtGatewayEntityListener {
         log.info("------||||NOTIFICATION SERVICE RESPONSE {}||||--------", notificationServiceResponse1);
     }
 
-    private String getDaemonAuthToken() throws Exception {
+    private static String getDaemonAuthToken() throws Exception {
         TokenAuthResponse authToken = authApiClient.authenticateUser(
                 LoginRequest.builder()
                         .password(variableUtil.getPassword())

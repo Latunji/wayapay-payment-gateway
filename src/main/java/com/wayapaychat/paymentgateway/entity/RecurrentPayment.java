@@ -58,9 +58,17 @@ public class RecurrentPayment extends GenericBaseEntity {
     @Column(name = "payment_link_id")
     private String paymentLinkId;
 
+    @Column(name = "customer_subscription_id")
+    private String customerSubscriptionId;
+
     @Column(name = "plan_id")
     private String planId;
 
+    @Column(name = "plan_name")
+    private String planName;
+
+    @Column(name = "customer_email")
+    private String customerEmail;
 
     @Column(name = "recurrent_payment_id")
     private String recurrentPaymentId;

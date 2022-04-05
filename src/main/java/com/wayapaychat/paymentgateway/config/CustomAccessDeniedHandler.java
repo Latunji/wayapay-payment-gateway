@@ -1,7 +1,7 @@
 package com.wayapaychat.paymentgateway.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wayapaychat.paymentgateway.pojo.MyUserData;
+import com.wayapaychat.paymentgateway.pojo.AuthenticatedUser;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,8 +33,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         String str;
         Authentication auth
                 = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof MyUserData) {
-            MyUserData user = (MyUserData) auth.getPrincipal();
+        if (auth != null && auth.getPrincipal() instanceof AuthenticatedUser) {
+            AuthenticatedUser user = (AuthenticatedUser) auth.getPrincipal();
             String principal = user.getEmail() == null ? user.getPhoneNumber() : user.getEmail();
             str = "User: " + principal
                     + " attempt to the protected URL: "

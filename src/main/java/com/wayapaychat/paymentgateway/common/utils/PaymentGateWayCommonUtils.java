@@ -1,8 +1,9 @@
 package com.wayapaychat.paymentgateway.common.utils;
 
 import com.wayapaychat.paymentgateway.enumm.DeviceType;
-import com.wayapaychat.paymentgateway.pojo.DevicePojo;
-import com.wayapaychat.paymentgateway.pojo.MyUserData;
+import com.wayapaychat.paymentgateway.exception.ApplicationException;
+import com.wayapaychat.paymentgateway.pojo.*;
+import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.service.MerchantProxy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 @AllArgsConstructor
 @Slf4j
 public class PaymentGateWayCommonUtils {
+    private final VariableUtil variableUtil;
+    private final AuthApiClient authApiClient;
     private final MerchantProxy merchantProxy;
 
     public static String getClientRequestIP(HttpServletRequest request) {
@@ -47,8 +50,24 @@ public class PaymentGateWayCommonUtils {
         return new DevicePojo(deviceType, platform, "");
     }
 
+    public String getDaemonAuthToken() {
+        TokenAuthResponse authToken = authApiClient.authenticateUser(
+                LoginRequest.builder()
+                        .password(variableUtil.getPassword())
+                        .emailOrPhoneNumber(variableUtil.getUserName())
+                        .build());
+        log.info("AUTHENTICATION RESPONSE: " + authToken.toString());
+        if (!authToken.getStatus()) {
+            log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------",
+                    variableUtil.getUserName(), variableUtil.getPassword());
+            throw new ApplicationException(403, "01", "Failed to process user authentication...!");
+        }
+        PaymentData payData = authToken.getData();
+        return payData.getToken();
+    }
+
     public String validateUserAndGetMerchantId(String merchantId) {
-//        MyUserData user = getAuthenticatedUser();
+//        AuthenticatedUser user = getAuthenticatedUser();
 //        if (!user.isEmailVerified())
 //            throw new ApplicationException(403, "01", "Account needs email verification");
 ////        if (!user.isPhoneVerified())
@@ -68,7 +87,7 @@ public class PaymentGateWayCommonUtils {
         return merchantId;
     }
 
-    public MyUserData getAuthenticatedUser() {
-        return ((MyUserData) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+    public AuthenticatedUser getAuthenticatedUser() {
+        return ((AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
 }

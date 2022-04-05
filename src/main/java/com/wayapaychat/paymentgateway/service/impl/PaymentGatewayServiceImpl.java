@@ -218,6 +218,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         @NotNull final String DATE_SEPARATOR = "/";
         @NotNull final String PAY_ATTITUDE = "PayAttitude";
         PaymentLinkResponse paymentLinkResponse = identManager.getPaymentLinkDetailsById(card.getPaymentLinkId()).getData();
+        cardRequest.setRecurring(true);
 
         if (paymentLinkResponse.getPaymentLinkType() == PaymentLinkType.ONE_TIME_PAYMENT_LINK) {
             throw new ApplicationException(403, "01", "One time payment link can't be used for recurrent payment");
@@ -242,6 +243,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 recurrentPayment.setCurrentTransactionRefNo(paymentGateway.getRefNo());
                 recurrentPayment.setDateModified(LocalDateTime.now());
                 recurrentPayment.setModifiedBy(0L);
+                preprocessCardRequest(paymentLinkResponse,cardRequest);
                 return recurrentPayment;
             }
         }
@@ -256,39 +258,42 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 .recurrentAmount(paymentLinkResponse.getPayableAmount())
                 .nextChargeDate(LocalDateTime.now().plusDays(paymentLinkResponse.getInterval()))
                 .customerId(paymentGateway.getCustomerId())
-                .totalCount(paymentLinkResponse.getTotalCount())
+                .maxChargeCount(paymentLinkResponse.getTotalCount())
                 .merchantId(paymentGateway.getMerchantId())
                 .currentTransactionRefNo(paymentGateway.getRefNo())
                 .planId(paymentLinkResponse.getPlanId())
-                .startDateAfterFirstPayment(paymentLinkResponse.getStartDateAfterFirstPayment())
+                .nextChargeDateAfterFirstPayment(paymentLinkResponse.getStartDateAfterFirstPayment())
                 .build();
 
         if (card.getScheme().equals(PAY_ATTITUDE)) {
-            cardRequest.setCount(0);
-            cardRequest.setOrderType(ORDER_TYPE);
+//            cardRequest.setCount(0);
+//            cardRequest.setOrderType(ORDER_TYPE);
         }
+        preprocessCardRequest(paymentLinkResponse,cardRequest);
+        recurrentPayment = recurrentPaymentRepository.save(recurrentPayment);
+        paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
+        paymentGateway.setPaymentLinkId(recurrentPayment.getPaymentLinkId());
+        paymentGateway.setIsFromRecurrentPayment(true);
+        return recurrentPayment;
+    }
+
+    private void preprocessCardRequest(PaymentLinkResponse paymentLinkResponse, UnifiedCardRequest cardRequest){
         if (ObjectUtils.isNotEmpty(paymentLinkResponse.getStartDateAfterFirstPayment())) {
             cardRequest.setEndRecurr(LocalDateTime.now()
                     .plusDays(paymentLinkResponse.getInterval())
                     .format(DateTimeFormatter.ISO_DATE)
-                    .replace("-", DATE_SEPARATOR));
+                    .replace("-", "/"));
             cardRequest.setFrequency(paymentLinkResponse.getTotalCount().toString());
             cardRequest.setOrderExpirationPeriod(paymentLinkResponse.getInterval());
         } else {
             String endDateAfterFistPaymentIsMade = LocalDateTime.now()
                     .plusDays((long) paymentLinkResponse.getInterval() * paymentLinkResponse.getTotalCount())
                     .format(DateTimeFormatter.ISO_DATE)
-                    .replace("-", DATE_SEPARATOR);
+                    .replace("-", "/");
             cardRequest.setEndRecurr(endDateAfterFistPaymentIsMade);
             cardRequest.setFrequency(paymentLinkResponse.getTotalCount().toString());
             cardRequest.setOrderExpirationPeriod(paymentLinkResponse.getInterval());
         }
-        recurrentPayment = recurrentPaymentRepository.save(recurrentPayment);
-        cardRequest.setRecurring(true);
-        paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
-        paymentGateway.setPaymentLinkId(recurrentPayment.getPaymentLinkId());
-        paymentGateway.setIsFromRecurrentPayment(true);
-        return recurrentPayment;
     }
 
     @Override
@@ -391,7 +396,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
                 mPay.setTranId(tranId);
                 paymentGatewayRepo.save(mPay);
-                String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt(), mPay);
+                String callReq = uniPaymentProxy.getPaymentStatus(tranId, pay.getCardEncrypt(), false);
                 if (!callReq.isBlank()) {
                     URLConnection urlConnection_ = new URL(callReq).openConnection();
                     urlConnection_.connect();
@@ -918,6 +923,22 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setStatus(TransactionStatus.SUCCESSFUL);
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());
+                if (payment.getIsFromRecurrentPayment()) {
+                    Optional<RecurrentPayment> recurrentPayment = recurrentPaymentRepository.getByTransactionRef(payment.getRefNo());
+                    if (recurrentPayment.isPresent()) {
+                        LocalDateTime date = LocalDateTime.now();
+                        RecurrentPayment foundRecurrentPayment = recurrentPayment.get();
+                        LocalDateTime chargeDateAfterFirstPayment = foundRecurrentPayment.getNextChargeDateAfterFirstPayment();
+                        if (foundRecurrentPayment.getTotalChargeCount() == 0)
+                            foundRecurrentPayment.setFirstPaymentDate(date);
+                        foundRecurrentPayment.setModifiedBy(0L);
+                        foundRecurrentPayment.setDateModified(date);
+                        foundRecurrentPayment.setActive(true);
+                        foundRecurrentPayment.setLastChargeDate(date);
+                        foundRecurrentPayment.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
+                                date.plusDays(foundRecurrentPayment.getInterval()) : chargeDateAfterFirstPayment);
+                    }
+                }
             } else {
                 TransactionStatus transactionStatus = Arrays.stream(TransactionStatus.values()).map(Enum::name)
                         .collect(Collectors.toList())

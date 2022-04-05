@@ -4,7 +4,7 @@ package com.wayapaychat.paymentgateway.pojo.unifiedpayment;
 import lombok.Data;
 
 @Data
-public class UnifiedCardRequest {
+public class UnifiedRecurrentCardRequest {
     private String secretKey;
     private String scheme;
     private String cardHolder;

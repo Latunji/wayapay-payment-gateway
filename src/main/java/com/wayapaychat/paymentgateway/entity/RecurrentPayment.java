@@ -9,6 +9,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.wayapaychat.paymentgateway.common.enums.Interval;
 import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
+import com.wayapaychat.paymentgateway.common.enums.RecurrentPaymentStatus;
 import com.wayapaychat.paymentgateway.entity.listener.FraudEventEntityListener;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,11 +36,11 @@ public class RecurrentPayment extends GenericBaseEntity {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime firstPaymentDate;
 
-    @Column(name = "start_date_after_first_payment")
+    @Column(name = "next_charge_date_after_first_payment")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private LocalDateTime startDateAfterFirstPayment;
+    private LocalDateTime nextChargeDateAfterFirstPayment;
 
     @Column(name = "next_charge_date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -81,8 +82,11 @@ public class RecurrentPayment extends GenericBaseEntity {
     @Column(name = "card_token_reference")
     private String cardTokenReference;
 
-    @Column(name = "total_count")
-    private Integer totalCount;
+    @Column(name = "max_charge_count")
+    private Integer maxChargeCount;
+
+    @Column(name = "total_charge_count")
+    private Integer totalChargeCount;
 
     @Column(name = "amount", nullable = false)
     private BigDecimal recurrentAmount;
@@ -105,10 +109,17 @@ public class RecurrentPayment extends GenericBaseEntity {
     @Column(name = "up_session_id")
     private String upSessionId;
 
+    @Column(name = "status")
+    private RecurrentPaymentStatus status;
+
     @PrePersist
     void prePersist() {
         if (ObjectUtils.isEmpty(active))
             this.active = false;
+        if (ObjectUtils.isEmpty(status))
+            status = RecurrentPaymentStatus.PENDING;
+        if (ObjectUtils.isEmpty(totalChargeCount))
+            this.totalChargeCount = 0;
         if (ObjectUtils.isEmpty(applyDateAfterFirstPayment))
             this.applyDateAfterFirstPayment = false;
         if (ObjectUtils.isEmpty(recurrentPaymentId))

@@ -16,6 +16,7 @@ import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -60,6 +61,7 @@ public class UnifiedPaymentProxy {
     private String merchantUrl;
     @Value("${waya.callback.baseurl}")
     private String callbackUrl;
+    private final ModelMapper modelMapper = new ModelMapper();
 
     @SuppressWarnings("unused")
     private static byte[] fromHex(String inputString) {
@@ -197,15 +199,13 @@ public class UnifiedPaymentProxy {
         return null;
     }
 
-    public String getPaymentStatus(String tranId, String encryptData, PaymentGateway paymentGateway) {
-//        String subPathURL = paymentGateway.getIsFromRecurrentPayment() ?
-//                "/Home/RecurringTransaction/" : "/Home/TransactionPost/";
-        String subPathURL = "/Home/TransactionPost/";
+    public String getPaymentStatus(String tranId, String encryptData, boolean recurrent) {
+        String subPathURL = recurrent ?
+                "/Home/RecurringTransaction/" : "/Home/TransactionPost/";
         UriComponentsBuilder builderURL = UriComponentsBuilder
-//                .fromHttpUrl(paymentGateway.getIsFromRecurrentPayment() ?
-//                        merchantUrl + subPathURL + merchantId :
-//                        merchantUrl + subPathURL + tranId)
-                .fromHttpUrl(merchantUrl + subPathURL + tranId)
+                .fromHttpUrl(recurrent ?
+                        merchantUrl + subPathURL + merchantId :
+                        merchantUrl + subPathURL + tranId)
                 .queryParam("mid", merchantId)
                 .queryParam("payload", encryptData);
         log.info("PAYMENT URL= " + builderURL.toUriString());
@@ -213,23 +213,37 @@ public class UnifiedPaymentProxy {
     }
 
     public String encryptPaymentDataAccess(UnifiedCardRequest card) {
+        Object objectToEncrypt = null;
         Map<String, Object> dataToEncrypt = new HashMap<>();
-        dataToEncrypt.put("secretKey",merchantSecret);
-        dataToEncrypt.put("scheme",card.getScheme());
-        dataToEncrypt.put("cardHolder",card.getCardHolder());
-        dataToEncrypt.put("cardNumber",card.getCardNumber());
-        dataToEncrypt.put("cvv",card.getCvv());
-        dataToEncrypt.put("expiry",card.getExpiry());
-        dataToEncrypt.put("pin",card.getPin());
-        if(card.isRecurring()){
-            dataToEncrypt.put("endRecurr",card.getEndRecurr());
-            dataToEncrypt.put("frequency",card.getFrequency());
-            dataToEncrypt.put("OrderExpirationPeriod",card.getOrderExpirationPeriod());
+        dataToEncrypt.put("secretKey", merchantSecret);
+        dataToEncrypt.put("scheme", card.getScheme());
+        dataToEncrypt.put("cardHolder", card.getCardHolder());
+        dataToEncrypt.put("cardNumber", card.getCardNumber());
+        dataToEncrypt.put("cvv", card.getCvv());
+        dataToEncrypt.put("expiry", card.getExpiry());
+        dataToEncrypt.put("pin", card.getPin());
+        dataToEncrypt.put("mobile", card.getMobile());
+        if (card.isRecurring()) {
+            UnifiedRecurrentCardRequest unifiedRecurrentCardRequest = new UnifiedRecurrentCardRequest();
+            unifiedRecurrentCardRequest.setSecretKey(merchantSecret);
+            unifiedRecurrentCardRequest.setScheme(card.getScheme());
+            unifiedRecurrentCardRequest.setCardHolder(card.getCardHolder());
+            unifiedRecurrentCardRequest.setCardNumber(card.getCardNumber());
+            unifiedRecurrentCardRequest.setCvv(card.getCvv());
+            unifiedRecurrentCardRequest.setExpiry(card.getExpiry());
+            unifiedRecurrentCardRequest.setPin(card.getPin());
+            unifiedRecurrentCardRequest.setMobile(card.getMobile());
+            unifiedRecurrentCardRequest.setEndRecurr(card.getEndRecurr());
+            unifiedRecurrentCardRequest.setFrequency(card.getFrequency());
+            unifiedRecurrentCardRequest.setRecurring(card.isRecurring());
+            unifiedRecurrentCardRequest.setOrderExpirationPeriod(card.getOrderExpirationPeriod());
+            objectToEncrypt = unifiedRecurrentCardRequest;
+        } else {
+            objectToEncrypt = dataToEncrypt;
         }
         ObjectMapper mapper = new ObjectMapper();
         try {
-//            card.setSecretKey(merchantSecret);
-            @NotNull final String json = mapper.writeValueAsString(dataToEncrypt);
+            @NotNull final String json = mapper.writeValueAsString(objectToEncrypt);
             log.info("-----||||JSON {}||||-----", json);
             @NotNull final String key = sha1(merchantSecret).toLowerCase();
             @NotNull final String ENCRYPTED_STRING = encrypt(json, key);

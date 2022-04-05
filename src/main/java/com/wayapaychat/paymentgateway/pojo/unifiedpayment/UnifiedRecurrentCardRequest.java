@@ -15,6 +15,6 @@ public class UnifiedRecurrentCardRequest {
     private String pin;
     private String endRecurr;
     private String frequency;
-    private boolean isRecurring;
+    private Boolean isRecurring;
     private Integer OrderExpirationPeriod;
 }

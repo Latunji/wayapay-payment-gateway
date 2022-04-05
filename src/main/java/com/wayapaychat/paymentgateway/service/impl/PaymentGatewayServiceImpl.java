@@ -334,6 +334,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             String[] mt = decryptedCard.split(Pattern.quote("|"));
+            if (mt.length < 2)
+                throw new ApplicationException(400,"01", "Card missing all correct fields. Ensure card is encrypted properly.");
             pan = mt[0];
             String cvv = mt[1];
             upCardPaymentRequest.setCardNumber(pan);
@@ -354,6 +356,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             String[] mt = decryptedCardData.split(Pattern.quote("|"));
+            if (mt.length < 2)
+                throw new ApplicationException(400,"01", "Card missing all correct fields. Ensure card is encrypted properly.");
             pan = mt[0];
             String cvv = mt[1];
             upCardPaymentRequest.setCardNumber(pan);

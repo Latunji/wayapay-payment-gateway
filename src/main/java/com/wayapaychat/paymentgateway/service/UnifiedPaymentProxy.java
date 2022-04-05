@@ -235,7 +235,7 @@ public class UnifiedPaymentProxy {
             unifiedRecurrentCardRequest.setMobile(card.getMobile());
             unifiedRecurrentCardRequest.setEndRecurr(card.getEndRecurr());
             unifiedRecurrentCardRequest.setFrequency(card.getFrequency());
-            unifiedRecurrentCardRequest.setRecurring(card.isRecurring());
+            unifiedRecurrentCardRequest.setIsRecurring(card.isRecurring());
             unifiedRecurrentCardRequest.setOrderExpirationPeriod(card.getOrderExpirationPeriod());
             objectToEncrypt = unifiedRecurrentCardRequest;
         } else {

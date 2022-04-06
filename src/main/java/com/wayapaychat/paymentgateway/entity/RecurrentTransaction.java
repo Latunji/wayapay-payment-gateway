@@ -117,6 +117,7 @@ public class RecurrentTransaction extends GenericBaseEntity {
     @Column(name = "up_session_id")
     private String upSessionId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private RecurrentPaymentStatus status;
 

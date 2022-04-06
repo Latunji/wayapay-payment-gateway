@@ -39,6 +39,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mobile.device.Device;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -922,7 +923,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryPojo, Pageable pageable) {
-        MerchantData merchantResponse = merchantProxy.getMerchantAccount().getData();
+        AuthenticatedUser authenticatedUser = paymentGateWayCommonUtils.getAuthenticatedUser();
+        MerchantData merchantResponse = merchantProxy.getMerchantInfo(paymentGateWayCommonUtils.getDaemonAuthToken(), authenticatedUser.getMerchantId()).getData();
         queryPojo.setMerchantId(merchantResponse.getMerchantId());
         return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
                 getCustomerTransaction(queryPojo, pageable)), HttpStatus.OK);

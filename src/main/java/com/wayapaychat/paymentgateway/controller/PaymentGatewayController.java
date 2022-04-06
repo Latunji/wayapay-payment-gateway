@@ -234,7 +234,7 @@ public class PaymentGatewayController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/transactions/{customerId}")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Filter search customers", notes = "Search customers")
+    @ApiOperation(value = "Filter search customers", notes = "Search customers", tags = {"PAYMENT-GATEWAY"})
     public ResponseEntity<PaymentGatewayResponse> filterSearchAllCustomerSubscription(
             QueryCustomerTransactionPojo queryCustomerTransactionPojo,
             @PathVariable("customerId") final String customerId) {

@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.cron;
 
 import java.util.List;
 
+import com.wayapaychat.paymentgateway.service.impl.RecurrentTransactionServiceImpl;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ public class CronService {
 
 	@Autowired
 	PaymentGatewayRepository paymentGatewayRepo;
+
+	@Autowired
+	private RecurrentTransactionServiceImpl processRecurrentPayment;
 
 	@Autowired
 	PaymentGatewayService paymentService;
@@ -63,6 +67,10 @@ public class CronService {
 							if (query.getStatus().contains("APPROVED")) {
 								mPay.setStatus(TransactionStatus.TRANSACTION_COMPLETED);
 								mPay.setSuccessfailure(true);
+								mPay.setSessionId(query.getSessionId());
+								if (mPay.getIsFromRecurrentPayment()){
+									paymentService.updateRecurrentTransaction(mPay);
+								}
 							} else if (query.getStatus().contains("REJECT")) {
 								mPay.setStatus(TransactionStatus.TRANSACTION_FAILED);
 								mPay.setSuccessfailure(false);

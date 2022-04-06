@@ -27,6 +27,7 @@ public class AuthenticatedUser {
     private List<Role> roles;
     private List<Permit> permits;
     private String transactionLimit;
+    private String merchantId;
     public AuthenticatedUser(String email) {
         this.email = email;
     }

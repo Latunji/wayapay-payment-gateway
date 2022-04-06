@@ -1,11 +1,9 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
+import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
-import com.wayapaychat.paymentgateway.pojo.waya.MerchantData;
-import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
-import com.wayapaychat.paymentgateway.pojo.waya.QueryRecurrentTransactionPojo;
-import com.wayapaychat.paymentgateway.pojo.waya.SuccessResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
 import com.wayapaychat.paymentgateway.service.RecurrentTransactionService;
 import lombok.AllArgsConstructor;
@@ -14,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -25,6 +24,7 @@ import java.util.Optional;
 public class RecurrentTransactionServiceImpl implements RecurrentTransactionService {
     private final RecurrentTransactionRepository recurrentTransactionRepository;
     private final MerchantProxy merchantProxy;
+    private final PaymentGateWayCommonUtils paymentGateWayCommonUtils;
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> filterSearchRecurrentTransaction(QueryRecurrentTransactionPojo queryCustomerTransactionPojo, Pageable pageable) {
@@ -33,7 +33,8 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> fetchCustomerTransaction(String customerId, Pageable pageable) {
-        MerchantData merchantResponse = merchantProxy.getMerchantAccount().getData();
+        AuthenticatedUser authenticatedUser = (AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication();
+        MerchantData merchantResponse = merchantProxy.getMerchantInfo(paymentGateWayCommonUtils.getDaemonAuthToken(), authenticatedUser.getMerchantId()).getData();
         String merchantId = merchantResponse.getMerchantId();
         return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
                 getCustomerRecurrentTransactions(customerId, merchantId, pageable)), HttpStatus.OK);

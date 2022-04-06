@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
@@ -74,4 +75,6 @@ public interface PaymentGatewayService {
 	ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryCustomerTransactionPojo, Pageable pageable);
 
 	Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, Pageable pageable);
+
+	void updateRecurrentTransaction(@NotNull PaymentGateway paymentGateway);
 }

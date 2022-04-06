@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
-import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
@@ -14,7 +13,7 @@ import com.wayapaychat.paymentgateway.enumm.TStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
-import com.wayapaychat.paymentgateway.pojo.*;
+import com.wayapaychat.paymentgateway.pojo.User;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.USSDResponse;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
@@ -952,25 +951,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setStatus(TransactionStatus.SUCCESSFUL);
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());
-                if (payment.getIsFromRecurrentPayment()) {
-                    Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByTransactionRef(payment.getRefNo());
-                    if (optionalRecurrentTransaction.isPresent()) {
-                        LocalDateTime date = LocalDateTime.now();
-                        RecurrentTransaction foundRecurrentTransaction = optionalRecurrentTransaction.get();
-                        LocalDateTime chargeDateAfterFirstPayment = foundRecurrentTransaction.getNextChargeDateAfterFirstPayment();
-                        if (foundRecurrentTransaction.getTotalChargeCount() == 0)
-                            foundRecurrentTransaction.setFirstPaymentDate(date);
-                        Integer totalChargeCount = foundRecurrentTransaction.getTotalChargeCount() + 1;
-                        foundRecurrentTransaction.setModifiedBy(0L);
-                        foundRecurrentTransaction.setDateModified(date);
-                        foundRecurrentTransaction.setActive(true);
-                        foundRecurrentTransaction.setLastChargeDate(date);
-                        foundRecurrentTransaction.setTotalChargeCount(totalChargeCount);
-                        foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
-                                date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
-                        recurrentTransactionRepository.save(foundRecurrentTransaction);
-                    }
-                }
             } else {
                 TransactionStatus transactionStatus = Arrays.stream(TransactionStatus.values()).map(Enum::name)
                         .collect(Collectors.toList())
@@ -980,6 +960,30 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setTranId(response.getOrderId());
             }
             paymentGatewayRepo.save(payment);
+            if (payment.getIsFromRecurrentPayment()) updateRecurrentTransaction(payment);
+        }
+    }
+
+    @Override
+    public void updateRecurrentTransaction(@NotNull final PaymentGateway paymentGateway) {
+        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED) {
+            Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByTransactionRef(paymentGateway.getRefNo());
+            if (optionalRecurrentTransaction.isPresent()) {
+                LocalDateTime date = LocalDateTime.now();
+                RecurrentTransaction foundRecurrentTransaction = optionalRecurrentTransaction.get();
+                LocalDateTime chargeDateAfterFirstPayment = foundRecurrentTransaction.getNextChargeDateAfterFirstPayment();
+                if (foundRecurrentTransaction.getTotalChargeCount() == 0)
+                    foundRecurrentTransaction.setFirstPaymentDate(date);
+                Integer totalChargeCount = foundRecurrentTransaction.getTotalChargeCount() + 1;
+                foundRecurrentTransaction.setModifiedBy(0L);
+                foundRecurrentTransaction.setDateModified(date);
+                foundRecurrentTransaction.setActive(true);
+                foundRecurrentTransaction.setLastChargeDate(date);
+                foundRecurrentTransaction.setTotalChargeCount(totalChargeCount);
+                foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
+                        date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
+                recurrentTransactionRepository.save(foundRecurrentTransaction);
+            }
         }
     }
 

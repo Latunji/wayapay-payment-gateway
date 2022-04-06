@@ -3,6 +3,7 @@ package com.wayapaychat.paymentgateway.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
+import com.wayapaychat.paymentgateway.common.enums.RecurrentPaymentStatus;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
@@ -951,6 +952,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setStatus(TransactionStatus.SUCCESSFUL);
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());
+                if (payment.getIsFromRecurrentPayment()) {
+                    updateRecurrentTransaction(payment);
+                }
             } else {
                 TransactionStatus transactionStatus = Arrays.stream(TransactionStatus.values()).map(Enum::name)
                         .collect(Collectors.toList())
@@ -960,13 +964,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setTranId(response.getOrderId());
             }
             paymentGatewayRepo.save(payment);
-            if (payment.getIsFromRecurrentPayment()) updateRecurrentTransaction(payment);
         }
     }
 
     @Override
     public void updateRecurrentTransaction(@NotNull final PaymentGateway paymentGateway) {
-        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED) {
+        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
+                || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED
+        ) {
             Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByTransactionRef(paymentGateway.getRefNo());
             if (optionalRecurrentTransaction.isPresent()) {
                 LocalDateTime date = LocalDateTime.now();
@@ -978,6 +983,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 foundRecurrentTransaction.setModifiedBy(0L);
                 foundRecurrentTransaction.setDateModified(date);
                 foundRecurrentTransaction.setActive(true);
+                foundRecurrentTransaction.setStatus(RecurrentPaymentStatus.ACTIVE);
                 foundRecurrentTransaction.setLastChargeDate(date);
                 foundRecurrentTransaction.setTotalChargeCount(totalChargeCount);
                 foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?

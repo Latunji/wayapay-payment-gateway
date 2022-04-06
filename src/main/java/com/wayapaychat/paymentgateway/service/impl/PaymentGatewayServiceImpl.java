@@ -8,7 +8,7 @@ import com.wayapaychat.paymentgateway.common.utils.QueryCustomerTransaction;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
-import com.wayapaychat.paymentgateway.entity.RecurrentPayment;
+import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
@@ -214,7 +214,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public RecurrentPayment preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
+    public RecurrentTransaction preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
         //TODO: UP For pay attitude, These fields are not present to tell when the
         // The recurring payment should happen
         // frequency , OrderExpirationPeriod
@@ -235,24 +235,24 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
         }
 
-        Optional<RecurrentPayment> optionalRecurrentPayment = recurrentPaymentRepository.getByTransactionRef(paymentGateway.getRefNo());
-        RecurrentPayment recurrentPayment = null;
+        Optional<RecurrentTransaction> optionalRecurrentPayment = recurrentPaymentRepository.getByTransactionRef(paymentGateway.getRefNo());
+        RecurrentTransaction recurrentTransaction = null;
         if (optionalRecurrentPayment.isPresent()) {
-            recurrentPayment = optionalRecurrentPayment.get();
-            if (recurrentPayment.getActive())
+            recurrentTransaction = optionalRecurrentPayment.get();
+            if (recurrentTransaction.getActive())
                 throw new ApplicationException(403, "01", "Recurrent payment still active. Payment can't be processed");
-            if (ObjectUtils.isNotEmpty(recurrentPayment.getNextChargeDate()) && recurrentPayment.getNextChargeDate().isBefore(LocalDateTime.now()))
+            if (ObjectUtils.isNotEmpty(recurrentTransaction.getNextChargeDate()) && recurrentTransaction.getNextChargeDate().isBefore(LocalDateTime.now()))
                 throw new ApplicationException(403, "01", "Recurrent payment has not yet expired.");
             else {
-                recurrentPayment.setCurrentTransactionRefNo(paymentGateway.getRefNo());
-                recurrentPayment.setDateModified(LocalDateTime.now());
-                recurrentPayment.setModifiedBy(0L);
+                recurrentTransaction.setCurrentTransactionRefNo(paymentGateway.getRefNo());
+                recurrentTransaction.setDateModified(LocalDateTime.now());
+                recurrentTransaction.setModifiedBy(0L);
                 preprocessCardRequest(paymentLinkResponse, cardRequest);
-                return recurrentPayment;
+                return recurrentTransaction;
             }
         }
 
-        recurrentPayment = RecurrentPayment.
+        recurrentTransaction = RecurrentTransaction.
                 builder()
                 .active(false)
                 .paymentLinkId(paymentLinkResponse.getPaymentLinkId())
@@ -274,11 +274,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 //            cardRequest.setOrderType(ORDER_TYPE);
         }
         preprocessCardRequest(paymentLinkResponse, cardRequest);
-        recurrentPayment = recurrentPaymentRepository.save(recurrentPayment);
-        paymentGateway.setRecurrentPaymentId(recurrentPayment.getId());
-        paymentGateway.setPaymentLinkId(recurrentPayment.getPaymentLinkId());
+        recurrentTransaction = recurrentPaymentRepository.save(recurrentTransaction);
+        paymentGateway.setRecurrentPaymentId(recurrentTransaction.getId());
+        paymentGateway.setPaymentLinkId(recurrentTransaction.getPaymentLinkId());
         paymentGateway.setIsFromRecurrentPayment(true);
-        return recurrentPayment;
+        return recurrentTransaction;
     }
 
     private void preprocessCardRequest(PaymentLinkResponse paymentLinkResponse, UnifiedCardRequest cardRequest) {
@@ -304,7 +304,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) throws JsonProcessingException {
         UnifiedCardRequest upCardPaymentRequest = new UnifiedCardRequest();
         Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTranId());
-        RecurrentPayment recurrentPayment;
+        RecurrentTransaction recurrentTransaction;
         if (optionalPaymentGateway.isEmpty())
             return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
         PaymentGateway paymentGateway = optionalPaymentGateway.get();
@@ -935,13 +935,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransaction queryPojo, Pageable pageable) {
         Page<PaymentGateway> result;
         String merchantId = queryPojo.getMerchantId();
-        if (ObjectUtils.isNotEmpty(queryPojo.getChannel()))
-            result = paymentGatewayRepo.findByCustomerIdChannel(queryPojo.getCustomerId(), merchantId, queryPojo.getChannel().name(), pageable);
         if (ObjectUtils.isNotEmpty(queryPojo.getStatus()) && ObjectUtils.isNotEmpty(queryPojo.getChannel()))
             result = paymentGatewayRepo.findByCustomerIdChannelStatus(
                     queryPojo.getCustomerId(), merchantId,
                     queryPojo.getStatus().name(), queryPojo.getChannel().name(), pageable);
-        if (ObjectUtils.isNotEmpty(queryPojo.getStatus()))
+        else if (ObjectUtils.isNotEmpty(queryPojo.getChannel()))
+            result = paymentGatewayRepo.findByCustomerIdChannel(queryPojo.getCustomerId(), merchantId, queryPojo.getChannel().name(), pageable);
+        else if (ObjectUtils.isNotEmpty(queryPojo.getStatus()))
             result = paymentGatewayRepo.findByStatus(queryPojo.getCustomerId(), merchantId, queryPojo.getStatus().name(), pageable);
         else result = paymentGatewayRepo.findByCustomerId(queryPojo.getCustomerId(), merchantId, pageable);
         return result;
@@ -956,19 +956,22 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());
                 if (payment.getIsFromRecurrentPayment()) {
-                    Optional<RecurrentPayment> recurrentPayment = recurrentPaymentRepository.getByTransactionRef(payment.getRefNo());
-                    if (recurrentPayment.isPresent()) {
+                    Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentPaymentRepository.getByTransactionRef(payment.getRefNo());
+                    if (optionalRecurrentTransaction.isPresent()) {
                         LocalDateTime date = LocalDateTime.now();
-                        RecurrentPayment foundRecurrentPayment = recurrentPayment.get();
-                        LocalDateTime chargeDateAfterFirstPayment = foundRecurrentPayment.getNextChargeDateAfterFirstPayment();
-                        if (foundRecurrentPayment.getTotalChargeCount() == 0)
-                            foundRecurrentPayment.setFirstPaymentDate(date);
-                        foundRecurrentPayment.setModifiedBy(0L);
-                        foundRecurrentPayment.setDateModified(date);
-                        foundRecurrentPayment.setActive(true);
-                        foundRecurrentPayment.setLastChargeDate(date);
-                        foundRecurrentPayment.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
-                                date.plusDays(foundRecurrentPayment.getInterval()) : chargeDateAfterFirstPayment);
+                        RecurrentTransaction foundRecurrentTransaction = optionalRecurrentTransaction.get();
+                        LocalDateTime chargeDateAfterFirstPayment = foundRecurrentTransaction.getNextChargeDateAfterFirstPayment();
+                        if (foundRecurrentTransaction.getTotalChargeCount() == 0)
+                            foundRecurrentTransaction.setFirstPaymentDate(date);
+                        Integer totalChargeCount = foundRecurrentTransaction.getTotalChargeCount() + 1;
+                        foundRecurrentTransaction.setModifiedBy(0L);
+                        foundRecurrentTransaction.setDateModified(date);
+                        foundRecurrentTransaction.setActive(true);
+                        foundRecurrentTransaction.setLastChargeDate(date);
+                        foundRecurrentTransaction.setTotalChargeCount(totalChargeCount);
+                        foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
+                                date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
+                        recurrentPaymentRepository.save(foundRecurrentTransaction);
                     }
                 }
             } else {

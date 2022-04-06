@@ -28,8 +28,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "m_recurrent_payment")
-public class RecurrentPayment extends GenericBaseEntity {
+@Table(name = "m_recurrent_transaction")
+public class RecurrentTransaction extends GenericBaseEntity {
     @Column(name = "first_payment_date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)

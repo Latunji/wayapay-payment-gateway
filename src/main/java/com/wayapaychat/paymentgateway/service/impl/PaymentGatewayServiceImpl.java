@@ -923,7 +923,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryPojo, Pageable pageable) {
-        AuthenticatedUser authenticatedUser = (AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication();
+        AuthenticatedUser authenticatedUser = paymentGateWayCommonUtils.getAuthenticatedUser();
         MerchantData merchantResponse = merchantProxy.getMerchantInfo(paymentGateWayCommonUtils.getDaemonAuthToken(), authenticatedUser.getMerchantId()).getData();
         queryPojo.setMerchantId(merchantResponse.getMerchantId());
         return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",

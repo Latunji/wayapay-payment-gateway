@@ -11,15 +11,15 @@ import org.springframework.stereotype.Service;
 
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
-import com.wayapaychat.paymentgateway.pojo.LoginRequest;
-import com.wayapaychat.paymentgateway.pojo.PaymentData;
-import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.LoginRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentData;
+import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
-import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
+import com.wayapaychat.paymentgateway.service.impl.UnifiedPaymentProxy;
 
 import lombok.extern.slf4j.Slf4j;
 

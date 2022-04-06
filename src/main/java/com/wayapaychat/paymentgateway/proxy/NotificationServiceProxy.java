@@ -1,7 +1,6 @@
 package com.wayapaychat.paymentgateway.proxy;
 
 import com.wayapaychat.paymentgateway.config.PaymentGatewayClientConfiguration;
-import com.wayapaychat.paymentgateway.pojo.NotificationPojo;
 import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.Response;
 
 @FeignClient(
         name = "notificationServiceEmailNotification",

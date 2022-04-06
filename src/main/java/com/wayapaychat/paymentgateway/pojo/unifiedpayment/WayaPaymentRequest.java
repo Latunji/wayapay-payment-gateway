@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import com.wayapaychat.paymentgateway.pojo.Customer;
+import com.wayapaychat.paymentgateway.pojo.waya.Customer;
 
 import lombok.Data;
 

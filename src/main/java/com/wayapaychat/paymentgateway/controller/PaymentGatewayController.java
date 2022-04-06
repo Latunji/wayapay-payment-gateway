@@ -2,16 +2,15 @@ package com.wayapaychat.paymentgateway.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.paymentgateway.common.utils.PageableResponseUtil;
-import com.wayapaychat.paymentgateway.common.utils.QueryCustomerTransaction;
-import com.wayapaychat.paymentgateway.entity.PaymentGateway;
-import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
-import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
+import com.wayapaychat.paymentgateway.service.impl.UnifiedPaymentProxy;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -31,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @CrossOrigin
@@ -238,13 +236,13 @@ public class PaymentGatewayController {
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Filter search customers", notes = "Search customers")
     public ResponseEntity<PaymentGatewayResponse> filterSearchAllCustomerSubscription(
-            QueryCustomerTransaction queryCustomerTransaction,
+            QueryCustomerTransactionPojo queryCustomerTransactionPojo,
             @PathVariable("customerId") final String customerId) {
-        queryCustomerTransaction.setCustomerId(customerId);
+        queryCustomerTransactionPojo.setCustomerId(customerId);
         return paymentGatewayService.filterSearchCustomerTransactions(
-                queryCustomerTransaction, PageableResponseUtil.createPageRequest(queryCustomerTransaction.getPage(),
-                        queryCustomerTransaction.getSize(), queryCustomerTransaction.getOrder(),
-                        queryCustomerTransaction.getSortBy(), true, "tran_date"
+                queryCustomerTransactionPojo, PageableResponseUtil.createPageRequest(queryCustomerTransactionPojo.getPage(),
+                        queryCustomerTransactionPojo.getSize(), queryCustomerTransactionPojo.getOrder(),
+                        queryCustomerTransactionPojo.getSortBy(), true, "tran_date"
                 ));
     }
 

@@ -1,6 +1,6 @@
 package com.wayapaychat.paymentgateway.exception;
 
-import com.wayapaychat.paymentgateway.pojo.CustomErrorResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.CustomErrorResponse;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.service.spi.ServiceException;

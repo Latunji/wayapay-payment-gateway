@@ -2,8 +2,6 @@ package com.wayapaychat.paymentgateway.pojo.waya;
 
 import java.math.BigDecimal;
 
-import com.wayapaychat.paymentgateway.pojo.Customer;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,6 +1,6 @@
 package com.wayapaychat.paymentgateway.config;
 
-import com.wayapaychat.paymentgateway.pojo.AuthenticatedUser;
+import com.wayapaychat.paymentgateway.pojo.waya.AuthenticatedUser;
 import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

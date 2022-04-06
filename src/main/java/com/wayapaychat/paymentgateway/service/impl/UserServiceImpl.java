@@ -1,7 +1,9 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
 
-import com.wayapaychat.paymentgateway.pojo.*;
+import com.wayapaychat.paymentgateway.pojo.waya.ApiResponseBody;
+import com.wayapaychat.paymentgateway.pojo.waya.AuthenticatedUser;
+import com.wayapaychat.paymentgateway.pojo.waya.LogRequest;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.LoggingProxy;
 import com.wayapaychat.paymentgateway.service.UserService;

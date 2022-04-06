@@ -2,9 +2,9 @@ package com.wayapaychat.paymentgateway.common.utils;
 
 import com.wayapaychat.paymentgateway.enumm.DeviceType;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
-import com.wayapaychat.paymentgateway.pojo.*;
+import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
-import com.wayapaychat.paymentgateway.service.MerchantProxy;
+import com.wayapaychat.paymentgateway.service.impl.MerchantProxy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mobile.device.Device;

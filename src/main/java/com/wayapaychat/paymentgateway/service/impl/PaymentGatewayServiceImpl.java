@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
-import com.wayapaychat.paymentgateway.common.utils.QueryCustomerTransaction;
+import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
@@ -25,11 +25,8 @@ import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
-import com.wayapaychat.paymentgateway.repository.RecurrentPaymentRepository;
-import com.wayapaychat.paymentgateway.service.GetUserDataService;
-import com.wayapaychat.paymentgateway.service.MerchantProxy;
+import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
-import com.wayapaychat.paymentgateway.service.UnifiedPaymentProxy;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -82,7 +79,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private PaymentWalletRepository paymentWalletRepo;
     @Autowired
-    private RecurrentPaymentRepository recurrentPaymentRepository;
+    private RecurrentTransactionRepository recurrentTransactionRepository;
     @Value("${service.name}")
     private String username;
     @Value("${service.pass}")
@@ -235,7 +232,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
         }
 
-        Optional<RecurrentTransaction> optionalRecurrentPayment = recurrentPaymentRepository.getByTransactionRef(paymentGateway.getRefNo());
+        Optional<RecurrentTransaction> optionalRecurrentPayment = recurrentTransactionRepository.getByTransactionRef(paymentGateway.getRefNo());
         RecurrentTransaction recurrentTransaction = null;
         if (optionalRecurrentPayment.isPresent()) {
             recurrentTransaction = optionalRecurrentPayment.get();
@@ -274,7 +271,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 //            cardRequest.setOrderType(ORDER_TYPE);
         }
         preprocessCardRequest(paymentLinkResponse, cardRequest);
-        recurrentTransaction = recurrentPaymentRepository.save(recurrentTransaction);
+        recurrentTransaction = recurrentTransactionRepository.save(recurrentTransaction);
         paymentGateway.setRecurrentPaymentId(recurrentTransaction.getId());
         paymentGateway.setPaymentLinkId(recurrentTransaction.getPaymentLinkId());
         paymentGateway.setIsFromRecurrentPayment(true);
@@ -924,7 +921,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransaction queryPojo, Pageable pageable) {
+    public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryPojo, Pageable pageable) {
         MerchantData merchantResponse = merchantProxy.getMerchantAccount().getData();
         queryPojo.setMerchantId(merchantResponse.getMerchantId());
         return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
@@ -932,7 +929,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransaction queryPojo, Pageable pageable) {
+    public Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, Pageable pageable) {
         Page<PaymentGateway> result;
         String merchantId = queryPojo.getMerchantId();
         if (ObjectUtils.isNotEmpty(queryPojo.getStatus()) && ObjectUtils.isNotEmpty(queryPojo.getChannel()))
@@ -956,7 +953,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());
                 if (payment.getIsFromRecurrentPayment()) {
-                    Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentPaymentRepository.getByTransactionRef(payment.getRefNo());
+                    Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByTransactionRef(payment.getRefNo());
                     if (optionalRecurrentTransaction.isPresent()) {
                         LocalDateTime date = LocalDateTime.now();
                         RecurrentTransaction foundRecurrentTransaction = optionalRecurrentTransaction.get();
@@ -971,7 +968,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         foundRecurrentTransaction.setTotalChargeCount(totalChargeCount);
                         foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
                                 date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
-                        recurrentPaymentRepository.save(foundRecurrentTransaction);
+                        recurrentTransactionRepository.save(foundRecurrentTransaction);
                     }
                 }
             } else {

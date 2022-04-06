@@ -1,7 +1,7 @@
 package com.wayapaychat.paymentgateway.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wayapaychat.paymentgateway.pojo.AuthenticatedUser;
+import com.wayapaychat.paymentgateway.pojo.waya.AuthenticatedUser;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

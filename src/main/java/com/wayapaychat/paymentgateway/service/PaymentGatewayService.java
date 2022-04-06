@@ -4,7 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wayapaychat.paymentgateway.common.utils.QueryCustomerTransaction;
+import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
@@ -12,7 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
-import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
@@ -71,7 +71,7 @@ public interface PaymentGatewayService {
 
 	ResponseEntity<?> updatePaymentStatus(String refNo);
 
-	ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransaction queryCustomerTransaction, Pageable pageable);
+	ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryCustomerTransactionPojo, Pageable pageable);
 
-	Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransaction queryPojo, Pageable pageable);
+	Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, Pageable pageable);
 }

@@ -1,7 +1,7 @@
 package com.wayapaychat.paymentgateway.common.utils;
 
 import com.wayapaychat.paymentgateway.enumm.Permit;
-import com.wayapaychat.paymentgateway.pojo.AuthenticatedUser;
+import com.wayapaychat.paymentgateway.pojo.waya.AuthenticatedUser;
 
 import java.util.List;
 

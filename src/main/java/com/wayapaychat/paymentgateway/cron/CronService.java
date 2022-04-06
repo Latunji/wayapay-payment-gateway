@@ -47,7 +47,6 @@ public class CronService {
     @Scheduled(cron = "*/5 * * * * *")
     private void runEveryFiveSeconds() {
         updateTransactionStatus();
-        processFundMerchantWalletAccount();
     }
 
     @Scheduled(cron = "0 0 0 * * *")
@@ -130,25 +129,6 @@ public class CronService {
         }).start();
     }
 
-    private void processFundMerchantWalletAccount() {
-        new Thread(() -> {
-            List<PaymentGateway> payment = paymentGatewayRepo.findAllNotFlaggedAndSuccessful();
-            for (PaymentGateway mPayment : payment) {
-                try {
-                    PaymentGateway sPayment = paymentGatewayRepo.findByRefNo(mPayment.getRefNo()).orElse(null);
-                    if (ObjectUtils.isEmpty(sPayment))
-                        continue;
-                    FundEventResponse response = uniPayProxy.postTransactionPosition(paymentGateWayCommonUtils.getDaemonAuthToken(), mPayment);
-                    if (response.getPostedFlg() && (!response.getTranId().isBlank())) {
-                        sPayment.setTranflg(true);
-                        paymentGatewayRepo.save(sPayment);
-                    }
-                } catch (Exception ex) {
-                    log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());
-                }
-            }
-        }).start();
-    }
 
     private void processNextRecurrentTransaction() {
         new Thread(() -> {

@@ -249,23 +249,23 @@ public class PaymentGatewayController {
     }
 
 
-    @ApiOperation(value = "Get All Revenue", notes = "Test recurrent transaction")
-    @GetMapping("/test-recurrent-payment")
-    public ResponseEntity<String> testRecurrentPayment() throws JsonProcessingException, URISyntaxException {
-        Optional<PaymentGateway> paymentGateway = paymentGatewayRepo.findByTranId("18145");
-        if (paymentGateway.isPresent()) {
-            //test 1
-//            PaymentGateway paymentGateway1 = paymentGateway.get();
-//            unifiedPayment.recurrentTransaction(paymentGateway1);
-
-            //test 2
-            WayaCallbackRequest wayaPaymentCallback = new WayaCallbackRequest();
-            wayaPaymentCallback.setApproved(true);
-            wayaPaymentCallback.setTrxId("18145");
-            wayaPaymentCallback.setStatus("APPROVED");
-            paymentGatewayService.updatePaymentStatus(wayaPaymentCallback);
-
-        }
-        return null;
-    }
+//    @ApiOperation(value = "Get All Revenue", notes = "Test recurrent transaction")
+//    @GetMapping("/test-recurrent-payment")
+//    public ResponseEntity<String> testRecurrentPayment() throws JsonProcessingException, URISyntaxException {
+//        Optional<PaymentGateway> paymentGateway = paymentGatewayRepo.findByTranId("18145");
+//        if (paymentGateway.isPresent()) {
+//            //test 1
+////            PaymentGateway paymentGateway1 = paymentGateway.get();
+////            unifiedPayment.recurrentTransaction(paymentGateway1);
+//
+//            //test 2
+////            WayaCallbackRequest wayaPaymentCallback = new WayaCallbackRequest();
+////            wayaPaymentCallback.setApproved(true);
+////            wayaPaymentCallback.setTrxId("18145");
+////            wayaPaymentCallback.setStatus("APPROVED");
+////            paymentGatewayService.updatePaymentStatus(wayaPaymentCallback);
+//
+//        }
+//        return null;
+//    }
 }

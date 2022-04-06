@@ -25,5 +25,5 @@ public interface RecurrentTransactionRepository extends JpaRepository<RecurrentT
     Page<RecurrentTransaction> getTransactionByCustomerId(String customerId, String merchantId, Pageable pageable);
 
     @Query(value = "SELECT * FROM m_recurrent_transaction WHERE deleted = false AND recurrent_transaction_id=:recurrentTransactionId AND merchant_id=:merchantId", nativeQuery = true)
-    Optional<RecurrentTransaction> getByRecurrentTransactionId(String recurrentTransactionId, String merchantId, Pageable pageable);
+    Optional<RecurrentTransaction> getByRecurrentTransactionId(String recurrentTransactionId, String merchantId);
 }

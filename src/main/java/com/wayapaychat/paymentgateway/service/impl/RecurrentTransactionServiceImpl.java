@@ -47,12 +47,12 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
     @Override
     public ResponseEntity<PaymentGatewayResponse> getCustomerRecurrentTransaction(String merchantId, String customerId, Pageable pageable) {
         return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
-                getCustomerRecurrentTransactionById(customerId, merchantId, pageable)), HttpStatus.OK);
+                getCustomerRecurrentTransactionById(customerId, merchantId)), HttpStatus.OK);
     }
 
     @Override
-    public RecurrentTransaction getCustomerRecurrentTransactionById(final String recurrentTransactionId, final String merchantId, Pageable pageable) {
-        Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByRecurrentTransactionId(recurrentTransactionId, merchantId, pageable);
+    public RecurrentTransaction getCustomerRecurrentTransactionById(final String recurrentTransactionId, final String merchantId) {
+        Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByRecurrentTransactionId(recurrentTransactionId, merchantId);
         if (optionalRecurrentTransaction.isPresent())
             return optionalRecurrentTransaction.get();
         else

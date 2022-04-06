@@ -131,7 +131,7 @@ public class RecurrentTransaction extends GenericBaseEntity {
         if (ObjectUtils.isEmpty(applyDateAfterFirstPayment))
             this.applyDateAfterFirstPayment = false;
         if (ObjectUtils.isEmpty(recurrentPaymentId))
-            recurrentPaymentId = "REC_PAY_" + RandomStringUtils.randomAlphanumeric(5)
+            recurrentPaymentId = "RTX_" + RandomStringUtils.randomAlphanumeric(5)
                     + System.currentTimeMillis()
                     + RandomStringUtils.randomAlphanumeric(5);
     }

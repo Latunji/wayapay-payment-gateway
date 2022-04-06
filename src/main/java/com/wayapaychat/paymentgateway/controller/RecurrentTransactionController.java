@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class RecurrentTransactionController {
     private final RecurrentTransactionService recurrentTransactionService;
 
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+//    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions")
     public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerRecurrentSubscription(QueryRecurrentTransactionPojo queryCustomerTransactionPojo) {

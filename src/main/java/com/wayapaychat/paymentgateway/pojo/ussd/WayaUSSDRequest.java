@@ -2,7 +2,7 @@ package com.wayapaychat.paymentgateway.pojo.ussd;
 
 import java.math.BigDecimal;
 
-import com.wayapaychat.paymentgateway.pojo.Customer;
+import com.wayapaychat.paymentgateway.pojo.waya.Customer;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

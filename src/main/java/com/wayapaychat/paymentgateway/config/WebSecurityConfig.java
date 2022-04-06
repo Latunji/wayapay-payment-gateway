@@ -3,9 +3,7 @@ package com.wayapaychat.paymentgateway.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
@@ -34,6 +32,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/callback", "/waya/callback")
                 .permitAll()
                 .antMatchers("/api/v1/report/query/**").fullyAuthenticated()
+                .antMatchers("/api/v1/transactions/**").fullyAuthenticated()
+                .antMatchers("/api/v1/test-recurrent-payment/**").permitAll()
+                .antMatchers("/api/v1/recurrent-transactions/**").fullyAuthenticated()
                 .antMatchers("/api/v1/revenue/query/**").fullyAuthenticated()
 //                .antMatchers("/api/v1/transaction/status/**").fullyAuthenticated()
                 .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**", "/actuator/**", "/webjars/**", "/api/v1/**").permitAll()

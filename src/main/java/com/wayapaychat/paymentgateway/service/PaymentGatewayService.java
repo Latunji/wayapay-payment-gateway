@@ -2,12 +2,18 @@ package com.wayapaychat.paymentgateway.service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
+import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
-import com.wayapaychat.paymentgateway.pojo.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
@@ -20,7 +26,7 @@ import org.springframework.mobile.device.Device;
 import java.net.URISyntaxException;
 
 public interface PaymentGatewayService {
-	ResponseEntity<?> WalletPaymentQR(HttpServletRequest request, WayaQRRequest account);
+	ResponseEntity<?> walletPaymentQR(HttpServletRequest request, WayaQRRequest account);
 	
 	ResponseEntity<?> initiateWalletPayment(HttpServletRequest request, WayaWalletRequest account);
 	
@@ -33,8 +39,10 @@ public interface PaymentGatewayService {
 	ResponseEntity<?> processWalletPayment(HttpServletRequest request, WayaWalletPayment payment, String token);
 	
 	PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException;
-	
-	ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card);
+
+	RecurrentTransaction preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway);
+
+	ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) throws JsonProcessingException;
 	
 	PaymentGatewayResponse processCardTransaction(HttpServletRequest request, HttpServletResponse response, WayaPaymentCallback pay);
 	
@@ -63,4 +71,10 @@ public interface PaymentGatewayService {
 	ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest wayaCallbackRequest) throws URISyntaxException;
 
 	ResponseEntity<?> updatePaymentStatus(String refNo);
+
+	ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryCustomerTransactionPojo, Pageable pageable);
+
+	Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, Pageable pageable);
+
+	void updateRecurrentTransaction(@NotNull PaymentGateway paymentGateway);
 }

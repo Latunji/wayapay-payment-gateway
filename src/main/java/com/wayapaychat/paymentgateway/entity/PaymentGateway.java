@@ -9,10 +9,12 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import lombok.*;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -77,7 +79,6 @@ public class PaymentGateway {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
-    @JsonIgnore
     private LocalDate vendorDate;
     private String merchantName;
     private String customerName;
@@ -86,6 +87,7 @@ public class PaymentGateway {
     private String customerPhone;
     @Enumerated(EnumType.STRING)
     private PaymentChannel channel;
+    private String customerId;
     private boolean tranflg;
     @Column(name = "customer_ip_address", columnDefinition = "VARCHAR(100)")
     private String customerIpAddress;
@@ -96,4 +98,19 @@ public class PaymentGateway {
     private String maskedPan;
     @Column(name = "payment_link")
     private String paymentLinkId;
+    @Column(name = "recurrent_payment_id")
+    private Long recurrentPaymentId;
+    @Column(name = "is_from_recurrent_payment")
+    private Boolean isFromRecurrentPayment;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mode", columnDefinition = "VARCHAR(255)")
+    private MerchantTransactionMode mode;
+    @Column(name = "session_id")
+    private String sessionId;
+
+    @PrePersist
+    void prePersist() {
+        if (ObjectUtils.isEmpty(isFromRecurrentPayment))
+            isFromRecurrentPayment = false;
+    }
 }

@@ -2,9 +2,9 @@ package com.wayapaychat.paymentgateway.config;
 
 import com.wayapaychat.paymentgateway.SpringApplicationContext;
 import com.wayapaychat.paymentgateway.exception.CustomException;
-import com.wayapaychat.paymentgateway.pojo.TokenCheckResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.TokenCheckResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
-import com.wayapaychat.paymentgateway.service.GetUserDataService;
+import com.wayapaychat.paymentgateway.service.impl.GetUserDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -6,10 +6,10 @@ import com.wayapaychat.paymentgateway.enumm.EventCategory;
 import com.wayapaychat.paymentgateway.enumm.EventType;
 import com.wayapaychat.paymentgateway.enumm.ProductType;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
-import com.wayapaychat.paymentgateway.pojo.LoginRequest;
-import com.wayapaychat.paymentgateway.pojo.NotificationPojo;
-import com.wayapaychat.paymentgateway.pojo.PaymentData;
-import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.LoginRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.NotificationPojo;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentData;
+import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationReceiver;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceResponse;
@@ -130,7 +130,7 @@ public class PaymemtGatewayEntityListener {
         log.info("------||||NOTIFICATION SERVICE RESPONSE {}||||--------", notificationServiceResponse1);
     }
 
-    private String getDaemonAuthToken() throws Exception {
+    private static String getDaemonAuthToken() throws Exception {
         TokenAuthResponse authToken = authApiClient.authenticateUser(
                 LoginRequest.builder()
                         .password(variableUtil.getPassword())

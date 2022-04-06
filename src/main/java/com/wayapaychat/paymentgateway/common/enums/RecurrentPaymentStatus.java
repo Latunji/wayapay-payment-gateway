@@ -5,5 +5,7 @@ public enum RecurrentPaymentStatus {
     CANCELLED,
     ACTIVE,
     PENDING,
-    IN_ACTIVE
+    IN_ACTIVE,
+    EXPIRED,
+    AWAITING_PAYMENT
 }

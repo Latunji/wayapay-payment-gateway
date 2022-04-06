@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -26,4 +27,15 @@ public interface RecurrentTransactionRepository extends JpaRepository<RecurrentT
 
     @Query(value = "SELECT * FROM m_recurrent_transaction WHERE deleted = false AND recurrent_transaction_id=:recurrentTransactionId AND merchant_id=:merchantId", nativeQuery = true)
     Optional<RecurrentTransaction> getByRecurrentTransactionId(String recurrentTransactionId, String merchantId);
+
+    @Query(value = "SELECT * FROM m_recurrent_transaction WHERE deleted=false AND status='ACTIVE' AND CURRENT_TIMESTAMP >= CAST( next_charge_date AS TIMESTAMP ) ", nativeQuery = true)
+    List<RecurrentTransaction> findNextRecurrentTransaction();
+
+    @Query(value = "SELECT * FROM m_recurrent_transaction WHERE deleted=false AND CURRENT_TIMESTAMP >= CAST( next_charge_date AS TIMESTAMP ) " +
+            "AND status='AWAITING_PAYMENT'", nativeQuery = true)
+    List<RecurrentTransaction> findAllAwaitingPayment();
+
+    @Query(value = "SELECT * FROM m_recurrent_transaction WHERE deleted=false AND CURRENT_TIMESTAMP >= CAST( next_charge_date AS TIMESTAMP ) " +
+            "AND status='ACTIVE' AND max_charge_count = total_charge_count ", nativeQuery = true)
+    List<RecurrentTransaction> findAllExpiredRecurrentTransaction();
 }

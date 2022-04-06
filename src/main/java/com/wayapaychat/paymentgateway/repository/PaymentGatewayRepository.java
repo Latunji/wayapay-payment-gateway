@@ -46,4 +46,6 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
             " AND status=:status AND channel=:channel AND customer_id=:customerId AND merchant_id=:merchantId", nativeQuery = true)
     Page<PaymentGateway> findByCustomerIdChannelStatus(String customerId, String merchantId, String status, String channel, Pageable pageable);
 
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE tranflg = false AND ( status = 'SUCCESSFUL' OR status = 'TRANSACTION_COMPLETED' ) ", nativeQuery = true)
+    List<PaymentGateway> findAllNotFlaggedAndSuccessful();
 }

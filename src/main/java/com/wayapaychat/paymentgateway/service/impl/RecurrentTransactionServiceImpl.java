@@ -1,7 +1,7 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
-import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
+import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.QueryRecurrentTransactionPojo;
@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 
 @Service
@@ -34,11 +36,26 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
         MerchantData merchantResponse = merchantProxy.getMerchantAccount().getData();
         String merchantId = merchantResponse.getMerchantId();
         return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
-                getCustomerTransaction(customerId, merchantId, pageable)), HttpStatus.OK);
+                getCustomerRecurrentTransactions(customerId, merchantId, pageable)), HttpStatus.OK);
     }
 
     @Override
-    public Page<RecurrentTransaction> getCustomerTransaction(final String customerId, final String merchantId, Pageable pageable) {
+    public Page<RecurrentTransaction> getCustomerRecurrentTransactions(final String customerId, final String merchantId, Pageable pageable) {
         return recurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
+    }
+
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getCustomerRecurrentTransaction(String merchantId, String customerId, Pageable pageable) {
+        return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
+                getCustomerRecurrentTransactionById(customerId, merchantId, pageable)), HttpStatus.OK);
+    }
+
+    @Override
+    public RecurrentTransaction getCustomerRecurrentTransactionById(final String recurrentTransactionId, final String merchantId, Pageable pageable) {
+        Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByRecurrentTransactionId(recurrentTransactionId, merchantId, pageable);
+        if (optionalRecurrentTransaction.isPresent())
+            return optionalRecurrentTransaction.get();
+        else
+            throw new ApplicationException(404, "01", "Not found");
     }
 }

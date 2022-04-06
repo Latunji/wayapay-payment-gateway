@@ -70,8 +70,8 @@ public class RecurrentTransaction extends GenericBaseEntity {
     @Column(name = "customer_email")
     private String customerEmail;
 
-    @Column(name = "recurrent_payment_id")
-    private String recurrentPaymentId;
+    @Column(name = "recurrent_transaction_id")
+    private String recurrentTransactionId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_link_type")
@@ -130,8 +130,8 @@ public class RecurrentTransaction extends GenericBaseEntity {
             this.totalChargeCount = 0;
         if (ObjectUtils.isEmpty(applyDateAfterFirstPayment))
             this.applyDateAfterFirstPayment = false;
-        if (ObjectUtils.isEmpty(recurrentPaymentId))
-            recurrentPaymentId = "RTX_" + RandomStringUtils.randomAlphanumeric(5)
+        if (ObjectUtils.isEmpty(recurrentTransactionId))
+            recurrentTransactionId = "RTX_" + RandomStringUtils.randomAlphanumeric(5)
                     + System.currentTimeMillis()
                     + RandomStringUtils.randomAlphanumeric(5);
     }

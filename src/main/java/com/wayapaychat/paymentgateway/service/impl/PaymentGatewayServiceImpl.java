@@ -102,18 +102,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         try {
-            LoginRequest auth = new LoginRequest();
-            auth.setEmailOrPhoneNumber(username);
-            auth.setPassword(passSecret);
-            TokenAuthResponse authToken = authProxy.authenticateUser(auth);
-            log.info("Response: " + authToken.toString());
-            if (!authToken.getStatus()) {
-                return new PaymentGatewayResponse(false, "Unable to authenticate Demon User", null);
-            }
-            PaymentData payData = authToken.getData();
-            String token = payData.getToken();
-
             MerchantResponse merchant = null;
+            String token = paymentGateWayCommonUtils.getDaemonAuthToken();
             try {
                 merchant = merchantProxy.getMerchantInfo(token, transactionRequestPojo.getMerchantId());
             } catch (Exception ex) {
@@ -987,6 +977,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 foundRecurrentTransaction.setActive(true);
                 foundRecurrentTransaction.setStatus(RecurrentPaymentStatus.ACTIVE);
                 foundRecurrentTransaction.setLastChargeDate(date);
+                foundRecurrentTransaction.setUpSessionId(paymentGateway.getSessionId());
                 foundRecurrentTransaction.setTotalChargeCount(totalChargeCount);
                 foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
                         date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);

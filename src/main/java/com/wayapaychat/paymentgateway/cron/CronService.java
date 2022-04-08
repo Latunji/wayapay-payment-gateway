@@ -5,14 +5,12 @@ import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
-import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.impl.UnifiedPaymentProxy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,12 +44,12 @@ public class CronService {
 
     @Scheduled(cron = "*/5 * * * * *")
     private void runEveryFiveSeconds() {
-        updateTransactionStatus();
+//        updateTransactionStatus();
     }
 
     @Scheduled(cron = "0 0 0 * * *")
     private void runEveryDay() {
-        processNextRecurrentTransaction();
+//        processNextRecurrentTransaction();
     }
 
     private void updateTransactionStatus() {

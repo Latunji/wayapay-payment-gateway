@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.*;
 public interface IdentityManager {
 
     @GetMapping("/waya-merchant/{merchantId}")
-	MerchantResponse getMerchantDetail(@RequestHeader("Authorization") String authorization, @PathVariable("merchantId") String merchantId);
+    MerchantResponse getMerchantDetail(@RequestHeader("Authorization") String authorization, @PathVariable("merchantId") String merchantId);
 
     @PostMapping("/webpos/customer/no-auth")
-	MerchantCustomer postCustomerCreate(@RequestBody CustomerRequest request, @RequestHeader("authorization") String token);
+    MerchantCustomer postCustomerCreate(@RequestBody CustomerRequest request, @RequestHeader("authorization") String token);
 
     @GetMapping("/waya-merchant/auth-user/merchant-account")
-	MerchantResponse getMerchantAccount();
+    MerchantResponse getMerchantAccount(@RequestHeader("Authorization") String authorization);
 
     @GetMapping("/webpos/payment-link/no-auth/fetch/{paymentLinkId}")
-    PaymentLinkResponsePojo getPaymentLinkDetailsById(@PathVariable("paymentLinkId") String paymentLinkId);
+    PaymentLinkResponsePojo getPaymentLinkDetailsById(@RequestHeader("Authorization") String authorization, @PathVariable("paymentLinkId") String paymentLinkId);
 }

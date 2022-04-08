@@ -39,7 +39,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mobile.device.Device;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -209,7 +208,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         @NotNull final String ORDER_TYPE = "Purchase";
         @NotNull final String DATE_SEPARATOR = "/";
         @NotNull final String PAY_ATTITUDE = "PayAttitude";
-        PaymentLinkResponse paymentLinkResponse = identManager.getPaymentLinkDetailsById(card.getPaymentLinkId()).getData();
+        PaymentLinkResponse paymentLinkResponse = identManager.getPaymentLinkDetailsById(paymentGateWayCommonUtils.getDaemonAuthToken(), card.getPaymentLinkId()).getData();
         cardRequest.setRecurring(true);
 
         if (paymentLinkResponse.getPaymentLinkType() == PaymentLinkType.ONE_TIME_PAYMENT_LINK) {
@@ -387,9 +386,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone()),
                         mPay.getPreferenceNo());
                 String tranId = uniPaymentProxy.postUnified(mAccount);
-                if (ObjectUtils.isEmpty(tranId)) {
-                    return new PaymentGatewayResponse(false, "Failed to process transaction authentication. Please try again later!", null);
-                }
+                if (ObjectUtils.isEmpty(tranId))
+                    return new PaymentGatewayResponse(false, "Failed to initiate post tranId for 3D Authentication.", null);
                 mPay.setTranId(tranId);
                 paymentGatewayRepo.save(mPay);
                 String callReq = uniPaymentProxy.buildUnifiedPaymentURLWithPayload(tranId, pay.getCardEncrypt(), false);

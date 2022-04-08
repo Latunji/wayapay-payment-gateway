@@ -1,5 +1,6 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
+import com.wayapaychat.paymentgateway.config.FeignClientInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +40,6 @@ public class MerchantProxy {
 	}
 
 	public MerchantResponse getMerchantAccount() {
-		return identManager.getMerchantAccount();
+		return identManager.getMerchantAccount(FeignClientInterceptor.getBearerTokenHeader());
 	}
 }

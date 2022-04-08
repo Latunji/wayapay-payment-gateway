@@ -47,7 +47,7 @@ public class CronService {
 
     @Scheduled(cron = "*/5 * * * * *")
     private void runEveryFiveSeconds() {
-//        updateTransactionStatus();
+        updateTransactionStatus();
     }
 
     @Scheduled(cron = "0 0 0 * * *")

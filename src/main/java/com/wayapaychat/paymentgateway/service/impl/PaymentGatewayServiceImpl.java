@@ -532,7 +532,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setChannel(PaymentChannel.WALLET);
             paymentGatewayRepo.save(payment);
 
-            if (payment.isSuccessfailure() && payment.getStatus().name().equals("TRANSACTION_COMPLETED")) {
+            if (payment.isSuccessfailure() && payment.getStatus().name().equals("SUCCESSFUL")) {
                 return new ResponseEntity<>(
                         new ErrorResponse("TRANSACTION ALREADY COMPLETED FOR REFERENCE NUMBER :" + payment.getRefNo()),
                         HttpStatus.BAD_REQUEST);
@@ -634,7 +634,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             MerchantData sMerchant = merchant.getData();
             ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
             payment.setChannel(PaymentChannel.QR);
-            payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
+            payment.setStatus(TransactionStatus.PENDING);
 
             WalletQRResponse tranRep = uniPaymentProxy.postQRTransaction(payment, token, account);
             if (tranRep != null) {
@@ -700,7 +700,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setCustomerEmail(account.getCustomer().getEmail());
             payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
             payment.setChannel(PaymentChannel.WALLET);
-            payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
+            payment.setStatus(TransactionStatus.PENDING);
             String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(vt);
             payment.setTranId(account.getReferenceNo());
@@ -770,7 +770,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setCustomerEmail(account.getCustomer().getEmail());
             payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
             payment.setChannel(PaymentChannel.USSD);
-            payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
+            payment.setStatus(TransactionStatus.PENDING);
             payment.setVendorDate(LocalDate.now());
             PaymentGateway pay = paymentGatewayRepo.save(payment);
             USSDResponse ussd = new USSDResponse();
@@ -959,9 +959,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public void updateRecurrentTransaction(@NotNull final PaymentGateway paymentGateway) {
-        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
-                || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED
-        ) {
+        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
             Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByTransactionRef(paymentGateway.getRefNo());
             if (optionalRecurrentTransaction.isPresent()) {
                 LocalDateTime date = LocalDateTime.now();

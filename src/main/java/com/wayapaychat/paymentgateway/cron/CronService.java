@@ -12,14 +12,12 @@ import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.impl.UnifiedPaymentProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,7 +39,7 @@ public class CronService {
     private RecurrentTransactionRepository recurrentTransactionRepository;
     @Value("${service.name}")
     private String username;
-    private ExecutorService executorService = Executors.newWorkStealingPool(10);
+    private final ExecutorService executorService = Executors.newWorkStealingPool(10);
 
     @Value("${service.pass}")
     private String passSecret;
@@ -49,7 +47,7 @@ public class CronService {
 
     @Scheduled(cron = "*/5 * * * * *")
     private void runEveryFiveSeconds() {
-        updateTransactionStatus();
+//        updateTransactionStatus();
     }
 
     @Scheduled(cron = "0 0 0 * * *")
@@ -96,9 +94,8 @@ public class CronService {
             mPay.setStatus(TransactionStatus.SUCCESSFUL);
             mPay.setSuccessfailure(true);
             mPay.setSessionId(query.getSessionId());
-            if (mPay.getIsFromRecurrentPayment()) {
+            if (mPay.getIsFromRecurrentPayment())
                 paymentService.updateRecurrentTransaction(mPay);
-            }
         } else if (query.getStatus().contains("REJECT")) {
             mPay.setStatus(TransactionStatus.FAILED);
             mPay.setSuccessfailure(false);

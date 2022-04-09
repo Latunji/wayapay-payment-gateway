@@ -16,6 +16,7 @@
     <name>WAYA-PAY-CHAT-2.0-PAYMENTGATEWAY-SERVICE</name>
     <description>WAYA PAYMENT GATEWAY SERVICE</description>
     <properties>
+        <flyway.version>7.11.0</flyway.version>
         <java.version>11</java.version>
         <spring-cloud.version>2020.0.3</spring-cloud.version>
         <vladmihalcea.version>2.10.0</vladmihalcea.version>
@@ -75,11 +76,6 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -122,6 +118,11 @@
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
             <version>3.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
         </dependency>
 
         <dependency>

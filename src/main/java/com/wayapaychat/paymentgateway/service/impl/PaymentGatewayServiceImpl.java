@@ -849,12 +849,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // PAYMENT_GATEWAY_TRANSACTION
     @Override
     public ResponseEntity<?> abandonTransaction(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
-        PaymentGateway mPay = null;
-        try {
-            mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        PaymentGateway mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
         if (mPay == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
         mPay.setStatus(TransactionStatus.ABANDONED);
@@ -865,14 +860,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId) {
         @NotNull final String queryWithMerchantId = paymentGateWayCommonUtils.validateUserAndGetMerchantId(merchantId);
-        WalletRevenue revenue = new WalletRevenue();
-        try {
-            revenue = wayaPayment.getRevenue(queryWithMerchantId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (revenue == null)
-            return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+        WalletRevenue revenue = wayaPayment.getRevenue(queryWithMerchantId);
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
 
@@ -880,14 +868,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
         if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
             throw new ApplicationException(403, "01", "Oops! Operation not allowed.");
-        List<WalletRevenue> revenue = new ArrayList<>();
-        try {
-            revenue = wayaPayment.getRevenue();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (revenue == null)
-            return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+        List<WalletRevenue> revenue = wayaPayment.getRevenue();
         return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
     }
 

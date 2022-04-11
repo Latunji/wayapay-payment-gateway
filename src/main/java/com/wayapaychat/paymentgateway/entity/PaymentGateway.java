@@ -11,6 +11,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
+import com.wayapaychat.paymentgateway.enumm.AccountSettlementOption;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import lombok.*;
@@ -68,6 +69,11 @@ public class PaymentGateway {
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate tranDate;
+    @Column(name = "settlement_date", columnDefinition = "TIMESTAMPTZ DEFAULT NULL")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @JsonSerialize(using = LocalDateSerializer.class)
+    private LocalDate settlementDate;
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -107,10 +113,22 @@ public class PaymentGateway {
     private MerchantTransactionMode mode;
     @Column(name = "session_id")
     private String sessionId;
+    @Column(name = "account_settled_to")
+    private String accountSettledTo; //account number settled to
+    @Column(name = "account_settlement_option")
+    @Enumerated(EnumType.STRING)
+    private AccountSettlementOption accountSettlementOption; // WALLET or BANK
+    @JsonIgnore
+    @Column(name = "processing_fee")
+    private BigDecimal processingFee = BigDecimal.ZERO; //Third party processing fee
+    @JsonIgnore
+    @Column(name = "wayapay_fee")
+    private BigDecimal wayapayFee = BigDecimal.ZERO;
 
     @PrePersist
     void prePersist() {
         if (ObjectUtils.isEmpty(isFromRecurrentPayment))
             isFromRecurrentPayment = false;
+        fee = wayapayFee.add(processingFee);
     }
 }

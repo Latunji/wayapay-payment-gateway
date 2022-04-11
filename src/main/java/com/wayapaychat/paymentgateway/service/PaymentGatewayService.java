@@ -1,80 +1,79 @@
 package com.wayapaychat.paymentgateway.service;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
-import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
+import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
+import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-
-import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
-import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
-import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
-import com.wayapaychat.paymentgateway.pojo.waya.WayaAuthenicationRequest;
-import com.wayapaychat.paymentgateway.pojo.waya.WayaPaymentStatus;
-import com.wayapaychat.paymentgateway.pojo.waya.WayaQRRequest;
-import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletPayment;
-import com.wayapaychat.paymentgateway.pojo.waya.WayaWalletRequest;
 import org.springframework.mobile.device.Device;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 import java.net.URISyntaxException;
 
 public interface PaymentGatewayService {
-	ResponseEntity<?> walletPaymentQR(HttpServletRequest request, WayaQRRequest account);
-	
-	ResponseEntity<?> initiateWalletPayment(HttpServletRequest request, WayaWalletRequest account);
-	
-	ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo);
-	
-	ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, WayaUSSDRequest account);
+    ResponseEntity<?> walletPaymentQR(HttpServletRequest request, WayaQRRequest account);
 
-	ResponseEntity<?> walletAuthentication(HttpServletRequest request, WayaAuthenicationRequest account);
-	
-	ResponseEntity<?> processWalletPayment(HttpServletRequest request, WayaWalletPayment payment, String token);
-	
-	PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException;
+    ResponseEntity<?> initiateWalletPayment(HttpServletRequest request, WayaWalletRequest account);
 
-	RecurrentTransaction preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway);
+    ResponseEntity<?> updateUSSDTransaction(HttpServletRequest request, WayaUSSDPayment account, String refNo);
 
-	ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) throws JsonProcessingException;
-	
-	PaymentGatewayResponse processCardTransaction(HttpServletRequest request, HttpServletResponse response, WayaPaymentCallback pay);
-	
-	PaymentGatewayResponse payAttitudeCallback(HttpServletRequest request, WayaPaymentCallback pay);
-	
-	ResponseEntity<?> getTransactionStatus(HttpServletRequest req, String tranId);
-	
-	ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo);
-	
-	WayaTransactionQuery getTransactionStatus(String tranId);
-	
-	PaymentGatewayResponse encryptCard(HttpServletRequest request, WayaEncypt pay);
-	
-	PaymentGatewayResponse decryptCard(HttpServletRequest request, WayaDecypt pay);
-	
-	ResponseEntity<?> queryTranStatus(HttpServletRequest req);
-	
-	ResponseEntity<?> getMerchantTransactionReport(HttpServletRequest req, String merchantId);
-	
-	ResponseEntity<?> abandonTransaction(HttpServletRequest request, final String refNo, WayaPaymentStatus pay);
-	
-	ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId);
-	
-	ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req);
+    ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, WayaUSSDRequest account);
 
-	ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest wayaCallbackRequest) throws URISyntaxException;
+    ResponseEntity<?> walletAuthentication(HttpServletRequest request, WayaAuthenicationRequest account);
 
-	ResponseEntity<?> updatePaymentStatus(String refNo);
+    ResponseEntity<?> processWalletPayment(HttpServletRequest request, WayaWalletPayment payment, String token);
 
-	ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryCustomerTransactionPojo, Pageable pageable);
+    PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException;
 
-	Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, Pageable pageable);
+    void preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway);
 
-	void updateRecurrentTransaction(@NotNull PaymentGateway paymentGateway);
+    ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) throws JsonProcessingException;
+
+    PaymentGatewayResponse processCardTransaction(HttpServletRequest request, HttpServletResponse response, WayaPaymentCallback pay);
+
+    PaymentGatewayResponse payAttitudeCallback(HttpServletRequest request, WayaPaymentCallback pay);
+
+    ResponseEntity<?> getTransactionStatus(HttpServletRequest req, String tranId);
+
+    ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo);
+
+    WayaTransactionQuery getTransactionStatus(String tranId);
+
+    PaymentGatewayResponse encryptCard(HttpServletRequest request, WayaEncypt pay);
+
+    PaymentGatewayResponse decryptCard(HttpServletRequest request, WayaDecypt pay);
+
+    ResponseEntity<?> queryTranStatus(HttpServletRequest req);
+
+    ResponseEntity<?> getMerchantTransactionReport(HttpServletRequest req, String merchantId);
+
+    ResponseEntity<?> abandonTransaction(HttpServletRequest request, final String refNo, WayaPaymentStatus pay);
+
+    ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId);
+
+    ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req);
+
+    ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest wayaCallbackRequest) throws URISyntaxException;
+
+    ResponseEntity<?> updatePaymentStatus(String refNo);
+
+    ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryCustomerTransactionPojo, Pageable pageable);
+
+    Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, Pageable pageable);
+
+    void updateRecurrentTransaction(@NotNull PaymentGateway paymentGateway);
+
+    ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(@NotNull final String merchantId, Long year);
+
+    ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(@NotNull final String merchantId);
+
+    ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId);
 }

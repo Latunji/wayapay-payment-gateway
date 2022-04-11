@@ -62,8 +62,7 @@ public class PaymemtGatewayEntityListener {
             SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
             log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
                     paymentGateway.getTranId());
-            if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
-                    || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED) {
+            if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
                 NotificationPojo notificationPojo = NotificationPojo
                         .builder()
                         .paymentChannel(paymentGateway.getChannel())

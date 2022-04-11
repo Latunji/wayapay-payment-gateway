@@ -6,6 +6,7 @@ import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
 import com.wayapaychat.paymentgateway.common.enums.RecurrentPaymentStatus;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
+import com.wayapaychat.paymentgateway.dao.WayaPaymentDAOImpl;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
@@ -20,6 +21,13 @@ import com.wayapaychat.paymentgateway.pojo.ussd.USSDResponse;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantCustomer;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionOverviewResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionRevenueStats;
+import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionYearMonthStats;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
@@ -39,7 +47,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mobile.device.Device;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -63,6 +70,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private static final Integer DEFAULT_CARD_LENGTH = 20;
     private final Random rnd = new Random();
     private final ModelMapper modelMapper = new ModelMapper();
+    private final String DEFAULT_SUCCESS_MESSAGE = "Data fetched successfully";
     @Autowired
     private UnifiedPaymentProxy uniPaymentProxy;
     @Autowired
@@ -97,23 +105,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private PaymentGateWayCommonUtils paymentGateWayCommonUtils;
     @Autowired
     private GetUserDataService getUserDataService;
+    @Autowired
+    private WayaPaymentDAOImpl wayaPaymentDAO;
 
     @Override
     public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         try {
-            LoginRequest auth = new LoginRequest();
-            auth.setEmailOrPhoneNumber(username);
-            auth.setPassword(passSecret);
-            TokenAuthResponse authToken = authProxy.authenticateUser(auth);
-            log.info("Response: " + authToken.toString());
-            if (!authToken.getStatus()) {
-                return new PaymentGatewayResponse(false, "Unable to authenticate Demon User", null);
-            }
-            PaymentData payData = authToken.getData();
-            String token = payData.getToken();
-
             MerchantResponse merchant = null;
+            String token = paymentGateWayCommonUtils.getDaemonAuthToken();
             try {
                 merchant = merchantProxy.getMerchantInfo(token, transactionRequestPojo.getMerchantId());
             } catch (Exception ex) {
@@ -212,14 +212,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public RecurrentTransaction preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
+    public void preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
         //TODO: UP For pay attitude, These fields are not present to tell when the
         // The recurring payment should happen
         // frequency , OrderExpirationPeriod
         @NotNull final String ORDER_TYPE = "Purchase";
         @NotNull final String DATE_SEPARATOR = "/";
         @NotNull final String PAY_ATTITUDE = "PayAttitude";
-        PaymentLinkResponse paymentLinkResponse = identManager.getPaymentLinkDetailsById(card.getPaymentLinkId()).getData();
+        PaymentLinkResponse paymentLinkResponse = identManager.getPaymentLinkDetailsById(paymentGateWayCommonUtils.getDaemonAuthToken(), card.getPaymentLinkId()).getData();
         cardRequest.setRecurring(true);
 
         if (paymentLinkResponse.getPaymentLinkType() == PaymentLinkType.ONE_TIME_PAYMENT_LINK) {
@@ -246,7 +246,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 recurrentTransaction.setDateModified(LocalDateTime.now());
                 recurrentTransaction.setModifiedBy(0L);
                 preprocessCardRequest(paymentLinkResponse, cardRequest);
-                return recurrentTransaction;
+                return;
             }
         }
 
@@ -276,7 +276,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         paymentGateway.setRecurrentPaymentId(recurrentTransaction.getId());
         paymentGateway.setPaymentLinkId(recurrentTransaction.getPaymentLinkId());
         paymentGateway.setIsFromRecurrentPayment(true);
-        return recurrentTransaction;
     }
 
     private void preprocessCardRequest(PaymentLinkResponse paymentLinkResponse, UnifiedCardRequest cardRequest) {
@@ -397,9 +396,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone()),
                         mPay.getPreferenceNo());
                 String tranId = uniPaymentProxy.postUnified(mAccount);
-                if (ObjectUtils.isEmpty(tranId)) {
-                    return new PaymentGatewayResponse(false, "Failed to process transaction authentication. Please try again later!", null);
-                }
+                if (ObjectUtils.isEmpty(tranId))
+                    return new PaymentGatewayResponse(false, "Failed to initiate post tranId for 3D Authentication.", null);
                 mPay.setTranId(tranId);
                 paymentGatewayRepo.save(mPay);
                 String callReq = uniPaymentProxy.buildUnifiedPaymentURLWithPayload(tranId, pay.getCardEncrypt(), false);
@@ -544,7 +542,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setChannel(PaymentChannel.WALLET);
             paymentGatewayRepo.save(payment);
 
-            if (payment.isSuccessfailure() && payment.getStatus().name().equals("TRANSACTION_COMPLETED")) {
+            if (payment.isSuccessfailure() && payment.getStatus().name().equals("SUCCESSFUL")) {
                 return new ResponseEntity<>(
                         new ErrorResponse("TRANSACTION ALREADY COMPLETED FOR REFERENCE NUMBER :" + payment.getRefNo()),
                         HttpStatus.BAD_REQUEST);
@@ -646,7 +644,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             MerchantData sMerchant = merchant.getData();
             ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
             payment.setChannel(PaymentChannel.QR);
-            payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
+            payment.setStatus(TransactionStatus.PENDING);
 
             WalletQRResponse tranRep = uniPaymentProxy.postQRTransaction(payment, token, account);
             if (tranRep != null) {
@@ -712,7 +710,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setCustomerEmail(account.getCustomer().getEmail());
             payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
             payment.setChannel(PaymentChannel.WALLET);
-            payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
+            payment.setStatus(TransactionStatus.PENDING);
             String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(vt);
             payment.setTranId(account.getReferenceNo());
@@ -782,7 +780,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setCustomerEmail(account.getCustomer().getEmail());
             payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
             payment.setChannel(PaymentChannel.USSD);
-            payment.setStatus(TransactionStatus.TRANSACTION_PENDING);
+            payment.setStatus(TransactionStatus.PENDING);
             payment.setVendorDate(LocalDate.now());
             PaymentGateway pay = paymentGatewayRepo.save(payment);
             USSDResponse ussd = new USSDResponse();
@@ -861,12 +859,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // PAYMENT_GATEWAY_TRANSACTION
     @Override
     public ResponseEntity<?> abandonTransaction(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
-        PaymentGateway mPay = null;
-        try {
-            mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        PaymentGateway mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
         if (mPay == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
         mPay.setStatus(TransactionStatus.ABANDONED);
@@ -877,14 +870,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId) {
         @NotNull final String queryWithMerchantId = paymentGateWayCommonUtils.validateUserAndGetMerchantId(merchantId);
-        WalletRevenue revenue = new WalletRevenue();
-        try {
-            revenue = wayaPayment.getRevenue(queryWithMerchantId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (revenue == null)
-            return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+        WalletRevenue revenue = wayaPayment.getRevenue(queryWithMerchantId);
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
 
@@ -892,14 +878,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
         if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
             throw new ApplicationException(403, "01", "Oops! Operation not allowed.");
-        List<WalletRevenue> revenue = new ArrayList<>();
-        try {
-            revenue = wayaPayment.getRevenue();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (revenue == null)
-            return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+        List<WalletRevenue> revenue = wayaPayment.getRevenue();
         return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
     }
 
@@ -971,9 +950,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public void updateRecurrentTransaction(@NotNull final PaymentGateway paymentGateway) {
-        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
-                || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED
-        ) {
+        if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
             Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByTransactionRef(paymentGateway.getRefNo());
             if (optionalRecurrentTransaction.isPresent()) {
                 LocalDateTime date = LocalDateTime.now();
@@ -987,6 +964,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 foundRecurrentTransaction.setActive(true);
                 foundRecurrentTransaction.setStatus(RecurrentPaymentStatus.ACTIVE);
                 foundRecurrentTransaction.setLastChargeDate(date);
+                foundRecurrentTransaction.setUpSessionId(paymentGateway.getSessionId());
                 foundRecurrentTransaction.setTotalChargeCount(totalChargeCount);
                 foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
                         date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
@@ -995,10 +973,38 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
     }
 
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year) {
+        String merchantIdToUse = getMerchantIdToUse(merchantId);
+        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year);
+        return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionYearMonthStats), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(String merchantId) {
+        String merchantIdToUse = getMerchantIdToUse(merchantId);
+        TransactionOverviewResponse transactionOverviewResponse = wayaPaymentDAO.getTransactionReport(merchantIdToUse);
+        return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionOverviewResponse), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId) {
+        String merchantIdToUse = getMerchantIdToUse(merchantId);
+        TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse);
+        return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
+    }
+
     private String replacePublicKeyWithEmptyString(String pub) {
         return pub.contains("WAYA") ?
                 pub.replace("WAYAPUBK_TEST_0x", "") :
                 pub.replace("WAYAPUBK_PROD_0x", "");
+    }
+
+    private String getMerchantIdToUse(String merchantId) {
+        AuthenticatedUser authenticatedUser = paymentGateWayCommonUtils.getAuthenticatedUser();
+        if (authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
+            throw new ApplicationException(400, "01", "Okay! Please provide merchant id to proceed.");
+        return ObjectUtils.isEmpty(merchantId) ? authenticatedUser.getMerchantId() : merchantId;
     }
 }
 

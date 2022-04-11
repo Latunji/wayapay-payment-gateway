@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
 
-import com.wayapaychat.paymentgateway.pojo.waya.WalletRevenue;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletRevenue;
 
 public class WalletRevenueMapper implements RowMapper<WalletRevenue> {
 

@@ -98,7 +98,7 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
             message = "Oops! Date time format provided is invalid";
             details.add(message);
         } else {
-            message = "Oops! server error occurred please contact support or try again later";
+            message = "Oops! Our system failed to process this request!";
             details.add(message);
         }
         log.error("ERROR: ", ex);

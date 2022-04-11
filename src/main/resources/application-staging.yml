@@ -5,6 +5,9 @@ server:
 spring:
   application:
      name: payment-gateway
+  flyway:
+     baseline-on-migrate: true
+     out-of-order: true
   datasource:
      username: root
      password: pONvagaJf3BTbu9l

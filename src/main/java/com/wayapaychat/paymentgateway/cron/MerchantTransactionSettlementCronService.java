@@ -41,12 +41,12 @@ public class MerchantTransactionSettlementCronService {
 
     @Scheduled(cron = "0 0 0 * * *")
     private void settleTransactionEveryDay() {
-        processFundMerchantWalletAccount();
+//        processFundMerchantWalletAccount();
     }
 
     @Scheduled(cron = "*/5 * * * * *")
     private void settleEveryFiveSeconds() {
-        processFundMerchantWalletAccount();
+//        processFundMerchantWalletAccount();
     }
 
     @Scheduled(cron = "0 0 0 28-31 JAN-DEC MON-FRI")

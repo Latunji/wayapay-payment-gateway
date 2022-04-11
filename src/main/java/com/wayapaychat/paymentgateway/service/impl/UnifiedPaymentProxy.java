@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.config.FeignClientInterceptor;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
@@ -10,6 +11,7 @@ import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
 import com.wayapaychat.paymentgateway.exception.CustomException;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.proxy.QRCodeProxy;
 import com.wayapaychat.paymentgateway.proxy.UnifiedPaymentApiClient;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
@@ -421,7 +423,7 @@ public class UnifiedPaymentProxy {
         qrgen.setUserId(0);
         log.info("Request QR: " + qrgen);
         try {
-            wallet = qrCodeProxy.wayaQRGenerate(qrgen);
+            wallet = qrCodeProxy.wayaQRGenerate(FeignClientInterceptor.getBearerTokenHeader(), qrgen);
             if (wallet.getStatusCodeValue() != 200) {
                 log.error("QR TRANSACTION FAILED: " + wallet.getStatusCode() + " with Merchant: "
                         + account.getMerchantId());

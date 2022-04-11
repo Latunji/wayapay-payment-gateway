@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.pojo.waya;
+package com.wayapaychat.paymentgateway.pojo.waya.wallet;
 
 import java.math.BigDecimal;
 
@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import com.wayapaychat.paymentgateway.pojo.waya.Customer;
 import lombok.Data;
 import lombok.ToString;
 

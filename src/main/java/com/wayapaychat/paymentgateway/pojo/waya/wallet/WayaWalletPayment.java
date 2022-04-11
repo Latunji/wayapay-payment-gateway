@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.pojo.waya;
+package com.wayapaychat.paymentgateway.pojo.waya.wallet;
 
 import lombok.*;
 

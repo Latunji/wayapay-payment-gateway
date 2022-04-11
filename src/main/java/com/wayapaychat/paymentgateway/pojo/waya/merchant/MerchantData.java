@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.pojo.waya;
+package com.wayapaychat.paymentgateway.pojo.waya.merchant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

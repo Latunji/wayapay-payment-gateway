@@ -4,7 +4,7 @@ import com.wayapaychat.paymentgateway.config.FeignClientInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.wayapaychat.paymentgateway.pojo.waya.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
 import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 
 import feign.FeignException;

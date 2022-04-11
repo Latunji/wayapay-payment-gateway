@@ -11,6 +11,7 @@ import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
 import com.wayapaychat.paymentgateway.exception.CustomException;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.proxy.QRCodeProxy;
 import com.wayapaychat.paymentgateway.proxy.UnifiedPaymentApiClient;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;

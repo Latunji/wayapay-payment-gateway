@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.pojo.waya;
+package com.wayapaychat.paymentgateway.pojo.waya.merchant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,10 +11,14 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class WayaAuthenicationRequest {
+public class MerchantResponse {
 	
-	private String emailOrPhoneNumber;
+	private String code;
 	
-	private String password;
+	private String date;
+	
+	private String message;
+	
+	private MerchantData data;
 
 }

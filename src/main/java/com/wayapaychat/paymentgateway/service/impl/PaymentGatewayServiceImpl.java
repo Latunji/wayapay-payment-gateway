@@ -6,6 +6,7 @@ import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
 import com.wayapaychat.paymentgateway.common.enums.RecurrentPaymentStatus;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
+import com.wayapaychat.paymentgateway.dao.WayaPaymentDAOImpl;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
@@ -20,6 +21,13 @@ import com.wayapaychat.paymentgateway.pojo.ussd.USSDResponse;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantCustomer;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionOverviewResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionRevenueStats;
+import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionYearMonthStats;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
@@ -62,6 +70,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private static final Integer DEFAULT_CARD_LENGTH = 20;
     private final Random rnd = new Random();
     private final ModelMapper modelMapper = new ModelMapper();
+    private final String DEFAULT_SUCCESS_MESSAGE = "Data fetched successfully";
     @Autowired
     private UnifiedPaymentProxy uniPaymentProxy;
     @Autowired
@@ -96,6 +105,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private PaymentGateWayCommonUtils paymentGateWayCommonUtils;
     @Autowired
     private GetUserDataService getUserDataService;
+    @Autowired
+    private WayaPaymentDAOImpl wayaPaymentDAO;
 
     @Override
     public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
@@ -201,7 +212,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public RecurrentTransaction preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
+    public void preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
         //TODO: UP For pay attitude, These fields are not present to tell when the
         // The recurring payment should happen
         // frequency , OrderExpirationPeriod
@@ -235,7 +246,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 recurrentTransaction.setDateModified(LocalDateTime.now());
                 recurrentTransaction.setModifiedBy(0L);
                 preprocessCardRequest(paymentLinkResponse, cardRequest);
-                return recurrentTransaction;
+                return;
             }
         }
 
@@ -265,7 +276,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         paymentGateway.setRecurrentPaymentId(recurrentTransaction.getId());
         paymentGateway.setPaymentLinkId(recurrentTransaction.getPaymentLinkId());
         paymentGateway.setIsFromRecurrentPayment(true);
-        return recurrentTransaction;
     }
 
     private void preprocessCardRequest(PaymentLinkResponse paymentLinkResponse, UnifiedCardRequest cardRequest) {
@@ -963,10 +973,38 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
     }
 
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year) {
+        String merchantIdToUse = getMerchantIdToUse(merchantId);
+        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year);
+        return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionYearMonthStats), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(String merchantId) {
+        String merchantIdToUse = getMerchantIdToUse(merchantId);
+        TransactionOverviewResponse transactionOverviewResponse = wayaPaymentDAO.getTransactionReport(merchantIdToUse);
+        return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionOverviewResponse), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId) {
+        String merchantIdToUse = getMerchantIdToUse(merchantId);
+        TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse);
+        return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
+    }
+
     private String replacePublicKeyWithEmptyString(String pub) {
         return pub.contains("WAYA") ?
                 pub.replace("WAYAPUBK_TEST_0x", "") :
                 pub.replace("WAYAPUBK_PROD_0x", "");
+    }
+
+    private String getMerchantIdToUse(String merchantId) {
+        AuthenticatedUser authenticatedUser = paymentGateWayCommonUtils.getAuthenticatedUser();
+        if (authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
+            throw new ApplicationException(400, "01", "Okay! Please provide merchant id to proceed.");
+        return ObjectUtils.isEmpty(merchantId) ? authenticatedUser.getMerchantId() : merchantId;
     }
 }
 

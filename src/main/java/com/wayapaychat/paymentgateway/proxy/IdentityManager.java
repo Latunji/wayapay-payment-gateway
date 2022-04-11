@@ -2,8 +2,8 @@ package com.wayapaychat.paymentgateway.proxy;
 
 import com.wayapaychat.paymentgateway.config.PaymentGatewayClientConfiguration;
 import com.wayapaychat.paymentgateway.pojo.waya.CustomerRequest;
-import com.wayapaychat.paymentgateway.pojo.waya.MerchantCustomer;
-import com.wayapaychat.paymentgateway.pojo.waya.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantCustomer;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentLinkResponsePojo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;

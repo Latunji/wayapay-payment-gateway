@@ -1,7 +1,8 @@
-package com.wayapaychat.paymentgateway.pojo.waya;
+package com.wayapaychat.paymentgateway.pojo.waya.wallet;
 
 import java.math.BigDecimal;
 
+import com.wayapaychat.paymentgateway.pojo.waya.Customer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

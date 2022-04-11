@@ -1,9 +1,12 @@
-package com.wayapaychat.paymentgateway.pojo.waya;
+package com.wayapaychat.paymentgateway.pojo.waya.wallet;
+
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,30 +15,28 @@ import lombok.ToString;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-"headers",
-"body",
-"statusCodeValue",
-"statusCode"
+"timeStamp",
+"status",
+"message",
+"data"
 })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class WalletQRResponse {
+public class WalletPaymentResponse {
 	
-	@JsonProperty("headers")
-	private Headers headers;
+	@JsonProperty("timeStamp")
+	private String timeStamp;
 	
-	@JsonProperty("body")
-	private String body;
+	@JsonProperty("status")
+	private Boolean status;
 	
-	@JsonProperty("statusCodeValue")
-	private Integer statusCodeValue;
+	@JsonProperty("message")
+	private String message;
 	
-	@JsonProperty("statusCode")
-	private String statusCode;
-	
-	private String name;
+	@JsonProperty("data")
+	private List<FundEventResponse> data;
 
 }

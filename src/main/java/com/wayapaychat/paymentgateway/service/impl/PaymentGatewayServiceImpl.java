@@ -53,6 +53,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.io.BufferedInputStream;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -176,7 +177,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setMerchantEmail(merchant.getData().getMerchantEmailAddress());
             payment.setDescription(transactionRequestPojo.getDescription());
             payment.setAmount(transactionRequestPojo.getAmount());
-            payment.setFee(transactionRequestPojo.getFee());
+            //TODO: update wayapay processing fee
+            payment.setWayapayFee(transactionRequestPojo.getFee());
             payment.setCustomerIpAddress(PaymentGateWayCommonUtils.getClientRequestIP(request));
             payment.setCurrencyCode(transactionRequestPojo.getCurrency());
             payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
@@ -702,7 +704,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setMerchantId(account.getMerchantId());
             payment.setDescription(account.getPaymentDescription());
             payment.setAmount(account.getAmount());
-            payment.setFee(account.getFee());
+            //TODO: Update wayapay processing fee
+            payment.setWayapayFee(account.getFee());
             payment.setCurrencyCode(account.getCurrency());
             payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
             payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
@@ -766,7 +769,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setMerchantId(account.getMerchantId());
             payment.setDescription(account.getPaymentDescription());
             payment.setAmount(account.getAmount());
-            payment.setFee(account.getFee());
+            //TODO: Update wayapay processing fee here
+            payment.setWayapayFee(account.getFee());
             payment.setCurrencyCode(account.getCurrency());
             payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
             String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
@@ -933,6 +937,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setStatus(TransactionStatus.SUCCESSFUL);
                 payment.setSuccessfailure(true);
                 payment.setTranId(response.getOrderId());
+                payment.setProcessingFee(new BigDecimal(response.getConvenienceFee()));
                 if (payment.getIsFromRecurrentPayment()) {
                     updateRecurrentTransaction(payment);
                 }

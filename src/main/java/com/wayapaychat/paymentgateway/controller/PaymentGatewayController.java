@@ -241,8 +241,7 @@ public class PaymentGatewayController {
             QueryCustomerTransactionPojo queryCustomerTransactionPojo,
             @PathVariable("customerId") final String customerId) {
         queryCustomerTransactionPojo.setCustomerId(customerId);
-        return paymentGatewayService.filterSearchCustomerTransactions(
-                queryCustomerTransactionPojo, PageableResponseUtil.createPageRequest(queryCustomerTransactionPojo.getPage(),
+        return paymentGatewayService.filterSearchCustomerTransactions(queryCustomerTransactionPojo, PageableResponseUtil.createPageRequest(queryCustomerTransactionPojo.getPage(),
                         queryCustomerTransactionPojo.getSize(), queryCustomerTransactionPojo.getOrder(),
                         queryCustomerTransactionPojo.getSortBy(), true, "tran_date"
                 ));

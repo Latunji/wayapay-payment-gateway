@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin
 @RestController
 @RequestMapping("/api/v1/transactions")
-@Tag(name = "RECURRENT-TRANSACTION", description = "Payment gateway fraud rule APIs")
+@Tag(name = "TRANSACTIONS", description = "Payment gateway transaction APIs")
 @Validated
 @AllArgsConstructor
 public class TransactionsController {
@@ -43,7 +43,7 @@ public class TransactionsController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/recurrent/fetch/{customerId}")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions", tags = {"RECURRENT-TRANSACTION"})
+    @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions", tags = {"TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> fetchCustomerRecurrentTransaction(
             @PathVariable String customerId, PaginationPojo paginationPojo) {
         return recurrentTransactionService.fetchCustomerTransaction(
@@ -55,7 +55,7 @@ public class TransactionsController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{customerId}")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Filter search customers", notes = "Search customers", tags = {"PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Filter search customers", notes = "Search customers", tags = {"TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> filterSearchAllCustomerSubscription(
             QueryCustomerTransactionPojo queryCustomerTransactionPojo,
             @PathVariable("customerId") final String customerId) {
@@ -68,7 +68,7 @@ public class TransactionsController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/year-month-stats")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant transaction year statistics stats", notes = "Transaction Year-Month statistics", tags = {"PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Get merchant transaction year statistics stats", notes = "Transaction Year-Month statistics", tags = {"TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(
             @RequestParam(value = "merchantId", required = false) final String merchantId, @RequestParam(value = "year", required = false) final Long year) {
         return paymentGatewayService.getMerchantYearMonthTransactionStats(merchantId, year);
@@ -76,7 +76,7 @@ public class TransactionsController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/overview")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant transaction report dashboard overview statistics", notes = "Transaction report dashboard overview Stats", tags = {"PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Get merchant transaction report dashboard overview statistics", notes = "Transaction report dashboard overview Stats", tags = {"TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> getMerchantDashboardOverviewStats(
             @RequestParam(value = "merchantId", required = false) final String merchantId) {
         return paymentGatewayService.getMerchantTransactionOverviewStats(merchantId);
@@ -84,7 +84,7 @@ public class TransactionsController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/revenue-stats")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant transaction net and gross revenue report", notes = "Transaction net and gross revenue report", tags = {"PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Get merchant transaction net and gross revenue report", notes = "Transaction net and gross revenue report", tags = {"TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(
             @RequestParam(value = "merchantId", required = false) final String merchantId) {
         return paymentGatewayService.getMerchantTransactionGrossAndNetRevenue(merchantId);

@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 @CrossOrigin
@@ -36,7 +35,6 @@ import java.util.concurrent.CompletableFuture;
 @Validated
 @Slf4j
 public class PaymentGatewayController {
-    private final Integer CURRENT_YEAR = LocalDateTime.now().getYear();
     @Autowired
     PaymentGatewayService paymentGatewayService;
     @Autowired

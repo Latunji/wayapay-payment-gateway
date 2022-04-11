@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -94,6 +95,7 @@ public class CronService {
             mPay.setStatus(TransactionStatus.SUCCESSFUL);
             mPay.setSuccessfailure(true);
             mPay.setSessionId(query.getSessionId());
+            mPay.setProcessingFee(new BigDecimal(query.getConvenienceFee()));
             if (mPay.getIsFromRecurrentPayment())
                 paymentService.updateRecurrentTransaction(mPay);
         } else if (query.getStatus().contains("REJECT")) {

@@ -91,16 +91,22 @@ public class CronService {
     //TODO: Process if transaction was successful before and then was not successful again,
     // reverse the transaction and then debit the merchant if the merchant has been credited before
     private void preprocessSuccessfulTransaction(PaymentGateway mPay, WayaTransactionQuery query) {
-        if (query.getStatus().contains("APPROVED")) {
-            mPay.setStatus(TransactionStatus.SUCCESSFUL);
-            mPay.setSuccessfailure(true);
-            mPay.setSessionId(query.getSessionId());
-            mPay.setProcessingFee(new BigDecimal(query.getConvenienceFee()));
-            if (mPay.getIsFromRecurrentPayment())
-                paymentService.updateRecurrentTransaction(mPay);
-        } else if (query.getStatus().contains("REJECT")) {
-            mPay.setStatus(TransactionStatus.FAILED);
-            mPay.setSuccessfailure(false);
+        try{
+            if (query.getStatus().contains("APPROVED")) {
+                mPay.setStatus(TransactionStatus.SUCCESSFUL);
+                mPay.setSuccessfailure(true);
+                mPay.setSessionId(query.getSessionId());
+                mPay.setProcessingFee(new BigDecimal(query.getConvenienceFee()));
+                if (mPay.getIsFromRecurrentPayment())
+                    paymentService.updateRecurrentTransaction(mPay);
+            } else if (query.getStatus().contains("REJECT")) {
+                mPay.setStatus(TransactionStatus.FAILED);
+                mPay.setSuccessfailure(false);
+            }
+        }catch (Exception e){
+            log.error("------||||SYSTEM ERROR||||-------",e);
+            mPay.setStatus(TransactionStatus.SYSTEM_ERROR);
+            paymentGatewayRepo.save(mPay);
         }
     }
 

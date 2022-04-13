@@ -1,1 +1,0 @@
-ALTER TABLE m_payment_gateway DROP COLUMN IF EXISTS account_settled_to, account_settlement_option;

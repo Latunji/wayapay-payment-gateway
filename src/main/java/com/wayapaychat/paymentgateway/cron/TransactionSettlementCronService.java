@@ -34,7 +34,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -68,54 +67,52 @@ public class TransactionSettlementCronService {
     private WalletProxy walletProxy;
 
 
-//    @Scheduled(cron = "0 0 0 * * *")
+    //    @Scheduled(cron = "0 0 0 * * *")
     @Scheduled(cron = "*/2 * * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "15s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
-        CompletableFuture.runAsync(() -> {
-            List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
-            List<TransactionSettlement> pendingMerchantSettlements = transactionSettlementRepository.findAllMerchantSettlementPending();
+        List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
+        List<TransactionSettlement> pendingMerchantSettlements = transactionSettlementRepository.findAllMerchantSettlementPending();
 
-            Map<String, TransactionSettlement> merchantWithPendingUnsettledTransaction = pendingMerchantSettlements
-                    .parallelStream()
-                    .collect(Collectors.toMap(TransactionSettlement::getMerchantId, Function.identity(), (o1, o2) -> o1));
-            Set<String> merchantsWithPendingUnsettledTransactions = merchantWithPendingUnsettledTransaction.keySet();
+        Map<String, TransactionSettlement> merchantWithPendingUnsettledTransaction = pendingMerchantSettlements
+                .parallelStream()
+                .collect(Collectors.toMap(TransactionSettlement::getMerchantId, Function.identity(), (o1, o2) -> o1));
+        Set<String> merchantsWithPendingUnsettledTransactions = merchantWithPendingUnsettledTransaction.keySet();
 
-            merchantUnsettledSuccessfulTransactions.parallelStream().forEach(unsettledSuccessfulTransaction -> {
-                String merchantId = unsettledSuccessfulTransaction.getMerchantId();
-                if (merchantsWithPendingUnsettledTransactions.contains(merchantId)) {
-                    TransactionSettlement transactionSettlement = merchantWithPendingUnsettledTransaction.get(merchantId);
-                    transactionSettlement.setDateModified(LocalDateTime.now());
-                    transactionSettlement.setModifiedBy(0L);
-                    transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
-                    transactionSettlement.setTotalFee(unsettledSuccessfulTransaction.getTotalFee());
-                    transactionSettlement.setSettlementNetAmount(unsettledSuccessfulTransaction.getNetAmount());
-                    transactionSettlement.setSettlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount());
-                    transactionSettlement = transactionSettlementRepository.save(transactionSettlement);
-                    log.info("--------||||SUCCESSFULLY UPDATED NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
-                    //process the merchant settlement from here
-                    //TODO process the merchant account settlement
-                    //processExpiredMerchantConfiguredSettlement(transactionSettlement);
-                } else {
-                    TransactionSettlement transactionSettlement = TransactionSettlement.builder()
-                            .settlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount())
-                            .settlementNetAmount(unsettledSuccessfulTransaction.getNetAmount())
-                            .totalFee(unsettledSuccessfulTransaction.getTotalFee())
-                            .settlementStatus(SettlementStatus.PENDING)
-                            .accountSettlementOption(AccountSettlementOption.WALLET)
-                            .merchantId(merchantId)
-                            .build();
-                    transactionSettlement.setCreatedBy(0L);
-                    transactionSettlement.setDateCreated(LocalDateTime.now());
-                    transactionSettlement.setDeleted(false);
-                    //TODO: SETTINGS
-                    // Get the merchant default settings for settling the account
-                    // for now use the merchant wallet to deposit to the account
-                    transactionSettlementRepository.save(transactionSettlement);
-                    log.info("--------||||SUCCESSFULLY CREATED MERCHANT TRANSACTION SETTLEMENT||||----------");
-                }
-            });
+        merchantUnsettledSuccessfulTransactions.parallelStream().forEach(unsettledSuccessfulTransaction -> {
+            String merchantId = unsettledSuccessfulTransaction.getMerchantId();
+            if (merchantsWithPendingUnsettledTransactions.contains(merchantId)) {
+                TransactionSettlement transactionSettlement = merchantWithPendingUnsettledTransaction.get(merchantId);
+                transactionSettlement.setDateModified(LocalDateTime.now());
+                transactionSettlement.setModifiedBy(0L);
+                transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
+                transactionSettlement.setTotalFee(unsettledSuccessfulTransaction.getTotalFee());
+                transactionSettlement.setSettlementNetAmount(unsettledSuccessfulTransaction.getNetAmount());
+                transactionSettlement.setSettlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount());
+                transactionSettlement = transactionSettlementRepository.save(transactionSettlement);
+                log.info("--------||||SUCCESSFULLY UPDATED NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
+                //process the merchant settlement from here
+                //TODO process the merchant account settlement
+                //processExpiredMerchantConfiguredSettlement(transactionSettlement);
+            } else {
+                TransactionSettlement transactionSettlement = TransactionSettlement.builder()
+                        .settlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount())
+                        .settlementNetAmount(unsettledSuccessfulTransaction.getNetAmount())
+                        .totalFee(unsettledSuccessfulTransaction.getTotalFee())
+                        .settlementStatus(SettlementStatus.PENDING)
+                        .accountSettlementOption(AccountSettlementOption.WALLET)
+                        .merchantId(merchantId)
+                        .build();
+                transactionSettlement.setCreatedBy(0L);
+                transactionSettlement.setDateCreated(LocalDateTime.now());
+                transactionSettlement.setDeleted(false);
+                //TODO: SETTINGS
+                // Get the merchant default settings for settling the account
+                // for now use the merchant wallet to deposit to the account
+                transactionSettlementRepository.save(transactionSettlement);
+                log.info("--------||||SUCCESSFULLY CREATED MERCHANT TRANSACTION SETTLEMENT||||----------");
+            }
         });
     }
 

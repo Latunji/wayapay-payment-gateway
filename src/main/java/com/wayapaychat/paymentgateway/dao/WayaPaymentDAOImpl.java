@@ -232,7 +232,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
     @Override
     @SuppressWarnings(value = "unchecked")
-    public List<MerchantUnsettledSuccessfulTransaction> getMerchantSettlementStats(final String merchantId) {
+    public List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessTransactions(final String merchantId) {
         @NotNull final String SETTLEMENT_STATS_Q = getMerchantSettlementStatsQuery(merchantId);
         var cscFactory = new CallableStatementCreatorFactory(SETTLEMENT_STATS_Q);
         var csc = cscFactory.newCallableStatementCreator(new HashMap<>());

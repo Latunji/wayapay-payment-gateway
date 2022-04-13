@@ -837,8 +837,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> getMerchantTransactionReport(HttpServletRequest req, String merchantId) {
-        @NotNull final String queryWithMerchantId = paymentGateWayCommonUtils.validateUserAndGetMerchantId(merchantId);
-        @NotNull final List<PaymentGateway> paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment(queryWithMerchantId);
+        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId);
+        @NotNull final List<PaymentGateway> paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment(merchantIdToUse);
         if (paymentGatewayList == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
         final List<ReportPayment> sPay = mapList(paymentGatewayList, ReportPayment.class);
@@ -879,14 +879,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId) {
-        @NotNull final String queryWithMerchantId = paymentGateWayCommonUtils.validateUserAndGetMerchantId(merchantId);
-        WalletRevenue revenue = wayaPayment.getRevenue(queryWithMerchantId);
+        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId);
+        WalletRevenue revenue = wayaPayment.getRevenue(merchantIdToUse);
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
-        if (!paymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
+        if (!PaymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
             throw new ApplicationException(403, "01", "Oops! Operation not allowed.");
         List<WalletRevenue> revenue = wayaPayment.getRevenue();
         return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
@@ -912,7 +912,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryPojo, Pageable pageable) {
-        AuthenticatedUser authenticatedUser = paymentGateWayCommonUtils.getAuthenticatedUser();
+        AuthenticatedUser authenticatedUser = PaymentGateWayCommonUtils.getAuthenticatedUser();
         MerchantData merchantResponse = merchantProxy.getMerchantInfo(paymentGateWayCommonUtils.getDaemonAuthToken(), authenticatedUser.getMerchantId()).getData();
         queryPojo.setMerchantId(merchantResponse.getMerchantId());
         return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
@@ -958,8 +958,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
                 paymentGatewayRepo.save(payment);
             }
-        }catch (Exception e){
-            log.error("------||||SYSTEM ERROR||||-------",e);
+        } catch (Exception e) {
+            log.error("------||||SYSTEM ERROR||||-------", e);
             payment.setStatus(TransactionStatus.SYSTEM_ERROR);
             paymentGatewayRepo.save(payment);
         }

@@ -73,7 +73,7 @@ public class TransactionSettlementCronService {
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
         CompletableFuture.runAsync(() -> {
-            List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.getMerchantSettlementStats(null);
+            List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
             List<TransactionSettlement> pendingMerchantSettlements = transactionSettlementRepository.findAllMerchantSettlementPending();
 
             Map<String, TransactionSettlement> merchantWithPendingUnsettledTransaction = pendingMerchantSettlements

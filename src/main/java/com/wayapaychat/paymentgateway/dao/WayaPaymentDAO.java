@@ -23,5 +23,5 @@ public interface WayaPaymentDAO {
     TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(String merchantId);
 
     @SuppressWarnings(value = "unchecked")
-    List<MerchantUnsettledSuccessfulTransaction> getMerchantSettlementStats(String merchantId);
+    List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessTransactions(String merchantId);
 }

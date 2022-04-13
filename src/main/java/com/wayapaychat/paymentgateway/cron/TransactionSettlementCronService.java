@@ -91,11 +91,8 @@ public class TransactionSettlementCronService {
                 transactionSettlement.setTotalFee(unsettledSuccessfulTransaction.getTotalFee());
                 transactionSettlement.setSettlementNetAmount(unsettledSuccessfulTransaction.getNetAmount());
                 transactionSettlement.setSettlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount());
-                transactionSettlement = transactionSettlementRepository.save(transactionSettlement);
                 log.info("--------||||SUCCESSFULLY UPDATED NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
-                //process the merchant settlement from here
-                //TODO process the merchant account settlement
-                //processExpiredMerchantConfiguredSettlement(transactionSettlement);
+//                processExpiredMerchantConfiguredSettlement(transactionSettlementRepository.save(transactionSettlement));
             } else {
                 TransactionSettlement transactionSettlement = TransactionSettlement.builder()
                         .settlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount())

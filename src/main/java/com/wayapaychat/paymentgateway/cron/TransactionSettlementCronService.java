@@ -93,6 +93,7 @@ public class TransactionSettlementCronService {
                     transactionSettlement.setSettlementNetAmount(unsettledSuccessfulTransaction.getNetAmount());
                     transactionSettlement.setSettlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount());
                     transactionSettlement = transactionSettlementRepository.save(transactionSettlement);
+                    log.info("--------||||SUCCESSFULLY UPDATED NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
                     //process the merchant settlement from here
                     //TODO process the merchant account settlement
                     //processExpiredMerchantConfiguredSettlement(transactionSettlement);
@@ -112,6 +113,7 @@ public class TransactionSettlementCronService {
                     // Get the merchant default settings for settling the account
                     // for now use the merchant wallet to deposit to the account
                     transactionSettlementRepository.save(transactionSettlement);
+                    log.info("--------||||SUCCESSFULLY CREATED MERCHANT TRANSACTION SETTLEMENT||||----------");
                 }
             });
         });

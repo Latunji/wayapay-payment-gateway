@@ -68,7 +68,8 @@ public class TransactionSettlementCronService {
     private WalletProxy walletProxy;
 
 
-    @Scheduled(cron = "0 0 0 * * *")
+//    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "*/2 * * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "15s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();

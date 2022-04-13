@@ -71,6 +71,7 @@ public class TransactionSettlementCronService {
     @Scheduled(cron = "*/2 * * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "15s")
     public void createAndUpdateMerchantTransactionSettlement() {
+        log.info("--------||||STARTING NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
         LockAssert.assertLocked();
         List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
         List<TransactionSettlement> pendingMerchantSettlements = transactionSettlementRepository.findAllMerchantSettlementPending();

@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.dao;
 
 import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
 import com.wayapaychat.paymentgateway.mapper.WalletRevenueMapper;
+import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.*;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletRevenue;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.core.*;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Repository
@@ -19,6 +21,8 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private TransactionSettlementDAO transactionSettlementDAO;
 
     @Override
     public List<WalletRevenue> getRevenue() {
@@ -92,11 +96,9 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
         @NotNull final String YEAR_MONTH_STATS_Q = buildYearMonthQuery(merchantId, null);
 
-        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT amount FROM m_payment_gateway %s " +
-                " ORDER BY settlement_date DESC LIMIT 1 ;", SUB_Q_MER);
+        @NotNull final String LATEST_SETTLEMENT_Q = transactionSettlementDAO.getLatestSettlementQuery(merchantId);
 
-        @NotNull final String NEXT_SETTLEMENT_Q = String.format("SELECT amount FROM m_payment_gateway %s AND status = 'SUCCESSFUL' " +
-                " ORDER BY tran_date ASC LIMIT 1; ", SUB_Q_MER);
+        @NotNull final String NEXT_SETTLEMENT_Q = transactionSettlementDAO.getNextSettlementQuery(merchantId);
 
         @NotNull final String SUCCESS_ERROR_STATS_Q = String.format("SELECT COUNT(status), status " +
                 " FROM m_payment_gateway WHERE status IN ('SUCCESSFUL','ERROR','FAILED') %s GROUP BY status; ", SUB_Q_MER_AND);
@@ -147,8 +149,11 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             transactionOverviewResponse.setRevenueStats(revenueStats);
             if (ObjectUtils.isNotEmpty(latestSettlement))
                 settlementStats.setLatestSettlement(latestSettlement.get(0).getAmount());
+            else settlementStats.setLatestSettlement(BigDecimal.ZERO);
             if (ObjectUtils.isNotEmpty(nextSettlement))
                 settlementStats.setNextSettlement(nextSettlement.get(0).getAmount());
+            else settlementStats.setNextSettlement(BigDecimal.ZERO);
+
 
             transactionOverviewResponse.setYearMonthStats(yearMonthStats);
             transactionOverviewResponse.setSettlementStats(settlementStats);
@@ -223,5 +228,26 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         @NotNull final String SUB_Q_MER_AND = String.format(" AND merchant_id = '%s' ", merchantId);
         return String.format("SELECT ( SUM(amount) - SUM(fee) ) amount FROM m_payment_gateway " +
                 " WHERE status='SUCCESSFUL' %s ;", SUB_Q_MER_AND);
+    }
+
+    @Override
+    @SuppressWarnings(value = "unchecked")
+    public List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessTransactions(final String merchantId) {
+        @NotNull final String SETTLEMENT_STATS_Q = getMerchantSettlementStatsQuery(merchantId);
+        var cscFactory = new CallableStatementCreatorFactory(SETTLEMENT_STATS_Q);
+        var csc = cscFactory.newCallableStatementCreator(new HashMap<>());
+        var returnedParams = List.<SqlParameter>of(
+                new SqlReturnResultSet("unsettled_transaction", BeanPropertyRowMapper.newInstance(MerchantUnsettledSuccessfulTransaction.class)));
+        Map<String, Object> results = jdbcTemplate.call(csc, returnedParams);
+        if (ObjectUtils.isNotEmpty(results))
+            return (List<MerchantUnsettledSuccessfulTransaction>) results.get("unsettled_transaction");
+        return List.of();
+    }
+
+    private String getMerchantSettlementStatsQuery(String merchantId) {
+        @NotNull final String SUB_Q_MER_AND = ObjectUtils.isEmpty(merchantId) ? "" : String.format(" AND merchant_id = '%s' ", merchantId);
+        return String.format("SELECT merchant_id, SUM(fee) as total_fee, SUM(amount) gross_amount, " +
+                " (SUM(amount) - SUM(fee) ) net_amount FROM m_payment_gateway WHERE status = 'SUCCESSFUL' %s" +
+                " AND settlement_status = 'PENDING' GROUP BY merchant_id ", SUB_Q_MER_AND);
     }
 }

@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class CronService {
 
+    private final ExecutorService executorService = Executors.newWorkStealingPool(10);
     @Autowired
     PaymentGatewayRepository paymentGatewayRepo;
     @Autowired
@@ -40,8 +41,6 @@ public class CronService {
     private RecurrentTransactionRepository recurrentTransactionRepository;
     @Value("${service.name}")
     private String username;
-    private final ExecutorService executorService = Executors.newWorkStealingPool(10);
-
     @Value("${service.pass}")
     private String passSecret;
 
@@ -69,12 +68,6 @@ public class CronService {
                                 preprocessSuccessfulTransaction(mPay, query);
                                 paymentGatewayRepo.save(mPay);
                             }
-                        } else if (mPay.getStatus() == TransactionStatus.SUCCESSFUL) {
-                            if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-                                WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
-                                preprocessSuccessfulTransaction(mPay, query);
-                                paymentGatewayRepo.save(mPay);
-                            }
                         } else if (mPay.getStatus() == TransactionStatus.FAILED) {
                             if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
                                 WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
@@ -91,16 +84,22 @@ public class CronService {
     //TODO: Process if transaction was successful before and then was not successful again,
     // reverse the transaction and then debit the merchant if the merchant has been credited before
     private void preprocessSuccessfulTransaction(PaymentGateway mPay, WayaTransactionQuery query) {
-        if (query.getStatus().contains("APPROVED")) {
-            mPay.setStatus(TransactionStatus.SUCCESSFUL);
-            mPay.setSuccessfailure(true);
-            mPay.setSessionId(query.getSessionId());
-            mPay.setProcessingFee(new BigDecimal(query.getConvenienceFee()));
-            if (mPay.getIsFromRecurrentPayment())
-                paymentService.updateRecurrentTransaction(mPay);
-        } else if (query.getStatus().contains("REJECT")) {
-            mPay.setStatus(TransactionStatus.FAILED);
-            mPay.setSuccessfailure(false);
+        try {
+            if (query.getStatus().contains("APPROVED") && !mPay.getStatus().equals(TransactionStatus.SUCCESSFUL)) {
+                mPay.setStatus(TransactionStatus.SUCCESSFUL);
+                mPay.setSuccessfailure(true);
+                mPay.setSessionId(query.getSessionId());
+                mPay.setProcessingFee(new BigDecimal(query.getConvenienceFee()));
+                if (mPay.getIsFromRecurrentPayment())
+                    paymentService.updateRecurrentTransaction(mPay);
+            } else if (query.getStatus().contains("REJECT")) {
+                mPay.setStatus(TransactionStatus.FAILED);
+                mPay.setSuccessfailure(false);
+            }
+        } catch (Exception e) {
+            log.error("------||||SYSTEM ERROR||||-------", e);
+            mPay.setStatus(TransactionStatus.SYSTEM_ERROR);
+            paymentGatewayRepo.save(mPay);
         }
     }
 

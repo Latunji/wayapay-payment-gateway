@@ -1,18 +1,14 @@
 package com.wayapaychat.paymentgateway.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wayapaychat.paymentgateway.common.utils.PageableResponseUtil;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
-import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.impl.UnifiedPaymentProxy;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 @CrossOrigin
@@ -40,7 +35,6 @@ import java.util.concurrent.CompletableFuture;
 @Validated
 @Slf4j
 public class PaymentGatewayController {
-    private final Integer CURRENT_YEAR = LocalDateTime.now().getYear();
     @Autowired
     PaymentGatewayService paymentGatewayService;
     @Autowired
@@ -232,42 +226,5 @@ public class PaymentGatewayController {
     @GetMapping("/revenue/query")
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest request) {
         return paymentGatewayService.getAllTransactionRevenue(request);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/transactions/{customerId}")
-    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Filter search customers", notes = "Search customers", tags = {"PAYMENT-GATEWAY"})
-    public ResponseEntity<PaymentGatewayResponse> filterSearchAllCustomerSubscription(
-            QueryCustomerTransactionPojo queryCustomerTransactionPojo,
-            @PathVariable("customerId") final String customerId) {
-        queryCustomerTransactionPojo.setCustomerId(customerId);
-        return paymentGatewayService.filterSearchCustomerTransactions(queryCustomerTransactionPojo, PageableResponseUtil.createPageRequest(queryCustomerTransactionPojo.getPage(),
-                        queryCustomerTransactionPojo.getSize(), queryCustomerTransactionPojo.getOrder(),
-                        queryCustomerTransactionPojo.getSortBy(), true, "tran_date"
-                ));
-    }
-
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/transactions/report/year-month-stats")
-    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant transaction year statistics stats", notes = "Transaction Year-Month statistics", tags = {"PAYMENT-GATEWAY"})
-    public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(
-            @RequestParam(value = "merchantId", required = false) final String merchantId, @RequestParam(value = "year", required = false) final Long year) {
-        return paymentGatewayService.getMerchantYearMonthTransactionStats(merchantId, year);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/transactions/report/overview")
-    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant transaction report dashboard overview statistics", notes = "Transaction report dashboard overview Stats", tags = {"PAYMENT-GATEWAY"})
-    public ResponseEntity<PaymentGatewayResponse> getMerchantDashboardOverviewStats(
-            @RequestParam(value = "merchantId", required = false) final String merchantId) {
-        return paymentGatewayService.getMerchantTransactionOverviewStats(merchantId);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/transactions/report/revenue-stats")
-    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant transaction net and gross revenue report", notes = "Transaction net and gross revenue report", tags = {"PAYMENT-GATEWAY"})
-    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(
-            @RequestParam(value = "merchantId", required = false) final String merchantId) {
-        return paymentGatewayService.getMerchantTransactionGrossAndNetRevenue(merchantId);
     }
 }

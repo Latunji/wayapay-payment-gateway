@@ -350,25 +350,25 @@ public class UnifiedPaymentProxy {
     public FundEventResponse postTransactionPosition(String token, PaymentGateway mPay) {
 
         FundEventResponse result = null;
-        WalletOfficePayment event = new WalletOfficePayment();
-        event.setAmount(mPay.getAmount());
-        event.setCreditEventId("WAYAPAY");
-        event.setTranCrncy("NGN");
+        WalletOfficePayment walletOfficePayment = new WalletOfficePayment();
+        walletOfficePayment.setAmount(mPay.getAmount());
+        walletOfficePayment.setCreditEventId("WAYAPAY");
+        walletOfficePayment.setTranCrncy("NGN");
         if (mPay.getChannel().compareTo(PaymentChannel.CARD) == 0) {
-            event.setDebitEventId("UNIPAY");
+            walletOfficePayment.setDebitEventId("UNIPAY");
         } else if (mPay.getChannel().compareTo(PaymentChannel.PAYATTITUDE) == 0) {
-            event.setDebitEventId("UNIPAY");
+            walletOfficePayment.setDebitEventId("UNIPAY");
         } else if (mPay.getChannel().compareTo(PaymentChannel.USSD) == 0) {
-            event.setDebitEventId("CORAPAY");
+            walletOfficePayment.setDebitEventId("CORAPAY");
         }
-        event.setPaymentReference(mPay.getRefNo());
+        walletOfficePayment.setPaymentReference(mPay.getRefNo());
         String tranParticular = mPay.getDescription() + "-" + mPay.getRefNo();
-        event.setTranNarration(tranParticular);
-        event.setTransactionCategory("WITHDRAW");
-        log.info("EVENT DEBIT: " + event);
+        walletOfficePayment.setTranNarration(tranParticular);
+        walletOfficePayment.setTransactionCategory("WITHDRAW");
+        log.info("WAYABANK WALLET SETTLEMENT: " + walletOfficePayment);
         try {
             PaymentWallet mWallet = new PaymentWallet();
-            WalletPaymentResponse wallet = wallProxy.fundOfficialAccount(token, event);
+            WalletPaymentResponse wallet = wallProxy.fundOfficialAccount(token, walletOfficePayment);
             log.info(wallet.toString());
             if (wallet.getStatus()) {
                 log.info("FUNDING WALLET");

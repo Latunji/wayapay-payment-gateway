@@ -48,4 +48,7 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE tranflg = false AND ( status = 'SUCCESSFUL' OR status = 'SUCCESSFUL' ) ", nativeQuery = true)
     List<PaymentGateway> findAllNotFlaggedAndSuccessful();
+
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE tranflg = false AND status = 'SUCCESSFUL' AND ", nativeQuery = true)
+    List<PaymentGateway> findAllNotSettled();
 }

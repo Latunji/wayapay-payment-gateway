@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.*;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Repository
@@ -20,6 +21,8 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private TransactionSettlementDAO transactionSettlementDAO;
 
     @Override
     public List<WalletRevenue> getRevenue() {
@@ -93,11 +96,9 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
         @NotNull final String YEAR_MONTH_STATS_Q = buildYearMonthQuery(merchantId, null);
 
-        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT amount FROM m_payment_gateway %s " +
-                " ORDER BY settlement_date DESC LIMIT 1 ;", SUB_Q_MER);
+        @NotNull final String LATEST_SETTLEMENT_Q = transactionSettlementDAO.getLatestSettlementQuery(merchantId);
 
-        @NotNull final String NEXT_SETTLEMENT_Q = String.format("SELECT amount FROM m_payment_gateway %s AND status = 'SUCCESSFUL' " +
-                " ORDER BY tran_date ASC LIMIT 1; ", SUB_Q_MER);
+        @NotNull final String NEXT_SETTLEMENT_Q = transactionSettlementDAO.getNextSettlementQuery(merchantId);
 
         @NotNull final String SUCCESS_ERROR_STATS_Q = String.format("SELECT COUNT(status), status " +
                 " FROM m_payment_gateway WHERE status IN ('SUCCESSFUL','ERROR','FAILED') %s GROUP BY status; ", SUB_Q_MER_AND);
@@ -148,8 +149,11 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             transactionOverviewResponse.setRevenueStats(revenueStats);
             if (ObjectUtils.isNotEmpty(latestSettlement))
                 settlementStats.setLatestSettlement(latestSettlement.get(0).getAmount());
+            else settlementStats.setLatestSettlement(BigDecimal.ZERO);
             if (ObjectUtils.isNotEmpty(nextSettlement))
                 settlementStats.setNextSettlement(nextSettlement.get(0).getAmount());
+            else settlementStats.setNextSettlement(BigDecimal.ZERO);
+
 
             transactionOverviewResponse.setYearMonthStats(yearMonthStats);
             transactionOverviewResponse.setSettlementStats(settlementStats);

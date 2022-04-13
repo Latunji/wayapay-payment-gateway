@@ -7,6 +7,7 @@ import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.service.impl.MerchantProxy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DevicePlatform;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,6 +51,19 @@ public class PaymentGateWayCommonUtils {
         return new DevicePojo(deviceType, platform, "");
     }
 
+    public static String getMerchantIdToUse(String merchantId) {
+        AuthenticatedUser authenticatedUser = getAuthenticatedUser();
+        if (authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
+            throw new ApplicationException(400, "01", "Okay! Please provide merchant id to proceed.");
+        if (!authenticatedUser.getAdmin() && (ObjectUtils.isNotEmpty(merchantId) && !merchantId.equals(authenticatedUser.getMerchantId())))
+            throw new ApplicationException(403, "01", "Oops! Sorry resource(s) can't be accessed");
+        return ObjectUtils.isEmpty(merchantId) ? authenticatedUser.getMerchantId() : merchantId;
+    }
+
+    public static AuthenticatedUser getAuthenticatedUser() {
+        return ((AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+    }
+
     public String getDaemonAuthToken() {
         TokenAuthResponse authToken = authApiClient.authenticateUser(
                 LoginRequest.builder()
@@ -85,9 +99,5 @@ public class PaymentGateWayCommonUtils {
 //            return merchantResponse.getMerchantId();
 //        }
         return merchantId;
-    }
-
-    public AuthenticatedUser getAuthenticatedUser() {
-        return ((AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
 }

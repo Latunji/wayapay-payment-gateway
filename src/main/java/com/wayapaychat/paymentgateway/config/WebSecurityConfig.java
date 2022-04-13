@@ -33,6 +33,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .antMatchers("/api/v1/report/query/**").fullyAuthenticated()
                 .antMatchers("/api/v1/transactions/**").fullyAuthenticated()
+                .antMatchers("/api/v1/transactions/settlements/**").fullyAuthenticated()
                 .antMatchers("/api/v1/test-recurrent-payment/**").permitAll()
                 .antMatchers("/api/v1/recurrent-transactions/**").fullyAuthenticated()
                 .antMatchers("/api/v1/revenue/query/**").fullyAuthenticated()

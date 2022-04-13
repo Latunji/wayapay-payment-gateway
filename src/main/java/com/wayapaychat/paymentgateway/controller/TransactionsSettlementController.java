@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api/v1/transactions/settlement")
+@RequestMapping("/api/v1/transactions/settlements")
 @Tag(name = "TRANSACTIONS-SETTLEMENT", description = "Transaction settlement service controller")
 @Validated
 @AllArgsConstructor
@@ -27,11 +27,11 @@ public class TransactionsSettlementController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/fetch-all")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant settlements", notes = "View the merchant settlement history", tags = {"TRANSACTIONS-SETTLEMENT"})
-    public ResponseEntity<PaymentGatewayResponse> getMerchantSettlements(
+    @ApiOperation(value = "Get merchant settlements history and others", notes = "View the merchant settlement history", tags = {"TRANSACTIONS-SETTLEMENT"})
+    public ResponseEntity<PaymentGatewayResponse> getTransactionSettlementHistory(
             SettlementQueryPojo settlementQueryPojo, PaginationPojo paginationPojo,
             @RequestParam(value = "merchantId", required = false) final String merchantId) {
-        return transactionSettlementService.getMerchantSettlements(merchantId, PageableResponseUtil.createPageRequest(paginationPojo.getPage(),
+        return transactionSettlementService.getMerchantSettlements(settlementQueryPojo,merchantId, PageableResponseUtil.createPageRequest(paginationPojo.getPage(),
                 paginationPojo.getSize(), paginationPojo.getOrder(),
                 paginationPojo.getSortBy(), true, "date_settled"
         ));

@@ -65,6 +65,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils.getMerchantIdToUse;
+
 @Service
 @Slf4j
 public class PaymentGatewayServiceImpl implements PaymentGatewayService {
@@ -1013,13 +1015,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return pub.contains("WAYA") ?
                 pub.replace("WAYAPUBK_TEST_0x", "") :
                 pub.replace("WAYAPUBK_PROD_0x", "");
-    }
-
-    private String getMerchantIdToUse(String merchantId) {
-        AuthenticatedUser authenticatedUser = paymentGateWayCommonUtils.getAuthenticatedUser();
-        if (authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
-            throw new ApplicationException(400, "01", "Okay! Please provide merchant id to proceed.");
-        return ObjectUtils.isEmpty(merchantId) ? authenticatedUser.getMerchantId() : merchantId;
     }
 }
 

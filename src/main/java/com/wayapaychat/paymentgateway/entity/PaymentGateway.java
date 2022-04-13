@@ -13,6 +13,7 @@ import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.AccountSettlementOption;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
+import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import lombok.*;
 import org.apache.commons.lang3.ObjectUtils;
@@ -49,75 +50,109 @@ public class PaymentGateway {
     private String merchantId;
     private String description;
     private BigDecimal amount;
+
     private BigDecimal fee = BigDecimal.ZERO;
+
     private String currencyCode;
+
     private String returnUrl;
+
     @Column(nullable = false)
     @JsonIgnore
     private String secretKey; // hash
     private String scheme;
+
     private String cardNo; // hash
+
     private String mobile;
     //private String status;
+
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
+
     @Column(columnDefinition = "TEXT")
     @JsonIgnore
     private String encyptCard;
+
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate tranDate;
-    @Column(name = "settlement_date", columnDefinition = "TIMESTAMPTZ DEFAULT NULL")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    @JsonSerialize(using = LocalDateSerializer.class)
-    private LocalDate settlementDate;
+
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime rcre_time;
+
     private String preferenceNo;
+
     private boolean successfailure;
+
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate vendorDate;
+
     private String merchantName;
+
     private String customerName;
+
     private String customerEmail;
+
     private String merchantEmail;
+
     private String customerPhone;
+
     @Enumerated(EnumType.STRING)
     private PaymentChannel channel;
+
     private String customerId;
+
     private boolean tranflg;
+
     @Column(name = "customer_ip_address", columnDefinition = "VARCHAR(100)")
     private String customerIpAddress;
+
     @Type(type = "JSONB")
     @Column(name = "payment_meta_data", columnDefinition = "JSONB")
     private String paymentMetaData;
+
     @Column(name = "masked_pan")
     private String maskedPan;
+
     @Column(name = "payment_link")
     private String paymentLinkId;
+
     @Column(name = "recurrent_payment_id")
     private Long recurrentPaymentId;
+
     @Column(name = "is_from_recurrent_payment")
     private Boolean isFromRecurrentPayment;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "mode", columnDefinition = "VARCHAR(255)")
     private MerchantTransactionMode mode;
+
     @Column(name = "session_id")
     private String sessionId;
-    @Column(name = "account_settled_to")
-    private String accountSettledTo; //account number settled to
-    @Column(name = "account_settlement_option")
+
     @Enumerated(EnumType.STRING)
-    private AccountSettlementOption accountSettlementOption; // WALLET or BANK
+    @Column(name = "settlement_status")
+    private SettlementStatus settlementStatus = SettlementStatus.PENDING;
+
+    @Column(name = "settlement_date", columnDefinition = "TIMESTAMPTZ DEFAULT NULL")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @JsonSerialize(using = LocalDateSerializer.class)
+    private LocalDate settlementDate;
+
+    @JsonIgnore
+    @Column(name = "settlement_reference_id")
+    private String settlementReferenceId; //account number settled to
+
     @JsonIgnore
     @Column(name = "processing_fee")
     private BigDecimal processingFee = BigDecimal.ZERO; //Third party processing fee
@@ -129,6 +164,8 @@ public class PaymentGateway {
     void prePersist() {
         if (ObjectUtils.isEmpty(isFromRecurrentPayment))
             isFromRecurrentPayment = false;
+        if (ObjectUtils.isEmpty(settlementStatus))
+            settlementStatus = SettlementStatus.PENDING;
         fee = wayapayFee.add(processingFee);
     }
 }

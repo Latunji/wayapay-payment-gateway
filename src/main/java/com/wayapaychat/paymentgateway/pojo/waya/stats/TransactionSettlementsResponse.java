@@ -6,11 +6,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionSettlementsResponse {
     private TransactionSettlementStats stats;
-    private SettledTransactionStats counts;
+    private List<BigDecimalCountStatusWrapper> counts;
 }

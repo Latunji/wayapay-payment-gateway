@@ -14,6 +14,9 @@ public interface WalletProxy {
     @GetMapping("/wallet/accounts/{user_id}")
 	WalletResponse getWalletDetails(@RequestHeader("authorization") String token, @PathVariable("user_id") long user_id);
 
+    @GetMapping("/wallet/accounts/{userId}")
+    WalletResponse getUserDefaultWalletAccount(@RequestHeader("authorization") String token, @PathVariable("userId") long user_id);
+
     @PostMapping("/wallet/event/charge/payment")
 	WalletPaymentResponse fundWayaAccount(@RequestHeader("authorization") String token, @RequestBody WalletEventPayment request);
 

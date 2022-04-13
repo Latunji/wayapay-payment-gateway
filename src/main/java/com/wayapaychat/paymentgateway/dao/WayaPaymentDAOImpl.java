@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.dao;
 
 import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
 import com.wayapaychat.paymentgateway.mapper.WalletRevenueMapper;
+import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.*;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletRevenue;
 import lombok.extern.slf4j.Slf4j;
@@ -223,5 +224,26 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         @NotNull final String SUB_Q_MER_AND = String.format(" AND merchant_id = '%s' ", merchantId);
         return String.format("SELECT ( SUM(amount) - SUM(fee) ) amount FROM m_payment_gateway " +
                 " WHERE status='SUCCESSFUL' %s ;", SUB_Q_MER_AND);
+    }
+
+    @Override
+    @SuppressWarnings(value = "unchecked")
+    public List<MerchantUnsettledSuccessfulTransaction> getMerchantSettlementStats(final String merchantId) {
+        @NotNull final String SETTLEMENT_STATS_Q = getMerchantSettlementStatsQuery(merchantId);
+        var cscFactory = new CallableStatementCreatorFactory(SETTLEMENT_STATS_Q);
+        var csc = cscFactory.newCallableStatementCreator(new HashMap<>());
+        var returnedParams = List.<SqlParameter>of(
+                new SqlReturnResultSet("unsettled_transaction", BeanPropertyRowMapper.newInstance(MerchantUnsettledSuccessfulTransaction.class)));
+        Map<String, Object> results = jdbcTemplate.call(csc, returnedParams);
+        if (ObjectUtils.isNotEmpty(results))
+            return (List<MerchantUnsettledSuccessfulTransaction>) results.get("unsettled_transaction");
+        return List.of();
+    }
+
+    private String getMerchantSettlementStatsQuery(String merchantId) {
+        @NotNull final String SUB_Q_MER_AND = ObjectUtils.isEmpty(merchantId) ? "" : String.format(" AND merchant_id = '%s' ", merchantId);
+        return String.format("SELECT merchant_id, SUM(fee) as total_fee, SUM(amount) gross_amount, " +
+                " (SUM(amount) - SUM(fee) ) net_amount FROM m_payment_gateway WHERE status = 'SUCCESSFUL' %s" +
+                " AND settlement_status = 'PENDING' GROUP BY merchant_id ", SUB_Q_MER_AND);
     }
 }

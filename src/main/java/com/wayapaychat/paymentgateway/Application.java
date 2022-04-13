@@ -3,6 +3,7 @@ package com.wayapaychat.paymentgateway;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableFeignClients
 @EnableScheduling
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableSchedulerLock(defaultLockAtMostFor = "PT30S")
 @EnableWebSecurity
 public class Application {
 

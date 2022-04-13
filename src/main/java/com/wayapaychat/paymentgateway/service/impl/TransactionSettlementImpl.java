@@ -1,10 +1,20 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
+import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
+import com.wayapaychat.paymentgateway.dao.TransactionSettlementDAO;
+import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
+import com.wayapaychat.paymentgateway.pojo.waya.SuccessResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementsResponse;
+import com.wayapaychat.paymentgateway.repository.TransactionSettlementRepository;
 import com.wayapaychat.paymentgateway.service.TransactionSettlementService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -12,14 +22,49 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class TransactionSettlementImpl implements TransactionSettlementService {
+    private TransactionSettlementRepository transactionSettlementRepository;
+    private TransactionSettlementDAO transactionSettlementDAO;
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantSettlementStats(String merchantId) {
-        return null;
+        String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId);
+        TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse);
+        return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<PaymentGatewayResponse> getMerchantSettlements(String merchantId, Pageable dateSettled) {
-        return null;
+    public ResponseEntity<PaymentGatewayResponse> getMerchantSettlements(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable pageable) {
+        Page<TransactionSettlement> data;
+        String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId);
+        if (ObjectUtils.isNotEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isEmpty(settlementQueryPojo.getStartSettlementDate()))
+            data = transactionSettlementRepository.findAllWithStatus(merchantIdToUse, settlementQueryPojo.getStatus().name(), pageable);
+        else if (ObjectUtils.isNotEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isNotEmpty(settlementQueryPojo.getStartSettlementDate())
+                && ObjectUtils.isEmpty(settlementQueryPojo.getEndSettlementDate()))
+            data = transactionSettlementRepository.findAllWithSettlementDateStatus(
+                    merchantIdToUse,
+                    settlementQueryPojo.getStatus().name(),
+                    settlementQueryPojo.getStartSettlementDate(),
+                    pageable
+            );
+        else if (ObjectUtils.isNotEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isNotEmpty(settlementQueryPojo.getStartSettlementDate())
+                && ObjectUtils.isNotEmpty(settlementQueryPojo.getEndSettlementDate()))
+            data = transactionSettlementRepository.findAllWithStartEndDatesStatus(
+                    merchantIdToUse,
+                    settlementQueryPojo.getStatus().name(),
+                    settlementQueryPojo.getStartSettlementDate(),
+                    settlementQueryPojo.getEndSettlementDate(),
+                    pageable
+            );
+        else if (ObjectUtils.isEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isNotEmpty(settlementQueryPojo.getStartSettlementDate())
+                && ObjectUtils.isNotEmpty(settlementQueryPojo.getEndSettlementDate()))
+            data = transactionSettlementRepository.findAllWithStartEndDates(
+                    merchantIdToUse,
+                    settlementQueryPojo.getStartSettlementDate(),
+                    settlementQueryPojo.getEndSettlementDate(),
+                    pageable
+            );
+        else
+            data = transactionSettlementRepository.findAll(merchantIdToUse, pageable);
+        return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
     }
 }

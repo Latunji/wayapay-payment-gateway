@@ -69,8 +69,8 @@ public class TransactionSettlementCronService {
 
 
     //    @Scheduled(cron = "0 0 0 * * *")
-    @Scheduled(cron = "*/2 * * * * *")
-    @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "15s")
+    @Scheduled(cron = "*/30 * * * * *")
+    @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "30s", lockAtMostFor = "60s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
         List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
@@ -131,14 +131,14 @@ public class TransactionSettlementCronService {
                     BigDecimal totalFees = transactionsToSettle.stream()
                             .map(PaymentGateway::getFee)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    BigDecimal amountToBeSettled = grossAmount.subtract(totalFees);
+                    BigDecimal netAmount = grossAmount.subtract(totalFees);
 
                     if (transactionSettlement.getAccountSettlementOption().equals(AccountSettlementOption.BANK)) {
                         LocalDateTime dateSettled = LocalDateTime.now();
                         //TODO: Get the merchant settings and the bank account used for settlement
                         // Call the withdrawal endpoint to make payment to the user settlement account
                         saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
-                        preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, amountToBeSettled, grossAmount, settlementInitiatedAt);
+                        preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt);
                     } else if (transactionSettlement.getAccountSettlementOption().equals(AccountSettlementOption.WALLET)) {
                         @NotNull final String daemonToken = paymentGateWayCommonUtils.getDaemonAuthToken();
                         MerchantResponse merchantResponse = identityManager.getMerchantDetail(daemonToken, merchantId);
@@ -152,7 +152,7 @@ public class TransactionSettlementCronService {
                                 LocalDateTime dateSettled = LocalDateTime.now();
                                 //TODO: PROCESS PAYMENT TO THE USER ACCOUNT
                                 saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
-                                preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, amountToBeSettled, grossAmount, settlementInitiatedAt);
+                                preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt);
                             }
                         }
                     }
@@ -173,10 +173,10 @@ public class TransactionSettlementCronService {
     }
 
     private void preprocessSuccessfulSettlement(TransactionSettlement transactionSettlement, LocalDateTime dateSettled,
-                                                BigDecimal totalFees, BigDecimal amountToBeSettled, BigDecimal grossAmount, LocalDateTime settlementInitiatedAt) {
+                                                BigDecimal totalFees, BigDecimal netAmount, BigDecimal grossAmount, LocalDateTime settlementInitiatedAt) {
         transactionSettlement.setDateSettled(dateSettled);
         transactionSettlement.setTotalFee(totalFees);
-        transactionSettlement.setSettlementNetAmount(amountToBeSettled);
+        transactionSettlement.setSettlementNetAmount(netAmount);
         transactionSettlement.setSettlementGrossAmount(grossAmount);
         transactionSettlement.setSettlementInitiationDate(settlementInitiatedAt);
         transactionSettlementRepository.save(transactionSettlement);

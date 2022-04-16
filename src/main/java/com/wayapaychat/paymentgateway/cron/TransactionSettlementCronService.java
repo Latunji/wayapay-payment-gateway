@@ -195,7 +195,7 @@ public class TransactionSettlementCronService {
     @Scheduled(cron = "*/5 * * * * *")
     @SchedulerLock(name = "TaskScheduler_settleEveryFiveSeconds", lockAtLeastFor = "10s", lockAtMostFor = "15s")
     public void settleEveryFiveSeconds() {
-//        processFundMerchantWalletAccount();
+        processFundMerchantWalletAccount();
     }
 
     @Scheduled(cron = "0 0 0 28-31 JAN-DEC MON-FRI")

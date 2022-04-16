@@ -34,7 +34,8 @@ waya:
     auth: AUTHENTICATION-SERVICE
     authurl: https://services.staging.wayabank.ng/auth-service/api/v1
     tempname: WALLET-SERVICE
-    tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
+#    tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
+    tempurl:  http://localhost:9009/api/v1
   application:
     payment-gateway-mode: ${PAYMENT_GATEWAY_MODE:TEST}
   notification-service:

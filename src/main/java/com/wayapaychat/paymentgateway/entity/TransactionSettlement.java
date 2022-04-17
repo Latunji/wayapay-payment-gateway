@@ -95,7 +95,7 @@ public class TransactionSettlement extends GenericBaseEntity {
                     + System.currentTimeMillis()
                     + RandomStringUtils.randomAlphanumeric(5);
         if (ObjectUtils.isEmpty(merchantConfiguredSettlementDate))
-            merchantConfiguredSettlementDate = LocalDateTime.now().plusDays(2);
+            merchantConfiguredSettlementDate = LocalDateTime.now().plusDays(0);
         if (ObjectUtils.isEmpty(accountSettlementOption))
             accountSettlementOption = AccountSettlementOption.WALLET;
         if (ObjectUtils.isEmpty(settlementBeneficiaryAccount))

@@ -36,6 +36,7 @@ waya:
     tempname: WALLET-SERVICE
 #    tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
     tempurl:  http://localhost:9009/api/v1
+    wayapay-debit-account: ${WALLET_ACCOUNT_DEBIT_ACCOUNT_NUMBER:NGN000012010003}
   application:
     payment-gateway-mode: ${PAYMENT_GATEWAY_MODE:TEST}
   notification-service:

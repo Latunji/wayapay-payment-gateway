@@ -10,7 +10,9 @@ import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
-import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.DefaultWalletResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletSettlementResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.WayaMerchantWalletSettlementPojo;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
@@ -66,10 +68,12 @@ public class TransactionSettlementCronService {
     private IdentityManager identityManager;
     @Autowired
     private WalletProxy walletProxy;
+    @Value(value = "${waya.wallet.wayapay-debit-account}")
+    private String debitWalletAccountNumber;
 
 
     //    @Scheduled(cron = "0 0 0 * * *")
-    @Scheduled(cron = "*/30 * * * * *")
+    @Scheduled(cron = "* */1 * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "30s", lockAtMostFor = "60s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
@@ -81,7 +85,7 @@ public class TransactionSettlementCronService {
                 .collect(Collectors.toMap(TransactionSettlement::getMerchantId, Function.identity(), (o1, o2) -> o1));
         Set<String> merchantsWithPendingUnsettledTransactions = merchantWithPendingUnsettledTransaction.keySet();
 
-        merchantUnsettledSuccessfulTransactions.parallelStream().forEach(unsettledSuccessfulTransaction -> {
+        merchantUnsettledSuccessfulTransactions.stream().forEach(unsettledSuccessfulTransaction -> {
             String merchantId = unsettledSuccessfulTransaction.getMerchantId();
             if (merchantsWithPendingUnsettledTransactions.contains(merchantId)) {
                 TransactionSettlement transactionSettlement = merchantWithPendingUnsettledTransaction.get(merchantId);
@@ -92,7 +96,7 @@ public class TransactionSettlementCronService {
                 transactionSettlement.setSettlementNetAmount(unsettledSuccessfulTransaction.getNetAmount());
                 transactionSettlement.setSettlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount());
                 log.info("--------||||SUCCESSFULLY UPDATED NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
-//                processExpiredMerchantConfiguredSettlement(transactionSettlementRepository.save(transactionSettlement));
+                processExpiredMerchantConfiguredSettlement(transactionSettlementRepository.save(transactionSettlement));
             } else {
                 TransactionSettlement transactionSettlement = TransactionSettlement.builder()
                         .settlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount())
@@ -118,7 +122,7 @@ public class TransactionSettlementCronService {
         new Thread(() -> {
             try {
                 LocalDateTime merchantConfiguredSettlementDate = transactionSettlement.getMerchantConfiguredSettlementDate();
-                if (merchantConfiguredSettlementDate.isAfter(LocalDateTime.now()) || merchantConfiguredSettlementDate.isEqual(LocalDateTime.now())) {
+                if (merchantConfiguredSettlementDate.isBefore(LocalDateTime.now()) || merchantConfiguredSettlementDate.isEqual(LocalDateTime.now())) {
                     log.info("--------||||PROCESSING MERCHANT TRANSACTION SETTLEMENT||||----------");
                     LocalDateTime settlementInitiatedAt = LocalDateTime.now();
                     String merchantId = transactionSettlement.getMerchantId();
@@ -143,16 +147,40 @@ public class TransactionSettlementCronService {
                         @NotNull final String daemonToken = paymentGateWayCommonUtils.getDaemonAuthToken();
                         MerchantResponse merchantResponse = identityManager.getMerchantDetail(daemonToken, merchantId);
                         MerchantData merchantData = merchantResponse.getData();
+
                         if (ObjectUtils.isNotEmpty(merchantData)) {
-                            WalletResponse wallet = walletProxy.getUserDefaultWalletAccount(paymentGateWayCommonUtils.getDaemonAuthToken(), merchantData.getUserId());
-                            if (!wallet.getStatus()) {
-                                log.error("WALLET ERROR: " + wallet);
+                            DefaultWalletResponse merchantDefaultWallet = walletProxy.getUserDefaultWalletAccount(paymentGateWayCommonUtils.getDaemonAuthToken(), merchantData.getUserId());
+                            if (!merchantDefaultWallet.getStatus()) {
+                                log.error("---------||||COULD NOT FETCH DEFAULT WALLET||||--------------: " + merchantDefaultWallet);
                                 preprocessFailedSettlement(transactionSettlement);
                             } else {
                                 LocalDateTime dateSettled = LocalDateTime.now();
-                                //TODO: PROCESS PAYMENT TO THE USER ACCOUNT
-                                saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
-                                preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt);
+                                @NotNull final String DEBIT_WALLET_ACCOUNT_NO = debitWalletAccountNumber;
+                                @NotNull final String CREDIT_WALLET_ACCOUNT_NO = merchantDefaultWallet.getData().getAccountNo();
+                                WayaMerchantWalletSettlementPojo walletCreditingRequest = WayaMerchantWalletSettlementPojo
+                                        .builder()
+                                        .amount(netAmount)
+                                        .customerCreditAccount(CREDIT_WALLET_ACCOUNT_NO)
+                                        .tranCrncy("NGN")
+                                        .officeDebitAccount(DEBIT_WALLET_ACCOUNT_NO)
+                                        .tranNarration(String.format("Settlement transaction for %s successful payment received " +
+                                                "from your WAYAPAY merchant account", transactionsToSettle.size())
+                                        ).tranType("TRANSFER")
+                                        .paymentReference(transactionSettlement.getSettlementReferenceId())
+                                        .build();
+                                WalletSettlementResponse walletSettlementResponse = walletProxy.creditMerchantDefaultWallet(
+                                        paymentGateWayCommonUtils.getDaemonAuthToken(),
+                                        walletCreditingRequest
+                                );
+                                log.info("-----||||WALLET SETTLEMENT RESPONSE FROM TEMPORAL SERVICE|||| {}----", walletSettlementResponse);
+                                if (ObjectUtils.isNotEmpty(walletSettlementResponse.getData())) {
+                                    log.info("----||||WALLET SETTLEMENT CREDITING TRANSACTION WAS SUCCESSFUL FROM[{}]" +
+                                            " TO MERCHANT ACCOUNT NO[{}]||||----", debitWalletAccountNumber, merchantDefaultWallet.getData().getAccountNo());
+                                    saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
+                                    preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt);
+                                } else {
+                                    preprocessFailedSettlement(transactionSettlement);
+                                }
                             }
                         }
                     }

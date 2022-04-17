@@ -137,16 +137,17 @@ public class TransactionSettlementCronService {
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     BigDecimal netAmount = grossAmount.subtract(totalFees);
 
+                    @NotNull final String daemonToken = paymentGateWayCommonUtils.getDaemonAuthToken();
+                    MerchantResponse merchantResponse = identityManager.getMerchantDetail(daemonToken, merchantId);
+                    MerchantData merchantData = merchantResponse.getData();
+
                     if (transactionSettlement.getAccountSettlementOption().equals(AccountSettlementOption.BANK)) {
                         LocalDateTime dateSettled = LocalDateTime.now();
                         //TODO: Get the merchant settings and the bank account used for settlement
                         // Call the withdrawal endpoint to make payment to the user settlement account
                         saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
-                        preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt);
+                        preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt,merchantData.getUserId());
                     } else if (transactionSettlement.getAccountSettlementOption().equals(AccountSettlementOption.WALLET)) {
-                        @NotNull final String daemonToken = paymentGateWayCommonUtils.getDaemonAuthToken();
-                        MerchantResponse merchantResponse = identityManager.getMerchantDetail(daemonToken, merchantId);
-                        MerchantData merchantData = merchantResponse.getData();
 
                         if (ObjectUtils.isNotEmpty(merchantData)) {
                             DefaultWalletResponse merchantDefaultWallet = walletProxy.getUserDefaultWalletAccount(paymentGateWayCommonUtils.getDaemonAuthToken(), merchantData.getUserId());
@@ -177,7 +178,7 @@ public class TransactionSettlementCronService {
                                     log.info("----||||WALLET SETTLEMENT CREDITING TRANSACTION WAS SUCCESSFUL FROM[{}]" +
                                             " TO MERCHANT ACCOUNT NO[{}]||||----", debitWalletAccountNumber, merchantDefaultWallet.getData().getAccountNo());
                                     saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
-                                    preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt);
+                                    preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt, merchantData.getUserId());
                                 } else {
                                     preprocessFailedSettlement(transactionSettlement);
                                 }
@@ -200,12 +201,15 @@ public class TransactionSettlementCronService {
         log.info("--------||||FAILED PROCESSING MERCHANT SETTLEMENT||||----------");
     }
 
-    private void preprocessSuccessfulSettlement(TransactionSettlement transactionSettlement, LocalDateTime dateSettled,
-                                                BigDecimal totalFees, BigDecimal netAmount, BigDecimal grossAmount, LocalDateTime settlementInitiatedAt) {
+    private void preprocessSuccessfulSettlement(
+            TransactionSettlement transactionSettlement, LocalDateTime dateSettled,
+            BigDecimal totalFees, BigDecimal netAmount, BigDecimal grossAmount, LocalDateTime settlementInitiatedAt, Long userId) {
         transactionSettlement.setDateSettled(dateSettled);
         transactionSettlement.setTotalFee(totalFees);
         transactionSettlement.setSettlementNetAmount(netAmount);
         transactionSettlement.setSettlementGrossAmount(grossAmount);
+        transactionSettlement.setSettlementStatus(SettlementStatus.SETTLED);
+        transactionSettlement.setMerchantUserId(userId);
         transactionSettlement.setSettlementInitiationDate(settlementInitiatedAt);
         transactionSettlementRepository.save(transactionSettlement);
         log.info("--------||||COMPLETED PROCESSING MERCHANT SETTLEMENT TO {} ACCOUNT ||||----------", transactionSettlement.getAccountSettlementOption());

@@ -72,9 +72,9 @@ public class TransactionSettlementCronService {
     private String debitWalletAccountNumber;
 
 
-    //    @Scheduled(cron = "0 0 0 * * *")
+//        @Scheduled(cron = "0 0 0 * * *")
     @Scheduled(cron = "* */1 * * * *")
-    @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "30s", lockAtMostFor = "60s")
+    @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
         List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
@@ -85,7 +85,7 @@ public class TransactionSettlementCronService {
                 .collect(Collectors.toMap(TransactionSettlement::getMerchantId, Function.identity(), (o1, o2) -> o1));
         Set<String> merchantsWithPendingUnsettledTransactions = merchantWithPendingUnsettledTransaction.keySet();
 
-        merchantUnsettledSuccessfulTransactions.stream().forEach(unsettledSuccessfulTransaction -> {
+        merchantUnsettledSuccessfulTransactions.parallelStream().forEach(unsettledSuccessfulTransaction -> {
             String merchantId = unsettledSuccessfulTransaction.getMerchantId();
             if (merchantsWithPendingUnsettledTransactions.contains(merchantId)) {
                 TransactionSettlement transactionSettlement = merchantWithPendingUnsettledTransaction.get(merchantId);

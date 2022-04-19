@@ -226,7 +226,7 @@ public class TransactionSettlementCronService {
     @Scheduled(cron = "*/5 * * * * *")
     @SchedulerLock(name = "TaskScheduler_settleEveryFiveSeconds", lockAtLeastFor = "10s", lockAtMostFor = "15s")
     public void settleEveryFiveSeconds() {
-        processFundMerchantWalletAccount();
+        prorcessThirdPartyPaymentProcessed();
     }
 
     @Scheduled(cron = "0 0 0 28-31 JAN-DEC MON-FRI")
@@ -249,7 +249,7 @@ public class TransactionSettlementCronService {
         //CHECK MERCHANT SETTLEMENT SETTINGS
     }
 
-    public void processFundMerchantWalletAccount() {
+    public void prorcessThirdPartyPaymentProcessed() {
         new Thread(() -> {
             List<PaymentGateway> payment = paymentGatewayRepo.findAllNotFlaggedAndSuccessful();
             for (PaymentGateway mPayment : payment) {

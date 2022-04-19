@@ -155,7 +155,7 @@ public class TransactionSettlementCronService {
                                 preprocessFailedSettlement(transactionSettlement);
                             } else {
                                 LocalDateTime dateSettled = LocalDateTime.now();
-                                @NotNull final String DEBIT_WALLET_ACCOUNT_NO = debitWalletAccountNumber;
+                                @NotNull final String DEBIT_WALLET_ACCOUNT_NO = ObjectUtils.isEmpty(debitWalletAccountNumber) ? "NGN000016002001" : debitWalletAccountNumber;
                                 @NotNull final String CREDIT_WALLET_ACCOUNT_NO = merchantDefaultWallet.getData().getAccountNo();
                                 WayaMerchantWalletSettlementPojo walletCreditingRequest = WayaMerchantWalletSettlementPojo
                                         .builder()
@@ -175,7 +175,7 @@ public class TransactionSettlementCronService {
                                 log.info("-----||||WALLET SETTLEMENT RESPONSE FROM TEMPORAL SERVICE|||| {}----", walletSettlementResponse);
                                 if (ObjectUtils.isNotEmpty(walletSettlementResponse.getData())) {
                                     log.info("----||||WALLET SETTLEMENT CREDITING TRANSACTION WAS SUCCESSFUL FROM[{}]" +
-                                            " TO MERCHANT ACCOUNT NO[{}]||||----", debitWalletAccountNumber, merchantDefaultWallet.getData().getAccountNo());
+                                            " TO MERCHANT ACCOUNT NO[{}]||||----", DEBIT_WALLET_ACCOUNT_NO, merchantDefaultWallet.getData().getAccountNo());
                                     saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
                                     preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt, merchantData.getUserId());
                                 } else {

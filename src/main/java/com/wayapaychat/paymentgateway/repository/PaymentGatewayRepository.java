@@ -27,7 +27,7 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
     @Query(value = "select * from m_payment_gateway where del_flg = false and customer_name != '' and status != ''", nativeQuery = true)
     List<PaymentGateway> findByPayment();
 
-    @Query(value = "select * from m_payment_gateway where merchant_id = :mechtId and del_flg = false and customer_name != '' and status != ''", nativeQuery = true)
+    @Query(value = "select * from m_payment_gateway where merchant_id = :mechtId and del_flg = false and customer_name != '' and status != '' ", nativeQuery = true)
     List<PaymentGateway> findByMerchantPayment(String mechtId);
 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg = false " +
@@ -49,6 +49,6 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE tranflg = false AND ( status = 'SUCCESSFUL' OR status = 'SUCCESSFUL' ) ", nativeQuery = true)
     List<PaymentGateway> findAllNotFlaggedAndSuccessful();
 
-    @Query(value = "SELECT * FROM m_payment_gateway WHERE tranflg = false AND del_flg=false AND status = 'SUCCESSFUL' AND settlement_status='PENDING' AND merchant_id=?1", nativeQuery = true)
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND status = 'SUCCESSFUL' AND settlement_status='PENDING' AND merchant_id=?1", nativeQuery = true)
     List<PaymentGateway> findAllNotSettled(String merchantId);
 }

@@ -3,6 +3,7 @@ package com.wayapaychat.paymentgateway.cron;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
+import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
@@ -43,6 +44,8 @@ public class CronService {
     private String username;
     @Value("${service.pass}")
     private String passSecret;
+    @Autowired
+    private PaymemtGatewayEntityListener paymemtGatewayEntityListener;
 
 
     @Scheduled(cron = "*/5 * * * * *")
@@ -66,13 +69,11 @@ public class CronService {
                             if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
                                 WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
                                 preprocessSuccessfulTransaction(mPay, query);
-                                paymentGatewayRepo.save(mPay);
                             }
                         } else if (mPay.getStatus() == TransactionStatus.FAILED) {
                             if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
                                 WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
                                 preprocessSuccessfulTransaction(mPay, query);
-                                paymentGatewayRepo.save(mPay);
                             }
                         }
                     }
@@ -92,13 +93,16 @@ public class CronService {
                 mPay.setProcessingFee(new BigDecimal(query.getConvenienceFee()));
                 if (mPay.getIsFromRecurrentPayment())
                     paymentService.updateRecurrentTransaction(mPay);
+                paymentGatewayRepo.save(mPay);
+                paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(mPay);
             } else if (query.getStatus().contains("REJECT")) {
                 mPay.setStatus(TransactionStatus.FAILED);
                 mPay.setSuccessfailure(false);
+                paymentGatewayRepo.save(mPay);
             }
         } catch (Exception e) {
             log.error("------||||SYSTEM ERROR||||-------", e);
-            mPay.setStatus(TransactionStatus.SYSTEM_ERROR);
+            mPay.setStatus(TransactionStatus.FAILED);
             paymentGatewayRepo.save(mPay);
         }
     }

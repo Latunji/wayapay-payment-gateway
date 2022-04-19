@@ -11,7 +11,6 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
-import com.wayapaychat.paymentgateway.enumm.AccountSettlementOption;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
@@ -26,7 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
-@EntityListeners(value = PaymemtGatewayEntityListener.class)
+//@EntityListeners(value = PaymemtGatewayEntityListener.class)
 @Builder
 @Entity
 @Getter

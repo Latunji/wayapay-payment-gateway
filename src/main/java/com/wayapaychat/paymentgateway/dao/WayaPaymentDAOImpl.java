@@ -78,7 +78,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     public TransactionOverviewResponse getTransactionReport(final String merchantId) {
         @NotNull final String SUCCESS_RATE_TOTAL_SUB = " SELECT COUNT(*.status) total FROM m_payment_gateway WHERE UPPER(status) IN ('SUCCESSFUL','ERROR','FAILED') ";
         @NotNull final String REFUSAL_RATE_TOTAL_SUB = " SELECT COUNT(*.status) total FROM m_payment_gateway WHERE UPPER(status) " +
-                "IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR') ";
+                "IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') ";
         @NotNull final String TOTAL_PAYMENT_CHANNEL_SUB = " SELECT COUNT(*.channel) FROM m_payment_gateway WHERE UPPER(channel) " +
                 "IN ('CARD','USSD','PAYATTITUDE', 'QR','BANK') ";
         @NotNull final String MER = String.format(" merchant_id = '%s' ", merchantId);
@@ -104,7 +104,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                 " FROM m_payment_gateway WHERE status IN ('SUCCESSFUL','ERROR','FAILED') %s GROUP BY status; ", SUB_Q_MER_AND);
 
         @NotNull final String REFUSAL_ERROR_Q = String.format("SELECT  COUNT(status), status " +
-                " FROM m_payment_gateway WHERE status IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR') %s GROUP BY status; ", SUB_Q_MER_AND);
+                " FROM m_payment_gateway WHERE status IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') %s GROUP BY status; ", SUB_Q_MER_AND);
 
         @NotNull final String PAYMENT_CHANNEL_STATS_Q = String.format("SELECT COUNT(channel), channel " +
                 " FROM m_payment_gateway WHERE channel IN ('CARD','USSD','PAYATTITUDE', 'QR','BANK') %s GROUP BY channel ; ", SUB_Q_MER_AND);

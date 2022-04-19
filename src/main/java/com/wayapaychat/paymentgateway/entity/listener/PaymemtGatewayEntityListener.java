@@ -1,29 +1,27 @@
 package com.wayapaychat.paymentgateway.entity.listener;
 
 
+import com.wayapaychat.paymentgateway.common.utils.VariableUtil;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.enumm.EventCategory;
 import com.wayapaychat.paymentgateway.enumm.EventType;
 import com.wayapaychat.paymentgateway.enumm.ProductType;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
-import com.wayapaychat.paymentgateway.pojo.waya.LoginRequest;
-import com.wayapaychat.paymentgateway.pojo.waya.NotificationPojo;
-import com.wayapaychat.paymentgateway.pojo.waya.PaymentData;
-import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationReceiver;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceResponse;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationStreamData;
+import com.wayapaychat.paymentgateway.pojo.waya.LoginRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.NotificationPojo;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentData;
+import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
-import com.wayapaychat.paymentgateway.common.utils.VariableUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +34,22 @@ public class PaymemtGatewayEntityListener {
     private static NotificationServiceProxy notificationServiceProxy;
     private static AuthApiClient authApiClient;
     private static VariableUtil variableUtil;
+
+    private static String getDaemonAuthToken() throws Exception {
+        TokenAuthResponse authToken = authApiClient.authenticateUser(
+                LoginRequest.builder()
+                        .password(variableUtil.getPassword())
+                        .emailOrPhoneNumber(variableUtil.getUserName())
+                        .build());
+        log.info("AUTHENTICATION RESPONSE: " + authToken.toString());
+        if (!authToken.getStatus()) {
+            log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------",
+                    variableUtil.getUserName(), variableUtil.getPassword());
+            throw new Exception("Failed to process user authentication...!");
+        }
+        PaymentData payData = authToken.getData();
+        return payData.getToken();
+    }
 
     @Autowired
     public void setAuthApiClient(AuthApiClient authApiClient) {
@@ -55,8 +69,8 @@ public class PaymemtGatewayEntityListener {
         log.info("Initializing with dependency [" + variableUtil + "]");
     }
 
-    @PostPersist
-    @PostUpdate
+    //    @PostPersist
+//    @PostUpdate
     public void sendTransactionNotificationAfterPaymentIsSuccessful(PaymentGateway paymentGateway) {
         CompletableFuture.runAsync(() -> {
             SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
@@ -82,7 +96,7 @@ public class PaymemtGatewayEntityListener {
                 try {
                     processEmailAlert(notificationPojo);
                 } catch (Exception e) {
-                    log.error("{0}",e);
+                    log.error("{0}", e);
                 }
             }
         });
@@ -127,22 +141,6 @@ public class PaymemtGatewayEntityListener {
         NotificationServiceResponse notificationServiceResponse1 = notificationServiceProxy.sendEmailNotificationTransaction(emailStreamData, getDaemonAuthToken());
         log.info("------||||NOTIFICATION HAS BEEN SENT TO MERCHANT EMAIL ADDRESS {}||||--------", notificationPojo.getMerchantEmailAddress());
         log.info("------||||NOTIFICATION SERVICE RESPONSE {}||||--------", notificationServiceResponse1);
-    }
-
-    private static String getDaemonAuthToken() throws Exception {
-        TokenAuthResponse authToken = authApiClient.authenticateUser(
-                LoginRequest.builder()
-                        .password(variableUtil.getPassword())
-                        .emailOrPhoneNumber(variableUtil.getUserName())
-                        .build());
-        log.info("AUTHENTICATION RESPONSE: " + authToken.toString());
-        if (!authToken.getStatus()) {
-            log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------",
-                    variableUtil.getUserName(), variableUtil.getPassword());
-            throw new Exception("Failed to process user authentication...!");
-        }
-        PaymentData payData = authToken.getData();
-        return payData.getToken();
     }
 
     private String getCurrencyName(String currencyCode) {

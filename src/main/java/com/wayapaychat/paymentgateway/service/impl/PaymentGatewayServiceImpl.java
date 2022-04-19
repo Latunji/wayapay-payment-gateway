@@ -189,7 +189,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setCustomerEmail(transactionRequestPojo.getCustomer().getEmail());
             payment.setCustomerPhone(transactionRequestPojo.getCustomer().getPhoneNumber());
             payment.setStatus(TransactionStatus.PENDING);
-            payment.setChannel(PaymentChannel.WEBVIEW);
+            payment.setChannel(PaymentChannel.CARD);
             payment.setCustomerId(merchantCustomer.getData().getCustomerId());
             payment.setPreferenceNo(transactionRequestPojo.getPreferenceNo());
             String encryptedMerchantSecretKey = UnifiedPaymentProxy.getDataEncrypt(transactionRequestPojo.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);

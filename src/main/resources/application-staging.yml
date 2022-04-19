@@ -34,6 +34,7 @@ waya:
      authurl: https://services.staging.wayabank.ng/auth-service/api/v1
      tempname: WALLET-SERVICE
      tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
+     wayapay-debit-account: ${WALLET_ACCOUNT_DEBIT_ACCOUNT_NUMBER:NGN000012010003}
   qrcode:
      name: QRCODE-SERVICE
      baseurl: https://services.staging.wayabank.ng/qrcode-service/api/v1

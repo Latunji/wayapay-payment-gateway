@@ -32,7 +32,6 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +71,7 @@ public class TransactionSettlementCronService {
     private String debitWalletAccountNumber;
 
 
-//        @Scheduled(cron = "0 0 0 * * *")
+    //        @Scheduled(cron = "0 0 0 * * *")
     @Scheduled(cron = "* */1 * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void createAndUpdateMerchantTransactionSettlement() {
@@ -146,7 +145,7 @@ public class TransactionSettlementCronService {
                         //TODO: Get the merchant settings and the bank account used for settlement
                         // Call the withdrawal endpoint to make payment to the user settlement account
                         saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
-                        preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt,merchantData.getUserId());
+                        preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt, merchantData.getUserId());
                     } else if (transactionSettlement.getAccountSettlementOption().equals(AccountSettlementOption.WALLET)) {
 
                         if (ObjectUtils.isNotEmpty(merchantData)) {
@@ -218,7 +217,7 @@ public class TransactionSettlementCronService {
     private void saveProcessSettledTransactions(List<PaymentGateway> paymentGateways, LocalDateTime dateSettled, String settlementRef) {
         paymentGateways.parallelStream().forEach(paymentGateway -> {
             paymentGateway.setSettlementStatus(SettlementStatus.SETTLED);
-            paymentGateway.setSettlementDate(LocalDate.now());
+            paymentGateway.setSettlementDate(dateSettled.toLocalDate());
             paymentGateway.setSettlementReferenceId(settlementRef);
         });
         paymentGatewayRepo.saveAllAndFlush(paymentGateways);

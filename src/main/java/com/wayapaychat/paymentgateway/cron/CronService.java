@@ -93,6 +93,7 @@ public class CronService {
                 mPay.setProcessingFee(new BigDecimal(query.getConvenienceFee()));
                 if (mPay.getIsFromRecurrentPayment())
                     paymentService.updateRecurrentTransaction(mPay);
+                paymentGatewayRepo.save(mPay);
                 paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(mPay);
             } else if (query.getStatus().contains("REJECT")) {
                 mPay.setStatus(TransactionStatus.FAILED);

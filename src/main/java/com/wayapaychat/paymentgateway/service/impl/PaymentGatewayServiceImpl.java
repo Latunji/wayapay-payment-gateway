@@ -660,7 +660,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
         } catch (Exception ex) {
             log.error("Error occurred - GET QR TRANSACTION :{}", ex.getMessage());
-            payment.setStatus(TransactionStatus.SYSTEM_ERROR);
+            payment.setStatus(TransactionStatus.FAILED);
             paymentGatewayRepo.save(payment);
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
@@ -797,7 +797,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             return new ResponseEntity<>(new SuccessResponse("SUCCESS USSD", ussd), HttpStatus.CREATED);
         } catch (Exception ex) {
             log.error("Error occurred - GET USSD TRANSACTION :{0}", ex);
-            payment.setStatus(TransactionStatus.SYSTEM_ERROR);
+            payment.setStatus(TransactionStatus.FAILED);
             paymentGatewayRepo.save(payment);
             return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
@@ -960,7 +960,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
         } catch (Exception e) {
             log.error("------||||SYSTEM ERROR||||-------", e);
-            payment.setStatus(TransactionStatus.SYSTEM_ERROR);
+            payment.setStatus(TransactionStatus.FAILED);
             paymentGatewayRepo.save(payment);
         }
     }

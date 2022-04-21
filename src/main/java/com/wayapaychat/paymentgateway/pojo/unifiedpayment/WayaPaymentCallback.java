@@ -4,9 +4,6 @@ import lombok.Data;
 
 @Data
 public class WayaPaymentCallback {
-	
 	private String tranId;
-	
 	private String cardEncrypt;
-
 }

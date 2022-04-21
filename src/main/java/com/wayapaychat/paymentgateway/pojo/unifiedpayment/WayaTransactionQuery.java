@@ -1,11 +1,10 @@
 package com.wayapaychat.paymentgateway.pojo.unifiedpayment;
 
-import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import lombok.Data;
 import lombok.ToString;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -22,8 +21,8 @@ import lombok.ToString;
 "TranDateTime",
 "StatusDescription"
 })
-@Generated("jsonschema2pojo")
 @ToString
+@Data
 public class WayaTransactionQuery {
 	
 	@JsonProperty("Order Id")
@@ -58,6 +57,9 @@ public class WayaTransactionQuery {
 	
 	@JsonProperty("StatusDescription")
 	private String statusDescription;
+
+	@JsonProperty("SessionId")
+	private String sessionId;
 	
 
 	@JsonProperty("Order Id")
@@ -170,4 +172,13 @@ public class WayaTransactionQuery {
 	this.statusDescription = statusDescription;
 	}
 
+	@JsonProperty("SessionId")
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	@JsonProperty("SessionId")
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
 }

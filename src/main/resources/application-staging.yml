@@ -5,6 +5,9 @@ server:
 spring:
   application:
      name: payment-gateway
+  flyway:
+     baseline-on-migrate: true
+     out-of-order: true
   datasource:
      username: root
      password: pONvagaJf3BTbu9l
@@ -28,14 +31,33 @@ eureka:
 waya:
   wallet:
      auth: AUTHENTICATION-SERVICE
-     authurl: https://services.staging.mywayapay.com/auth-service/api/v1
+     authurl: https://services.staging.wayabank.ng/auth-service/api/v1
+     tempname: WALLET-SERVICE
+     tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
+     wayapay-debit-account: NGN000016002001
+  qrcode:
+     name: QRCODE-SERVICE
+     baseurl: https://services.staging.wayabank.ng/qrcode-service/api/v1
+  logging-service:
+    base-url: https://services.staging.wayabank.ng/logs-service
   unified-payment:
      name: unified-payment
      baseurl: https://test.payarena.com
      merchant: FAVE
      secret: 82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D
   callback:
-     baseurl: https://services.staging.mywayapay.com/payment-gateway/api/v1/wayaCallBack
+     baseurl: https://services.staging.wayabank.ng/payment-gateway/api/v1/wayaCallBack
+  formcallback:
+     baseurl: https://services.staging.wayabank.ng/payment-gateway/waya/callback
   identitymanager:
      name: IDENTITYMANAGER-SERVICE
-     url: https://services.staging.mywayapay.com/identity-manager-service/api/v1
+     url: https://services.staging.wayabank.ng/identity-manager-service/api/v1
+service:
+  wayapay-payment-status-url: https://pay.staging.wayapay.ng/status
+  name: ${SERVICE_NAME:tbaadm@wayapaychat.com}
+  pass: ${SERVICE_PASS:fintemp@#123}
+  encrypt-all-merchant-secretkey-with: S@$@@@@@!!!!!ads#$%#$@#!#$@$@545345fdsdf@@$353^^*(*@#$%#@$%#$@#@#$%#%#@
+  thirdparty:
+    unified-payment:
+      callback:
+        accepted-origins: "https://acce"

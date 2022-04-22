@@ -71,12 +71,15 @@ public class TransactionSettlementCronService {
     private String debitWalletAccountNumber;
 
 
-    //        @Scheduled(cron = "0 0 0 * * *")
-    @Scheduled(cron = "* */1 * * * *")
+            @Scheduled(cron = "0 0 0 * * *")
+//    @Scheduled(cron = "* */1 * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
         List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
+        List<PaymentGateway> paymentGateways = paymentGatewayRepo.getAllTransactionNotSettled();
+//        Map<String,List<PaymentGateway>> groupedMerchantTransactions = paymentGateways.parallelStream()
+//                .collect(Collectors.groupingBy(PaymentGateway::getMerchantId));
         List<TransactionSettlement> pendingMerchantSettlements = transactionSettlementRepository.findAllMerchantSettlementPending();
 
         Map<String, TransactionSettlement> merchantWithPendingUnsettledTransaction = pendingMerchantSettlements

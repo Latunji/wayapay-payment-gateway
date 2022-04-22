@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.net.URISyntaxException;
+import java.util.Date;
 
 public interface PaymentGatewayService {
     ResponseEntity<?> walletPaymentQR(HttpServletRequest request, WayaQRRequest account);
@@ -71,7 +72,7 @@ public interface PaymentGatewayService {
 
     void updateRecurrentTransaction(@NotNull PaymentGateway paymentGateway);
 
-    ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(@NotNull final String merchantId, Long year);
+    ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate);
 
     ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(@NotNull final String merchantId);
 

@@ -71,7 +71,7 @@ public class TransactionSettlementCronService {
     private String debitWalletAccountNumber;
 
 
-            @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 0 * * *")
 //    @Scheduled(cron = "* */1 * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void createAndUpdateMerchantTransactionSettlement() {

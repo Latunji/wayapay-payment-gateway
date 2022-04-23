@@ -17,6 +17,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Repository
@@ -79,7 +81,8 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
     @Override
     @SuppressWarnings(value = "unchecked")
-    public TransactionOverviewResponse getTransactionReport(final String merchantId) {
+    public TransactionOverviewResponse getTransactionReport(String merchantId) {
+//        merchantId = null;
         @NotNull final String SUCCESS_RATE_TOTAL_SUB = " SELECT COUNT(*.status) total FROM m_payment_gateway WHERE UPPER(status) IN ('SUCCESSFUL','ERROR','FAILED') ";
         @NotNull final String REFUSAL_RATE_TOTAL_SUB = " SELECT COUNT(*.status) total FROM m_payment_gateway WHERE UPPER(status) " +
                 "IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') ";
@@ -109,7 +112,8 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                 ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
 
         @NotNull final String REFUSAL_ERROR_Q = String.format("SELECT  COUNT(status), status " +
-                " FROM m_payment_gateway WHERE status IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') %s GROUP BY status; ", SUB_Q_MER_AND);
+                        " FROM m_payment_gateway WHERE status IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') %s GROUP BY status; ",
+                ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
 
         @NotNull final String PAYMENT_CHANNEL_STATS_Q = String.format("SELECT COUNT(channel), channel " +
                         " FROM m_payment_gateway WHERE channel IN ('CARD','USSD','PAYATTITUDE', 'QR','BANK') %s GROUP BY channel ; ",
@@ -213,13 +217,15 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     }
 
     private String buildYearMonthQuery(String merchantId, Long year, Date startDate, Date endDate) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyy-MM-dd");
         final Long currentYear = ObjectUtils.isEmpty(year) ? Calendar.getInstance().get(Calendar.YEAR) : year;
         @NotNull final String ALT_Q = " merchant_id IS NOT NULL ";
         @NotNull final String MER = String.format(" merchant_id = '%s' ", merchantId);
         @NotNull final String EXTRACT_Q = " EXTRACT( year FROM tran_date ) ";
         @NotNull String DATE_SUB_QUERY;
         if (ObjectUtils.isNotEmpty(startDate) && ObjectUtils.isNotEmpty(endDate))
-            DATE_SUB_QUERY = String.format(" CAST(tran_date AS TIMESTAMP) BETWEEN CAST(%s AS TIMESTAMP) AND CAST(%s AS TIMESTAMP) ", startDate, endDate);
+            DATE_SUB_QUERY = String.format(" CAST(tran_date AS TIMESTAMP) BETWEEN CAST('%s' AS TIMESTAMPTZ) AND CAST('%s' AS TIMESTAMPTZ) ",
+                    simpleDateFormat.format(startDate), simpleDateFormat.format(endDate));
         else DATE_SUB_QUERY = String.format(" EXTRACT( year FROM tran_date ) = %s ", currentYear);
         @NotNull final String SUB_Q_MER = ObjectUtils.isNotEmpty(merchantId) ? String.format(" %s ", MER) : String.format(" %s ", ALT_Q);
         @NotNull final String FINAL_Q = String.format(" SELECT %s as year , SUM(amount) AS total_revenue, TO_CHAR(tran_date, 'Mon') AS month, merchant_id FROM m_payment_gateway t " +

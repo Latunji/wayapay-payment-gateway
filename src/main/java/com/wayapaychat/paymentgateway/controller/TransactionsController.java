@@ -75,10 +75,10 @@ public class TransactionsController {
     public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(
             @RequestParam(value = "merchantId", required = false) final String merchantId,
             @RequestParam(value = "year", required = false) final Long year,
-            @RequestParam(value = "year", required = false)
-            @DateTimeFormat(pattern = "dd-MM-yyyy") Date startDate,
-            @RequestParam(value = "year", required = false)
-            @DateTimeFormat(pattern = "dd-MM-yyyy") Date endDate
+            @RequestParam(value = "startDate", required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "endDate", required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate
     ) {
         return paymentGatewayService.getMerchantYearMonthTransactionStats(merchantId, year, startDate, endDate);
     }

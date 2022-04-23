@@ -993,8 +993,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate) {
-        String merchantIdToUse = getMerchantIdToUse(merchantId);
-        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year,startDate, endDate);
+        if (ObjectUtils.isEmpty(merchantId) && !PaymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
+            throw new ApplicationException(403, "forbidden", "Oops! Operation not allowed. You need to provide the merchantId!");
+        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantId, year, startDate, endDate);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionYearMonthStats), HttpStatus.OK);
     }
 

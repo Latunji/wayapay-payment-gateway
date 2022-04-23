@@ -99,6 +99,7 @@ public class TransactionSettlementCronService {
                 log.info("--------||||SUCCESSFULLY UPDATED NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
                 processExpiredMerchantConfiguredSettlement(transactionSettlementRepository.save(transactionSettlement));
             } else {
+                //Get merchant configuration settings
                 TransactionSettlement transactionSettlement = TransactionSettlement.builder()
                         .settlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount())
                         .settlementNetAmount(unsettledSuccessfulTransaction.getNetAmount())

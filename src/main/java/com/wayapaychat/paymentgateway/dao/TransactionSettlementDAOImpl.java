@@ -72,17 +72,17 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
 
     @Override
     public String getLatestSettlementQuery(String merchantId) {
-        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount FROM m_transaction_settlement WHERE merchant_id='%s' " +
-                "AND settlement_status='SETTLED' " +
-                " ORDER BY date_settled DESC LIMIT 1 ;", merchantId);
+        @NotNull String SUB = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND merchant_id='%s' ", merchantId);
+        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount FROM m_transaction_settlement WHERE settlement_status='SETTLED' " +
+                " %s ORDER BY date_settled DESC LIMIT 1 ;", SUB);
         return LATEST_SETTLEMENT_Q;
     }
 
     @Override
     public String getNextSettlementQuery(String merchantId) {
-        @NotNull final String NEXT_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount FROM m_transaction_settlement WHERE merchant_id='%s' " +
-                " AND settlement_status='PENDING' " +
-                " ORDER BY merchant_configured_settlement_date DESC LIMIT 1 ;", merchantId);
+        @NotNull String SUB = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND merchant_id='%s' ", merchantId);
+        @NotNull final String NEXT_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount FROM m_transaction_settlement WHERE settlement_status='PENDING' " +
+                " %s ORDER BY merchant_configured_settlement_date DESC LIMIT 1 ;", SUB);
         return NEXT_SETTLEMENT_Q;
     }
 }

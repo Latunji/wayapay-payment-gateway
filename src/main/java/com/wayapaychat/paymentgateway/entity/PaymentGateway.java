@@ -143,7 +143,7 @@ public class PaymentGateway {
     private SettlementStatus settlementStatus = SettlementStatus.PENDING;
 
     @Column(name = "settlement_date", columnDefinition = "TIMESTAMPTZ DEFAULT NULL")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate settlementDate;

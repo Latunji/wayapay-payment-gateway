@@ -144,12 +144,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 return new PaymentGatewayResponse(false, "Invalid merchant key", null);
             }
             // To create customer records
+            String[] customerName = transactionRequestPojo.getCustomer().getName().split("\\s+");
             CustomerRequest customer = new CustomerRequest();
             customer.setEmail(transactionRequestPojo.getCustomer().getEmail());
             customer.setMerchantPublicKey(transactionRequestPojo.getWayaPublicKey());
             customer.setPhoneNumber(transactionRequestPojo.getCustomer().getPhoneNumber());
-            customer.setFirstName(transactionRequestPojo.getCustomer().getName());
-            customer.setLastName(transactionRequestPojo.getCustomer().getName());
+            customer.setFirstName(ObjectUtils.isEmpty(customerName[0]) ? " " : customerName[0]);
+            customer.setLastName(ObjectUtils.isEmpty(customerName[1]) ? " " : customerName[1]);
             MerchantCustomer merchantCustomer = identManager.postCustomerCreate(customer, token);
             log.info("CUSTOMER: " + merchantCustomer.toString());
 
@@ -991,9 +992,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year) {
-        String merchantIdToUse = getMerchantIdToUse(merchantId);
-        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year);
+    public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate) {
+        if (ObjectUtils.isEmpty(merchantId) && !PaymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
+            throw new ApplicationException(403, "forbidden", "Oops! Operation not allowed. You need to provide the merchantId!");
+        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantId, year, startDate, endDate);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionYearMonthStats), HttpStatus.OK);
     }
 

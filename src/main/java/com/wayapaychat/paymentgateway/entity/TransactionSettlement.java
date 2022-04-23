@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -88,6 +89,10 @@ public class TransactionSettlement extends GenericBaseEntity {
     @Column(name = "settlement_beneficiary_account", columnDefinition = "VARCHAR(255)")
     private String settlementBeneficiaryAccount;
 
+    @JsonIgnore
+    @Column(name = "total_retry_settlement_count")
+    private Long totalRetrySettlementCount;
+
     @PrePersist
     public void onCreate() {
         if (ObjectUtils.isEmpty(settlementReferenceId))
@@ -95,13 +100,15 @@ public class TransactionSettlement extends GenericBaseEntity {
                     + System.currentTimeMillis()
                     + RandomStringUtils.randomAlphanumeric(5);
         if (ObjectUtils.isEmpty(merchantConfiguredSettlementDate))
-            merchantConfiguredSettlementDate = LocalDateTime.now().plusDays(0);
+            merchantConfiguredSettlementDate = LocalDateTime.now().plusDays(2);
         if (ObjectUtils.isEmpty(accountSettlementOption))
             accountSettlementOption = AccountSettlementOption.WALLET;
         if (ObjectUtils.isEmpty(settlementBeneficiaryAccount))
             settlementBeneficiaryAccount = "Wayabank Wallet";
         if (ObjectUtils.isNotEmpty(this.getCreatedBy()))
             setCreatedBy(0L);
+        if (ObjectUtils.isEmpty(totalRetrySettlementCount))
+            totalRetrySettlementCount = 0L;
     }
 
     @Override

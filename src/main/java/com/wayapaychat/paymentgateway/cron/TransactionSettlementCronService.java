@@ -70,13 +70,15 @@ public class TransactionSettlementCronService {
     @Value(value = "${waya.wallet.wayapay-debit-account}")
     private String debitWalletAccountNumber;
 
-
-    //        @Scheduled(cron = "0 0 0 * * *")
-    @Scheduled(cron = "* */1 * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
+//    @Scheduled(cron = "* */1 * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
         List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
+        List<PaymentGateway> paymentGateways = paymentGatewayRepo.getAllTransactionNotSettled();
+//        Map<String,List<PaymentGateway>> groupedMerchantTransactions = paymentGateways.parallelStream()
+//                .collect(Collectors.groupingBy(PaymentGateway::getMerchantId));
         List<TransactionSettlement> pendingMerchantSettlements = transactionSettlementRepository.findAllMerchantSettlementPending();
 
         Map<String, TransactionSettlement> merchantWithPendingUnsettledTransaction = pendingMerchantSettlements
@@ -97,6 +99,7 @@ public class TransactionSettlementCronService {
                 log.info("--------||||SUCCESSFULLY UPDATED NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
                 processExpiredMerchantConfiguredSettlement(transactionSettlementRepository.save(transactionSettlement));
             } else {
+                //Get merchant configuration settings
                 TransactionSettlement transactionSettlement = TransactionSettlement.builder()
                         .settlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount())
                         .settlementNetAmount(unsettledSuccessfulTransaction.getNetAmount())
@@ -163,10 +166,9 @@ public class TransactionSettlementCronService {
                                         .customerCreditAccount(CREDIT_WALLET_ACCOUNT_NO)
                                         .tranCrncy("NGN")
                                         .officeDebitAccount(DEBIT_WALLET_ACCOUNT_NO)
-                                        .tranNarration(String.format("Settlement transaction for %s successful payment received " +
-                                                "from your WAYAPAY merchant account", transactionsToSettle.size())
+                                        .tranNarration(String.format("Settlement transaction for %s successful payment", transactionsToSettle.size())
                                         ).tranType("TRANSFER")
-                                        .paymentReference(transactionSettlement.getSettlementReferenceId())
+                                        .paymentReference(transactionSettlement.getSettlementReferenceId() + "_" + System.currentTimeMillis())
                                         .build();
                                 WalletSettlementResponse walletSettlementResponse = walletProxy.creditMerchantDefaultWallet(
                                         paymentGateWayCommonUtils.getDaemonAuthToken(),
@@ -193,11 +195,18 @@ public class TransactionSettlementCronService {
     }
 
     private void preprocessFailedSettlement(TransactionSettlement transactionSettlement) {
-        transactionSettlement.setSettlementStatus(SettlementStatus.FAILED);
+        final Long RETRY_THRESHOLD = 1000000000000000000L;
+        if (transactionSettlement.getTotalRetrySettlementCount() < RETRY_THRESHOLD) {
+            transactionSettlement.setTotalRetrySettlementCount(transactionSettlement.getTotalRetrySettlementCount() + 1);
+            transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
+            log.info("--------||||FAILED PROCESSING MERCHANT SETTLEMENT... RESET TO PENDING||||----------");
+        } else {
+            transactionSettlement.setSettlementStatus(SettlementStatus.FAILED);
+            log.info("--------||||FAILED PROCESSING MERCHANT SETTLEMENT||||----------");
+        }
         transactionSettlement.setDateModified(LocalDateTime.now());
         transactionSettlement.setModifiedBy(0L);
         transactionSettlementRepository.save(transactionSettlement);
-        log.info("--------||||FAILED PROCESSING MERCHANT SETTLEMENT||||----------");
     }
 
     private void preprocessSuccessfulSettlement(

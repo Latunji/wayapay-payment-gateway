@@ -222,7 +222,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             DATE_SUB_QUERY = String.format(" CAST(tran_date AS TIMESTAMP) BETWEEN CAST(%s AS TIMESTAMP) AND CAST(%s AS TIMESTAMP) ", startDate, endDate);
         else DATE_SUB_QUERY = String.format(" EXTRACT( year FROM tran_date ) = %s ", currentYear);
         @NotNull final String SUB_Q_MER = ObjectUtils.isNotEmpty(merchantId) ? String.format(" %s ", MER) : String.format(" %s ", ALT_Q);
-        @NotNull final String FINAL_Q = String.format(" SELECT %s as year , SUM(*.amount) AS total_revenue, TO_CHAR(tran_date, 'Mon') AS month, merchant_id FROM m_payment_gateway t " +
+        @NotNull final String FINAL_Q = String.format(" SELECT %s as year , SUM(amount) AS total_revenue, TO_CHAR(tran_date, 'Mon') AS month, merchant_id FROM m_payment_gateway t " +
                 " WHERE %s AND %s AND status='SUCCESSFUL' GROUP BY month,merchant_id,year ;", EXTRACT_Q, DATE_SUB_QUERY, SUB_Q_MER);
         return FINAL_Q;
     }

@@ -24,7 +24,7 @@ public class MerchantProxy {
 			if (receiptResponse == null)
 				return null;
 
-			log.info("Receipt: {}", receiptResponse.toString());
+			log.info("Receipt: {}", receiptResponse);
 
 			if (receiptResponse.getCode().equals("00"))
 				return receiptResponse;

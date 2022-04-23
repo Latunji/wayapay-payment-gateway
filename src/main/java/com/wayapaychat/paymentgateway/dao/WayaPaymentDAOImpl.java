@@ -269,15 +269,16 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     @SuppressWarnings(value = "unchecked")
     @Override
     public Page<TransactionSettlementPojo> getAllTransactionSettlement(String merchantId, Pageable pageable) {
-        @NotNull final String SUB_Q_MER_AND = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND merchant_id = '%s' ", merchantId);
+        @NotNull final String SUB_Q_MER_AND = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND mpg.merchant_id = '%s' ", merchantId);
         int limit = pageable.getPageSize();
         Long offSet = pageable.getOffset();
-        var cscFactory = new CallableStatementCreatorFactory(String.format("SELECT mpg.ref_no settlement_reference_id, mpg.settlement_status, " +
-                " mpg.amount settlement_net_amount, mpg.fee fee, mpg.merchant_id , mts.settlement_account, mts.account_settlement_option, " +
-                " mts.settlement_beneficiary_account, mts.settlement_date, mts.merchant_id " +
-                " FROM m_payment_gateway INNER JOIN m_transaction_settlement mts ON mts.merchant_id = mpg.merchant_id " +
+        var cscFactory = new CallableStatementCreatorFactory(String.format("SELECT mpg.ref_no settlement_reference_id, mts.settlement_status, " +
+                " mpg.amount settlement_net_amount,mpg.amount - mpg.fee settlement_gross_amount, " +
+                " mpg.fee fee, mpg.merchant_id , mts.settlement_account, mts.account_settlement_option, " +
+                " mts.settlement_beneficiary_account, mts.merchant_configured_settlement_date settlement_date, mpg.merchant_id " +
+                " FROM m_payment_gateway mpg INNER JOIN m_transaction_settlement mts ON mts.merchant_id = mpg.merchant_id " +
                 " WHERE status='SUCCESSFUL' %s LIMIT %s OFFSET %s;", SUB_Q_MER_AND, limit, offSet) +
-                String.format(" SELECT COUNT(*) FROM m_payment_gateway WHERE status='SUCCESSFUL' %s ;", SUB_Q_MER_AND));
+                String.format(" SELECT COUNT(*) FROM m_payment_gateway mpg WHERE status='SUCCESSFUL' %s ;", SUB_Q_MER_AND));
         var returnedParams = Arrays.<SqlParameter>asList(
                 new SqlReturnResultSet("transaction_settlement", BeanPropertyRowMapper.newInstance(TransactionSettlementPojo.class)),
                 new SqlReturnResultSet("count", BeanPropertyRowMapper.newInstance(CountWrapper.class)));

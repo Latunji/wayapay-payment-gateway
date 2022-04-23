@@ -70,7 +70,6 @@ public class TransactionSettlementCronService {
     @Value(value = "${waya.wallet.wayapay-debit-account}")
     private String debitWalletAccountNumber;
 
-
     @Scheduled(cron = "0 0 0 * * *")
 //    @Scheduled(cron = "* */1 * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
@@ -195,7 +194,8 @@ public class TransactionSettlementCronService {
     }
 
     private void preprocessFailedSettlement(TransactionSettlement transactionSettlement) {
-        if (transactionSettlement.getTotalRetrySettlementCount() < 6L) {
+        final Long RETRY_THRESHOLD = 1000000000000000000L;
+        if (transactionSettlement.getTotalRetrySettlementCount() < RETRY_THRESHOLD) {
             transactionSettlement.setTotalRetrySettlementCount(transactionSettlement.getTotalRetrySettlementCount() + 1);
             transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
             log.info("--------||||FAILED PROCESSING MERCHANT SETTLEMENT... RESET TO PENDING||||----------");

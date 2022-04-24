@@ -74,7 +74,7 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
     public ResponseEntity<PaymentGatewayResponse> getAllSettledSuccessfulTransactions(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable pageable) {
         Page<TransactionSettlementPojo> data;
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId);
-        data = wayaPaymentDAO.getAllTransactionSettlement(merchantIdToUse, pageable);
+        data = wayaPaymentDAO.getAllTransactionSettlement(settlementQueryPojo,merchantIdToUse, pageable);
         return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
     }
 }

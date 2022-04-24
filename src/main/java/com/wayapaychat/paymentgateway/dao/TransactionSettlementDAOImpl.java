@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.dao;
 
 
+import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.BigDecimalCountStatusWrapper;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementStats;

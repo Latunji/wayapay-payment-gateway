@@ -1,6 +1,8 @@
 package com.wayapaychat.paymentgateway.dao;
 
+import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
+import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionOverviewResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionRevenueStats;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionYearMonthStats;
@@ -29,5 +31,6 @@ public interface WayaPaymentDAO {
     @SuppressWarnings(value = "unchecked")
     List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessTransactions(String merchantId);
 
-    Page<TransactionSettlementPojo> getAllTransactionSettlement(String merchantIdToUse, Pageable pageable);
+    @SuppressWarnings(value = "unchecked")
+    Page<TransactionSettlementPojo> getAllTransactionSettlement(SettlementQueryPojo settlementQueryPojo,String merchantId, Pageable pageable);
 }

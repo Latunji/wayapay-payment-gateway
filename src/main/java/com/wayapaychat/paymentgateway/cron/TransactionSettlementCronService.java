@@ -1,5 +1,6 @@
 package com.wayapaychat.paymentgateway.cron;
 
+import com.wayapaychat.paymentgateway.common.enums.Interval;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
@@ -16,6 +17,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.wallet.WayaMerchantWalletSettlem
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
+import com.wayapaychat.paymentgateway.proxy.pojo.WayaMerchantConfiguration;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
 import com.wayapaychat.paymentgateway.repository.TransactionSettlementRepository;
@@ -25,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockAssert;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -70,22 +73,19 @@ public class TransactionSettlementCronService {
     @Value(value = "${waya.wallet.wayapay-debit-account}")
     private String debitWalletAccountNumber;
 
-    @Scheduled(cron = "0 0 0 * * *")
-//    @Scheduled(cron = "* */1 * * * *")
+    //    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "* */1 * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
         List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
-        List<PaymentGateway> paymentGateways = paymentGatewayRepo.getAllTransactionNotSettled();
-//        Map<String,List<PaymentGateway>> groupedMerchantTransactions = paymentGateways.parallelStream()
+//        List<PaymentGateway> paymentGateways = paymentGatewayRepo.getAllTransactionNotSettled();
+//        Map<String, List<PaymentGateway>> groupedMerchantTransactions = paymentGateways.parallelStream()
 //                .collect(Collectors.groupingBy(PaymentGateway::getMerchantId));
         List<TransactionSettlement> pendingMerchantSettlements = transactionSettlementRepository.findAllMerchantSettlementPending();
-
-        Map<String, TransactionSettlement> merchantWithPendingUnsettledTransaction = pendingMerchantSettlements
-                .parallelStream()
+        Map<String, TransactionSettlement> merchantWithPendingUnsettledTransaction = pendingMerchantSettlements.parallelStream()
                 .collect(Collectors.toMap(TransactionSettlement::getMerchantId, Function.identity(), (o1, o2) -> o1));
         Set<String> merchantsWithPendingUnsettledTransactions = merchantWithPendingUnsettledTransaction.keySet();
-
         merchantUnsettledSuccessfulTransactions.parallelStream().forEach(unsettledSuccessfulTransaction -> {
             String merchantId = unsettledSuccessfulTransaction.getMerchantId();
             if (merchantsWithPendingUnsettledTransactions.contains(merchantId)) {
@@ -99,22 +99,34 @@ public class TransactionSettlementCronService {
                 log.info("--------||||SUCCESSFULLY UPDATED NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
                 processExpiredMerchantConfiguredSettlement(transactionSettlementRepository.save(transactionSettlement));
             } else {
-                //Get merchant configuration settings
+                List<PaymentGateway> merchantUnsettledPayments = paymentGatewayRepo.getAllTransactionNotSettled(merchantId);
+                //TODO: Get the merchant configuration
+                WayaMerchantConfiguration wayaMerchantConfiguration = null;
+                try {
+                    wayaMerchantConfiguration = identityManager.getMerchantConfiguration(merchantId, paymentGateWayCommonUtils.getDaemonAuthToken()).getData();
+                } catch (Exception e) {
+                    log.error("--------||||ERROR OCCURRED TO CREATE MERCHANT SETTLEMENT||||----------", e);
+                    return;
+                }
+                @NotNull final String settlementReferenceId = "SET_REF_" + RandomStringUtils.randomAlphanumeric(5) + System.currentTimeMillis()
+                        + RandomStringUtils.randomAlphanumeric(5);
+                Interval settlementInterval = ObjectUtils.isEmpty(wayaMerchantConfiguration.getSettlementInterval()) ? Interval.TWO_DAYS : wayaMerchantConfiguration.getSettlementInterval();
+                merchantUnsettledPayments.parallelStream().forEach(paymentGateway -> paymentGateway.setSettlementReferenceId(settlementReferenceId));
                 TransactionSettlement transactionSettlement = TransactionSettlement.builder()
                         .settlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount())
                         .settlementNetAmount(unsettledSuccessfulTransaction.getNetAmount())
                         .totalFee(unsettledSuccessfulTransaction.getTotalFee())
                         .settlementStatus(SettlementStatus.PENDING)
                         .accountSettlementOption(AccountSettlementOption.WALLET)
+                        .settlementReferenceId(settlementReferenceId)
+                        .merchantConfiguredSettlementDate(LocalDateTime.now().plusDays(settlementInterval.getDays()))
                         .merchantId(merchantId)
                         .build();
                 transactionSettlement.setCreatedBy(0L);
                 transactionSettlement.setDateCreated(LocalDateTime.now());
                 transactionSettlement.setDeleted(false);
-                //TODO: SETTINGS
-                // Get the merchant default settings for settling the account
-                // for now use the merchant wallet to deposit to the account
                 transactionSettlementRepository.save(transactionSettlement);
+                paymentGatewayRepo.saveAllAndFlush(merchantUnsettledPayments);
                 log.info("--------||||SUCCESSFULLY CREATED MERCHANT TRANSACTION SETTLEMENT||||----------");
             }
         });
@@ -122,6 +134,7 @@ public class TransactionSettlementCronService {
 
     private void processExpiredMerchantConfiguredSettlement(TransactionSettlement transactionSettlement) {
         new Thread(() -> {
+            List<PaymentGateway> transactionsToSettle = paymentGatewayRepo.findAllNotSettled(transactionSettlement.getMerchantId());
             try {
                 LocalDateTime merchantConfiguredSettlementDate = transactionSettlement.getMerchantConfiguredSettlementDate();
                 if (merchantConfiguredSettlementDate.isBefore(LocalDateTime.now()) || merchantConfiguredSettlementDate.isEqual(LocalDateTime.now())) {
@@ -130,7 +143,6 @@ public class TransactionSettlementCronService {
                     String merchantId = transactionSettlement.getMerchantId();
                     //TODO: calculate the amount to settle from here
 
-                    List<PaymentGateway> transactionsToSettle = paymentGatewayRepo.findAllNotSettled(merchantId);
                     BigDecimal grossAmount = transactionsToSettle.stream()
                             .map(PaymentGateway::getAmount)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -155,7 +167,7 @@ public class TransactionSettlementCronService {
                             DefaultWalletResponse merchantDefaultWallet = walletProxy.getUserDefaultWalletAccount(paymentGateWayCommonUtils.getDaemonAuthToken(), merchantData.getUserId());
                             if (!merchantDefaultWallet.getStatus()) {
                                 log.error("---------||||COULD NOT FETCH DEFAULT WALLET||||--------------: " + merchantDefaultWallet);
-                                preprocessFailedSettlement(transactionSettlement);
+                                preprocessFailedSettlement(transactionSettlement, transactionsToSettle);
                             } else {
                                 LocalDateTime dateSettled = LocalDateTime.now();
                                 @NotNull final String DEBIT_WALLET_ACCOUNT_NO = ObjectUtils.isEmpty(debitWalletAccountNumber) ? "NGN000016002001" : debitWalletAccountNumber;
@@ -181,7 +193,7 @@ public class TransactionSettlementCronService {
                                     saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
                                     preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt, merchantData.getUserId());
                                 } else {
-                                    preprocessFailedSettlement(transactionSettlement);
+                                    preprocessFailedSettlement(transactionSettlement, transactionsToSettle);
                                 }
                             }
                         }
@@ -189,19 +201,25 @@ public class TransactionSettlementCronService {
                 }
             } catch (Exception e) {
                 log.info("------||||ERROR||||------", e);
-                preprocessFailedSettlement(transactionSettlement);
+                preprocessFailedSettlement(transactionSettlement, transactionsToSettle);
             }
         }).start();
     }
 
-    private void preprocessFailedSettlement(TransactionSettlement transactionSettlement) {
+    private void preprocessFailedSettlement(TransactionSettlement transactionSettlement, List<PaymentGateway> transactionsToSettle) {
         final Long RETRY_THRESHOLD = 1000000000000000000L;
         if (transactionSettlement.getTotalRetrySettlementCount() < RETRY_THRESHOLD) {
             transactionSettlement.setTotalRetrySettlementCount(transactionSettlement.getTotalRetrySettlementCount() + 1);
             transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
+            transactionsToSettle.parallelStream().forEach(paymentGateway -> {
+                paymentGateway.setSettlementStatus(SettlementStatus.PENDING);
+                paymentGateway.setSettlementReferenceId(transactionSettlement.getSettlementReferenceId());
+            });
             log.info("--------||||FAILED PROCESSING MERCHANT SETTLEMENT... RESET TO PENDING||||----------");
         } else {
             transactionSettlement.setSettlementStatus(SettlementStatus.FAILED);
+            transactionsToSettle.parallelStream().forEach(paymentGateway -> paymentGateway.setSettlementStatus(SettlementStatus.FAILED));
+            paymentGatewayRepo.saveAllAndFlush(transactionsToSettle);
             log.info("--------||||FAILED PROCESSING MERCHANT SETTLEMENT||||----------");
         }
         transactionSettlement.setDateModified(LocalDateTime.now());

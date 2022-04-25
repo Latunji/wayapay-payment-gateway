@@ -255,7 +255,7 @@ public class TransactionSettlementCronService {
         paymentGatewayRepo.saveAllAndFlush(paymentGateways);
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "* */30 * * * *")
     @SchedulerLock(name = "TaskScheduler_settleEveryFiveSeconds", lockAtLeastFor = "10s", lockAtMostFor = "15s")
     public void settleEveryFiveSeconds() {
         prorcessThirdPartyPaymentProcessed();

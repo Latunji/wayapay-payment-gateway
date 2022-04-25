@@ -104,7 +104,7 @@ public class TransactionSettlement extends GenericBaseEntity {
         if (ObjectUtils.isEmpty(accountSettlementOption))
             accountSettlementOption = AccountSettlementOption.WALLET;
         if (ObjectUtils.isEmpty(settlementBeneficiaryAccount))
-            settlementBeneficiaryAccount = "Wayabank Wallet";
+            settlementBeneficiaryAccount = "Wayapay Wallet";
         if (ObjectUtils.isNotEmpty(this.getCreatedBy()))
             setCreatedBy(0L);
         if (ObjectUtils.isEmpty(totalRetrySettlementCount))

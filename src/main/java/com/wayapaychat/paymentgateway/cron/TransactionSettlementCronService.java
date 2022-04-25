@@ -138,7 +138,8 @@ public class TransactionSettlementCronService {
     }
 
         private void processExpiredMerchantConfiguredSettlement(TransactionSettlement transactionSettlement) {
-        new Thread(() -> {
+            @NotNull final String daemonToken = paymentGateWayCommonUtils.getDaemonAuthToken();
+            new Thread(() -> {
             List<PaymentGateway> transactionsToSettle = paymentGatewayRepo.findAllNotSettled(transactionSettlement.getMerchantId());
             try {
                 LocalDateTime merchantConfiguredSettlementDate = transactionSettlement.getMerchantConfiguredSettlementDate();
@@ -156,7 +157,6 @@ public class TransactionSettlementCronService {
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     BigDecimal netAmount = grossAmount.subtract(totalFees);
 
-                    @NotNull final String daemonToken = paymentGateWayCommonUtils.getDaemonAuthToken();
                     MerchantResponse merchantResponse = identityManager.getMerchantDetail(daemonToken, merchantId);
                     MerchantData merchantData = merchantResponse.getData();
 
@@ -169,7 +169,7 @@ public class TransactionSettlementCronService {
                     } else if (transactionSettlement.getAccountSettlementOption().equals(AccountSettlementOption.WALLET)) {
 
                         if (ObjectUtils.isNotEmpty(merchantData)) {
-                            DefaultWalletResponse merchantDefaultWallet = walletProxy.getUserDefaultWalletAccount(paymentGateWayCommonUtils.getDaemonAuthToken(), merchantData.getUserId());
+                            DefaultWalletResponse merchantDefaultWallet = walletProxy.getUserDefaultWalletAccount(daemonToken, merchantData.getUserId());
                             if (!merchantDefaultWallet.getStatus()) {
                                 log.error("---------||||COULD NOT FETCH DEFAULT WALLET||||--------------: " + merchantDefaultWallet);
                                 preprocessFailedSettlement(transactionSettlement, transactionsToSettle);
@@ -188,7 +188,7 @@ public class TransactionSettlementCronService {
                                         .paymentReference(transactionSettlement.getSettlementReferenceId() + "_" + System.currentTimeMillis())
                                         .build();
                                 WalletSettlementResponse walletSettlementResponse = walletProxy.creditMerchantDefaultWallet(
-                                        paymentGateWayCommonUtils.getDaemonAuthToken(),
+                                        daemonToken,
                                         walletCreditingRequest
                                 );
                                 log.info("-----||||WALLET SETTLEMENT RESPONSE FROM TEMPORAL SERVICE|||| {}----", walletSettlementResponse);
@@ -284,12 +284,13 @@ public class TransactionSettlementCronService {
     public void prorcessThirdPartyPaymentProcessed() {
         new Thread(() -> {
             List<PaymentGateway> payment = paymentGatewayRepo.findAllNotFlaggedAndSuccessful();
+            String token = paymentGateWayCommonUtils.getDaemonAuthToken();
             for (PaymentGateway mPayment : payment) {
                 try {
                     PaymentGateway sPayment = paymentGatewayRepo.findByRefNo(mPayment.getRefNo()).orElse(null);
                     if (ObjectUtils.isEmpty(sPayment))
                         continue;
-                    FundEventResponse response = uniPayProxy.postTransactionPosition(paymentGateWayCommonUtils.getDaemonAuthToken(), mPayment);
+                    FundEventResponse response = uniPayProxy.postTransactionPosition(token, mPayment);
                     if (response.getPostedFlg() && (!response.getTranId().isBlank())) {
                         sPayment.setTranflg(true);
                         paymentGatewayRepo.save(sPayment);

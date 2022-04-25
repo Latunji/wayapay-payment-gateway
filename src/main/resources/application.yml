@@ -65,6 +65,7 @@ service:
   wayapay-payment-status-url: https://pay.staging.wayapay.ng/status
   name: ${SERVICE_NAME:admin@wayapaychat.com}
   pass: ${SERVICE_PASS:kKo0a9@=&?*#}
+  token: serial eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjpbeyJjcmVhdGVkQXQiOiIxNS0wMi0yMDIyIDA3OjI3OjEzIiwidXBkYXRlZEF0IjoiMTUtMDItMjAyMiAwNzoyNzoxMyIsImNyZWF0ZWRCeSI6Ik1HUiIsIm1vZGlmaWVkQnkiOiJNR1IiLCJpZCI6MTMsIm5hbWUiOiJST0xFX1VTRVIiLCJkZXNjcmlwdGlvbiI6IlVTRVIgUk9MRSJ9LHsiY3JlYXRlZEF0IjoiMTUtMDItMjAyMiAwNzoyNzoxMyIsInVwZGF0ZWRBdCI6IjE1LTAyLTIwMjIgMDc6Mjc6MTMiLCJjcmVhdGVkQnkiOiJNR1IiLCJtb2RpZmllZEJ5IjoiTUdSIiwiaWQiOjE2LCJuYW1lIjoiUk9MRV9BUFBfQURNSU4iLCJkZXNjcmlwdGlvbiI6IkFQUExJQ0FUSU9OIEFETUlOIn1dLCJpZCI6MzQ4LCJzdWIiOiJhZG1pbkB3YXlhcGF5Y2hhdC5jb20iLCJpYXQiOjE2NTA4ODUxODMsImV4cCI6MTY4MjQ0Mjc4M30.1pwMAMn7yBBphc1M1mkp1kKFhD1UZg0isojWYZB1w9_zdeJ9hR6cWhsN8d-9R53Xh33cYdRQfZgJ47ZJ48YCTw
   encrypt-all-merchant-secretkey-with: S@$@@@@@!!!!!ads#$%#$@#!#$@$@545345fdsdf@@$353^^*(*@#$%#@$%#$@#@#$%#%#@
   thirdparty:
     unified-payment:

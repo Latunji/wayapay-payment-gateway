@@ -73,19 +73,17 @@ public class TransactionSettlementCronService {
     @Value(value = "${waya.wallet.wayapay-debit-account}")
     private String debitWalletAccountNumber;
 
-    //    @Scheduled(cron = "0 0 0 * * *")
-    @Scheduled(cron = "* */1 * * * *")
+    @Scheduled(cron = "*/10 * * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
         List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessfulTransactions = wayaPaymentDAO.merchantUnsettledSuccessTransactions(null);
-//        List<PaymentGateway> paymentGateways = paymentGatewayRepo.getAllTransactionNotSettled();
-//        Map<String, List<PaymentGateway>> groupedMerchantTransactions = paymentGateways.parallelStream()
-//                .collect(Collectors.groupingBy(PaymentGateway::getMerchantId));
         List<TransactionSettlement> pendingMerchantSettlements = transactionSettlementRepository.findAllMerchantSettlementPending();
+
         Map<String, TransactionSettlement> merchantWithPendingUnsettledTransaction = pendingMerchantSettlements.parallelStream()
                 .collect(Collectors.toMap(TransactionSettlement::getMerchantId, Function.identity(), (o1, o2) -> o1));
         Set<String> merchantsWithPendingUnsettledTransactions = merchantWithPendingUnsettledTransaction.keySet();
+
         merchantUnsettledSuccessfulTransactions.parallelStream().forEach(unsettledSuccessfulTransaction -> {
             String merchantId = unsettledSuccessfulTransaction.getMerchantId();
             if (merchantsWithPendingUnsettledTransactions.contains(merchantId)) {
@@ -97,7 +95,7 @@ public class TransactionSettlementCronService {
                 transactionSettlement.setSettlementNetAmount(unsettledSuccessfulTransaction.getNetAmount());
                 transactionSettlement.setSettlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount());
                 log.info("--------||||SUCCESSFULLY UPDATED NEXT MERCHANT TRANSACTION SETTLEMENT||||----------");
-                processExpiredMerchantConfiguredSettlement(transactionSettlementRepository.save(transactionSettlement));
+                transactionSettlementRepository.save(transactionSettlement);
             } else {
                 List<PaymentGateway> merchantUnsettledPayments = paymentGatewayRepo.getAllTransactionNotSettled(merchantId);
                 //TODO: Get the merchant configuration
@@ -132,7 +130,14 @@ public class TransactionSettlementCronService {
         });
     }
 
-    private void processExpiredMerchantConfiguredSettlement(TransactionSettlement transactionSettlement) {
+    @Scheduled(cron = "0 0 0 * * *")
+    @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    public void processSettlementForAllPendingTransactionsEveryDay() {
+        List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();
+        allPendingSettlement.parallelStream().forEach(this::processExpiredMerchantConfiguredSettlement);
+    }
+
+        private void processExpiredMerchantConfiguredSettlement(TransactionSettlement transactionSettlement) {
         new Thread(() -> {
             List<PaymentGateway> transactionsToSettle = paymentGatewayRepo.findAllNotSettled(transactionSettlement.getMerchantId());
             try {
@@ -250,7 +255,7 @@ public class TransactionSettlementCronService {
         paymentGatewayRepo.saveAllAndFlush(paymentGateways);
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "* */30 * * * *")
     @SchedulerLock(name = "TaskScheduler_settleEveryFiveSeconds", lockAtLeastFor = "10s", lockAtMostFor = "15s")
     public void settleEveryFiveSeconds() {
         prorcessThirdPartyPaymentProcessed();

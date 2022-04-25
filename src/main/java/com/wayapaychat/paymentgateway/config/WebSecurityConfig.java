@@ -41,6 +41,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/transactions/report/overview/**").fullyAuthenticated()
                 .antMatchers("/api/v1/transactions/report/revenue-stats/**").fullyAuthenticated()
 //                .antMatchers("/api/v1/transaction/status/**").fullyAuthenticated()
+                .antMatchers("/api/v1/request/ussd/**").permitAll()
                 .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**", "/actuator/**", "/webjars/**", "/api/v1/**").permitAll()
                 .anyRequest().authenticated().and()
                 .addFilter(new AuthorizationFilter(authenticationManager())).sessionManagement()

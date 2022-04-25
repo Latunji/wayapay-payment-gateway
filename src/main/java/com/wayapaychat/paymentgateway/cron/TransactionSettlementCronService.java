@@ -130,7 +130,7 @@ public class TransactionSettlementCronService {
         });
     }
 
-    @Scheduled(cron = "0 0 0 * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void processSettlementForAllPendingTransactionsEveryDay() {
         List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();

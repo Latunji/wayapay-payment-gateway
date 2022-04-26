@@ -86,8 +86,7 @@ public class TransactionsController {
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/overview")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Get merchant transaction report dashboard overview statistics", notes = "Transaction report dashboard overview Stats", tags = {"TRANSACTIONS"})
-    public ResponseEntity<PaymentGatewayResponse> getMerchantDashboardOverviewStats(
-            @RequestParam(value = "merchantId", required = false) final String merchantId) {
+    public ResponseEntity<PaymentGatewayResponse> getMerchantDashboardOverviewStats(@RequestParam(value = "merchantId", required = false) final String merchantId) {
         return paymentGatewayService.getMerchantTransactionOverviewStats(merchantId);
     }
 

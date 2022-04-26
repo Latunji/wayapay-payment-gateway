@@ -996,7 +996,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         if (ObjectUtils.isEmpty(merchantId) && !PaymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
             throw new ApplicationException(403, "forbidden", "Oops! Operation not allowed. You need to provide the merchantId!");
         List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantId, year, startDate, endDate);
-        return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionYearMonthStats), HttpStatus.OK);
+        BigDecimal totalRevenueForSelectedDateRange = transactionYearMonthStats.stream()
+                .map(TransactionYearMonthStats::getTotalRevenue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Map<String, Object> result = Map.of("dateRangeResult", transactionYearMonthStats,
+                "totalRevenueForSelectedDateRange", totalRevenueForSelectedDateRange);
+        return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, result), HttpStatus.OK);
     }
 
     @Override

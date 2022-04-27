@@ -21,7 +21,5 @@ public interface WalletProxy {
     WalletPaymentResponse fundOfficialAccount(@RequestHeader("authorization") String token, @RequestBody WalletOfficePayment request);
 
     @PostMapping("/wallet/official/user/transfer")
-    WalletSettlementResponse creditMerchantDefaultWallet(
-            @RequestHeader("authorization") String token,
-            WayaMerchantWalletSettlementPojo wayaMerchantWalletSettlementPojo);
+    WalletSettlementResponse creditMerchantDefaultWallet(@RequestHeader("authorization") String token, WayaMerchantWalletSettlementPojo wayaMerchantWalletSettlementPojo);
 }

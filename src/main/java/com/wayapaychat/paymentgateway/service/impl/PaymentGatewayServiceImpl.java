@@ -854,7 +854,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         try {
             mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.info("---------||||ERROR||||---------",e);
         }
         if (mPay == null) {
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);

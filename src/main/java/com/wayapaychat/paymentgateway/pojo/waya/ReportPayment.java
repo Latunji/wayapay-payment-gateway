@@ -45,10 +45,10 @@ public class ReportPayment {
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate vendorDate;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
-    private LocalDate tranDate;
+    private LocalDateTime tranDate;
 
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;

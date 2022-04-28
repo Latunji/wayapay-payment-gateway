@@ -74,13 +74,13 @@ public class PaymentGateway {
     private String encyptCard;
 
     @Column(nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonSerialize(using = LocalDateSerializer.class)
-    private LocalDate tranDate;
+    private LocalDateTime tranDate;
 
     @Column(nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime rcre_time;
@@ -90,10 +90,10 @@ public class PaymentGateway {
     private boolean successfailure;
 
     @Column(nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    @JsonSerialize(using = LocalDateSerializer.class)
-    private LocalDate vendorDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime vendorDate;
 
     private String merchantName;
 
@@ -144,9 +144,9 @@ public class PaymentGateway {
 
     @Column(name = "settlement_date", columnDefinition = "TIMESTAMPTZ DEFAULT NULL")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    @JsonSerialize(using = LocalDateSerializer.class)
-    private LocalDate settlementDate;
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime settlementDate;
 
     @JsonIgnore
     @Column(name = "settlement_reference_id")
@@ -159,12 +159,16 @@ public class PaymentGateway {
     @Column(name = "wayapay_fee")
     private BigDecimal wayapayFee = BigDecimal.ZERO;
 
+    private Boolean transactionReceiptSent;
+
     @PrePersist
     void prePersist() {
         if (ObjectUtils.isEmpty(isFromRecurrentPayment))
             isFromRecurrentPayment = false;
         if (ObjectUtils.isEmpty(settlementStatus))
             settlementStatus = SettlementStatus.PENDING;
+        if (ObjectUtils.isEmpty(transactionReceiptSent))
+            transactionReceiptSent = false;
         fee = wayapayFee.add(processingFee);
     }
 }

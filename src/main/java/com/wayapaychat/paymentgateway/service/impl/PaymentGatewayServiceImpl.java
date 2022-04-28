@@ -10,6 +10,7 @@ import com.wayapaychat.paymentgateway.dao.WayaPaymentDAOImpl;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
+import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
@@ -57,11 +58,11 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -110,6 +111,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private GetUserDataService getUserDataService;
     @Autowired
     private WayaPaymentDAOImpl wayaPaymentDAO;
+    @Autowired
+    private PaymemtGatewayEntityListener paymemtGatewayEntityListener;
 
     @Override
     public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
@@ -204,9 +207,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 card.setCustomerAvoid(merchantCustomer.getData().isCustomerAvoided());
                 response = new PaymentGatewayResponse(true, "Success Transaction", card);
                 payment.setTranId(tranId);
-                payment.setTranDate(LocalDate.now());
+                payment.setTranDate(LocalDateTime.now());
                 payment.setRcre_time(LocalDateTime.now());
-                payment.setVendorDate(LocalDate.now());
+                payment.setVendorDate(LocalDateTime.now());
                 paymentGatewayRepo.save(payment);
             }
             return response;
@@ -585,7 +588,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()),
                         HttpStatus.CREATED);
                 payment.setTranId(tran.getTranId());
-                payment.setTranDate(LocalDate.now());
+                payment.setTranDate(LocalDateTime.now());
                 payment.setRcre_time(LocalDateTime.now());
                 payment.setStatus(TransactionStatus.SUCCESSFUL);
                 payment.setChannel(PaymentChannel.WALLET);
@@ -602,6 +605,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 wallet.setSettled(TransactionSettled.NOT_SETTLED);
                 wallet.setStatus(TStatus.APPROVED);
                 paymentWalletRepo.save(wallet);
+                if (payment.getStatus() == TransactionStatus.SUCCESSFUL && !payment.getTransactionReceiptSent())
+                    CompletableFuture.runAsync(() -> {
+                        paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(payment);
+                    });
             } else {
                 wallet.setPaymentDescription(payment.getDescription());
                 wallet.setPaymentReference(payment.getPreferenceNo());
@@ -656,7 +663,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             if (tranRep != null) {
                 tranRep.setName(profile.getData().getOtherDetails().getOrganisationName());
                 response = new ResponseEntity<>(new SuccessResponse("SUCCESS GENERATED", tranRep), HttpStatus.CREATED);
-                payment.setTranDate(LocalDate.now());
+                payment.setTranDate(LocalDateTime.now());
                 payment.setRcre_time(LocalDateTime.now());
                 paymentGatewayRepo.save(payment);
             }
@@ -724,7 +731,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setSecretKey(vt);
             payment.setTranId(account.getReferenceNo());
             payment.setPreferenceNo(account.getReferenceNo());
-            payment.setTranDate(LocalDate.now());
+            payment.setTranDate(LocalDateTime.now());
             payment.setRcre_time(LocalDateTime.now());
             paymentGatewayRepo.save(payment);
             return new ResponseEntity<>(new SuccessResponse("SUCCESS WALLET", strLong), HttpStatus.CREATED);
@@ -783,7 +790,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setSecretKey(vt);
             payment.setTranId(account.getReferenceNo());
             payment.setPreferenceNo(account.getReferenceNo());
-            payment.setTranDate(LocalDate.now());
+            payment.setTranDate(LocalDateTime.now());
             payment.setRcre_time(LocalDateTime.now());
             payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
             payment.setCustomerName(account.getCustomer().getName());
@@ -791,7 +798,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
             payment.setChannel(PaymentChannel.USSD);
             payment.setStatus(TransactionStatus.PENDING);
-            payment.setVendorDate(LocalDate.now());
+            payment.setVendorDate(LocalDateTime.now());
             PaymentGateway pay = paymentGatewayRepo.save(payment);
             USSDResponse ussd = new USSDResponse();
             ussd.setRefNo(pay.getRefNo());
@@ -816,9 +823,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         payment.setStatus(status);
         payment.setTranId(account.getTranId());
         payment.setSuccessfailure(account.isSuccessfailure());
-        LocalDate toDate = account.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDateTime toDate = account.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         payment.setVendorDate(toDate);
         ReportPayment reportPayment = modelMapper.map(paymentGatewayRepo.save(payment), ReportPayment.class);
+        if (payment.getStatus() == TransactionStatus.SUCCESSFUL && !payment.getTransactionReceiptSent())
+            CompletableFuture.runAsync(() -> {
+                paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(payment);
+            });
         return new ResponseEntity<>(new SuccessResponse("TRANSACTION UPDATE", reportPayment), HttpStatus.OK);
     }
 
@@ -854,7 +865,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         try {
             mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
         } catch (Exception e) {
-            log.info("---------||||ERROR||||---------",e);
+            log.info("---------||||ERROR||||---------", e);
         }
         if (mPay == null) {
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);

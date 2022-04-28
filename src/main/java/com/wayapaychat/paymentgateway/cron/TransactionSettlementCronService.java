@@ -249,7 +249,7 @@ public class TransactionSettlementCronService {
     private void saveProcessSettledTransactions(List<PaymentGateway> paymentGateways, LocalDateTime dateSettled, String settlementRef) {
         paymentGateways.parallelStream().forEach(paymentGateway -> {
             paymentGateway.setSettlementStatus(SettlementStatus.SETTLED);
-            paymentGateway.setSettlementDate(dateSettled.toLocalDate());
+            paymentGateway.setSettlementDate(dateSettled);
             paymentGateway.setSettlementReferenceId(settlementRef);
         });
         paymentGatewayRepo.saveAllAndFlush(paymentGateways);

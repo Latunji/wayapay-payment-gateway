@@ -73,7 +73,7 @@ public class TransactionSettlementCronService {
     @Value(value = "${waya.wallet.wayapay-debit-account}")
     private String debitWalletAccountNumber;
 
-    @Scheduled(cron = "* */59 * * * *")
+    @Scheduled(cron = "*/10 * * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();
@@ -130,7 +130,7 @@ public class TransactionSettlementCronService {
         });
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "* */1 * * * *")
     @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void processSettlementForAllPendingTransactionsEveryDay() {
         List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();

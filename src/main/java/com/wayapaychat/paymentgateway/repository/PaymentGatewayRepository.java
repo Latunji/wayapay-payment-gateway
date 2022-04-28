@@ -28,7 +28,7 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
     List<PaymentGateway> findByPayment();
 
     @Query(value = "select * from m_payment_gateway where merchant_id = :mechtId and del_flg = false and customer_name != '' and status != '' " +
-            " ORDER BY tran_date DESC", nativeQuery = true)
+            " ORDER BY rcre_time DESC", nativeQuery = true)
     List<PaymentGateway> findByMerchantPayment(String mechtId);
 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg = false " +

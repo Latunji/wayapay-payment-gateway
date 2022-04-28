@@ -604,11 +604,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 wallet.setRefNo(payment.getRefNo());
                 wallet.setSettled(TransactionSettled.NOT_SETTLED);
                 wallet.setStatus(TStatus.APPROVED);
-                paymentWalletRepo.save(wallet);
                 if (payment.getStatus() == TransactionStatus.SUCCESSFUL && !payment.getTransactionReceiptSent())
                     CompletableFuture.runAsync(() -> {
                         paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(payment);
+                        payment.setTransactionReceiptSent(true);
                     });
+                paymentWalletRepo.save(wallet);
             } else {
                 wallet.setPaymentDescription(payment.getDescription());
                 wallet.setPaymentReference(payment.getPreferenceNo());
@@ -825,11 +826,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         payment.setSuccessfailure(account.isSuccessfailure());
         LocalDateTime toDate = account.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         payment.setVendorDate(toDate);
-        ReportPayment reportPayment = modelMapper.map(paymentGatewayRepo.save(payment), ReportPayment.class);
         if (payment.getStatus() == TransactionStatus.SUCCESSFUL && !payment.getTransactionReceiptSent())
             CompletableFuture.runAsync(() -> {
                 paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(payment);
+                payment.setTransactionReceiptSent(true);
             });
+        ReportPayment reportPayment = modelMapper.map(paymentGatewayRepo.save(payment), ReportPayment.class);
         return new ResponseEntity<>(new SuccessResponse("TRANSACTION UPDATE", reportPayment), HttpStatus.OK);
     }
 

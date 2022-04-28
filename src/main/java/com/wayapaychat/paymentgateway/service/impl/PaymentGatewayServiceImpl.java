@@ -589,6 +589,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setRcre_time(LocalDateTime.now());
                 payment.setStatus(TransactionStatus.SUCCESSFUL);
                 payment.setChannel(PaymentChannel.WALLET);
+                payment.setPaymentMetaData(account.getDeviceInformation());
                 payment.setSuccessfailure(true);
                 paymentGatewayRepo.save(payment);
 

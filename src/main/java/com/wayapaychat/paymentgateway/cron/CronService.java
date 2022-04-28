@@ -4,6 +4,7 @@ import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
+import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
@@ -65,15 +66,17 @@ public class CronService {
                 PaymentGateway mPay = paymentGatewayRepo.findByRefNo(payment.getRefNo()).orElse(null);
                 if (mPay != null) {
                     if (mPay.getStatus() != null) {
-                        if (mPay.getStatus() != TransactionStatus.SUCCESSFUL && mPay.getStatus() != TransactionStatus.FAILED) {
-                            if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-                                WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
-                                preprocessSuccessfulTransaction(mPay, query);
-                            }
-                        } else if (mPay.getStatus() == TransactionStatus.FAILED) {
-                            if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-                                WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
-                                preprocessSuccessfulTransaction(mPay, query);
+                        if (mPay.getChannel() == PaymentChannel.CARD || mPay.getChannel() == PaymentChannel.PAYATTITUDE) {
+                            if (mPay.getStatus() != TransactionStatus.SUCCESSFUL && mPay.getStatus() != TransactionStatus.FAILED) {
+                                if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+                                    WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
+                                    preprocessSuccessfulTransaction(mPay, query);
+                                }
+                            } else if (mPay.getStatus() == TransactionStatus.FAILED) {
+                                if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+                                    WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
+                                    preprocessSuccessfulTransaction(mPay, query);
+                                }
                             }
                         }
                     }
@@ -103,6 +106,7 @@ public class CronService {
         } catch (Exception e) {
             log.error("------||||SYSTEM ERROR||||-------", e);
             mPay.setStatus(TransactionStatus.FAILED);
+            mPay.setSuccessfailure(false);
             paymentGatewayRepo.save(mPay);
         }
     }

@@ -66,7 +66,7 @@ public class CronService {
                 PaymentGateway mPay = paymentGatewayRepo.findByRefNo(payment.getRefNo()).orElse(null);
                 if (mPay != null) {
                     if (mPay.getStatus() != null) {
-                        if (mPay.getChannel() == PaymentChannel.CARD) {
+                        if (mPay.getChannel() == PaymentChannel.CARD || mPay.getChannel() == PaymentChannel.PAYATTITUDE) {
                             if (mPay.getStatus() != TransactionStatus.SUCCESSFUL && mPay.getStatus() != TransactionStatus.FAILED) {
                                 if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
                                     WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());

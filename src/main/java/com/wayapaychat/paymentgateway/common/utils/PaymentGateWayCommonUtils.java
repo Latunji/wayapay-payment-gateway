@@ -51,12 +51,14 @@ public class PaymentGateWayCommonUtils {
         return new DevicePojo(deviceType, platform, "");
     }
 
-    public static String getMerchantIdToUse(String merchantId) {
+    public static String getMerchantIdToUse(String merchantId, boolean required) {
         AuthenticatedUser authenticatedUser = getAuthenticatedUser();
-        if (authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
+        if (required && authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
             throw new ApplicationException(400, "01", "Okay! Please provide merchant id to proceed.");
         if (!authenticatedUser.getAdmin() && (ObjectUtils.isNotEmpty(merchantId) && !merchantId.equals(authenticatedUser.getMerchantId())))
             throw new ApplicationException(403, "01", "Oops! Sorry resource(s) can't be accessed");
+        if (!authenticatedUser.getAdmin() && !authenticatedUser.isCorporate())
+            throw new ApplicationException(403, "01", "Oops! Access not allowed!");
         return ObjectUtils.isEmpty(merchantId) ? authenticatedUser.getMerchantId() : merchantId;
     }
 

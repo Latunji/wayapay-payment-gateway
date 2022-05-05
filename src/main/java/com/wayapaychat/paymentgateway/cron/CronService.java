@@ -62,17 +62,15 @@ public class CronService {
         executorService.submit(() -> {
             List<PaymentGateway> product = paymentGatewayRepo.findAllFailedAndPendingTransactions();
             product.parallelStream().forEach(mPay -> {
-                if (mPay != null) {
-                    if (mPay.getStatus() != TransactionStatus.SUCCESSFUL && mPay.getStatus() != TransactionStatus.FAILED) {
-                        if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-                            WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
-                            preprocessSuccessfulTransaction(mPay, query);
-                        }
-                    } else if (mPay.getStatus() == TransactionStatus.FAILED) {
-                        if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-                            WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
-                            preprocessSuccessfulTransaction(mPay, query);
-                        }
+                if (mPay.getStatus() != TransactionStatus.SUCCESSFUL && mPay.getStatus() != TransactionStatus.FAILED) {
+                    if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+                        WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
+                        preprocessSuccessfulTransaction(mPay, query);
+                    }
+                } else if (mPay.getStatus() == TransactionStatus.FAILED) {
+                    if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+                        WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
+                        preprocessSuccessfulTransaction(mPay, query);
                     }
                 }
             });

@@ -160,6 +160,8 @@ public class PaymentGateway {
     private BigDecimal wayapayFee = BigDecimal.ZERO;
 
     private Boolean transactionReceiptSent;
+    @Column(name = "transaction_expired")
+    private Boolean transactionExpired;
 
     @PrePersist
     void prePersist() {
@@ -169,6 +171,8 @@ public class PaymentGateway {
             settlementStatus = SettlementStatus.PENDING;
         if (ObjectUtils.isEmpty(transactionReceiptSent))
             transactionReceiptSent = false;
+        if (ObjectUtils.isEmpty(transactionExpired))
+            transactionExpired = false;
         fee = wayapayFee.add(processingFee);
     }
 }

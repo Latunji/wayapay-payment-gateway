@@ -49,7 +49,7 @@ public class CronService {
     private PaymemtGatewayEntityListener paymemtGatewayEntityListener;
 
 
-//    @Scheduled(cron = "* */30 * * * *")
+        @Scheduled(cron = "*/59 * * * * *")
     private void runEveryFiveSeconds() {
         updateTransactionStatus();
     }
@@ -65,7 +65,7 @@ public class CronService {
             product.parallelStream().forEach(payment -> {
                 PaymentGateway mPay = paymentGatewayRepo.findByRefNo(payment.getRefNo()).orElse(null);
                 if (mPay != null) {
-                    if (mPay.getStatus() != null) {
+                    if (mPay.getStatus() != null && !mPay.getTransactionExpired()) {
                         if (mPay.getChannel() == PaymentChannel.CARD || mPay.getChannel() == PaymentChannel.PAYATTITUDE) {
                             if (mPay.getStatus() != TransactionStatus.SUCCESSFUL && mPay.getStatus() != TransactionStatus.FAILED) {
                                 if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {

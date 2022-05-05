@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,8 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
     @SuppressWarnings("unchecked")
     @Override
     public TransactionSettlementsResponse merchantTransactionSettlementStats(String merchantId) {
-        @NotNull final String MERCHANT_SETTLEMENT_STATS_Q = String.format("SELECT COUNT(settlement_status), settlement_status as status FROM m_transaction_settlement WHERE merchant_id = '%s' GROUP BY settlement_status;", merchantId);
+        @NotNull String MER_Q = ObjectUtils.isEmpty(merchantId) ? " merchant_id IS NOT NULL " : String.format(" merchant_id = '%s' ", merchantId);
+        @NotNull final String MERCHANT_SETTLEMENT_STATS_Q = String.format("SELECT COUNT(settlement_status), settlement_status as status FROM m_payment_gateway WHERE %s GROUP BY settlement_status;", MER_Q);
         @NotNull final String LATEST_SETTLEMENT = getLatestSettlementQuery(merchantId);
         @NotNull final String NEXT_SETTLEMENT = getNextSettlementQuery(merchantId);
         @NotNull final String NET_SETTLED_TRANSACTIONS = getNetSettledTransactionQuery(merchantId);
@@ -58,6 +60,22 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
                 transactionSettlementStats.setNetRevenue(netSettledTransactions.get(0).getAmount());
             else transactionSettlementStats.setNetRevenue(BigDecimal.ZERO);
             transactionSettlementsResponse.setStats(transactionSettlementStats);
+
+            List<SettlementStatus> settlementStatuses = List.of(SettlementStatus.SETTLED, SettlementStatus.FAILED, SettlementStatus.PENDING);
+            List<BigDecimalCountStatusWrapper> statsCountStatusMissing = new ArrayList<>();
+            settlementStatuses.stream().sequential().forEach(settlementStatus -> {
+                boolean found = statsCount.stream()
+                        .map(bigDecimalCountStatusWrapper -> SettlementStatus.valueOf(bigDecimalCountStatusWrapper.getStatus()))
+                        .anyMatch(status -> settlementStatus == status);
+                if (!found) {
+                    statsCountStatusMissing.add(BigDecimalCountStatusWrapper
+                            .builder()
+                            .count(new BigDecimal("0"))
+                            .status(settlementStatus.name())
+                            .build());
+                }
+            });
+            statsCount.addAll(statsCountStatusMissing);
             transactionSettlementsResponse.setCounts(statsCount);
             return transactionSettlementsResponse;
         }
@@ -65,9 +83,9 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
     }
 
     private String getNetSettledTransactionQuery(String merchantId) {
-        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT SUM(settlement_net_amount) as amount FROM m_transaction_settlement WHERE merchant_id='%s' " +
-                "AND settlement_status='SETTLED' " +
-                " GROUP BY merchant_id;", merchantId);
+        @NotNull String MER_Q = ObjectUtils.isEmpty(merchantId) ? " merchant_id IS NOT NULL " : " merchant_id = '%s' ";
+        @NotNull final String LATEST_SETTLEMENT_Q = String.format(String.format("SELECT SUM(settlement_net_amount) as amount FROM m_transaction_settlement WHERE %s ", MER_Q) +
+                "AND settlement_status='SETTLED'; ", merchantId);
         return LATEST_SETTLEMENT_Q;
     }
 

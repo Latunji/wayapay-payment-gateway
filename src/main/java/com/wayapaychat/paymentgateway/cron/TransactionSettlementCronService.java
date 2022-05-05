@@ -134,12 +134,12 @@ public class TransactionSettlementCronService {
     @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void processSettlementForAllPendingTransactionsEveryDay() {
         List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();
-            allPendingSettlement.parallelStream().forEach(this::processExpiredMerchantConfiguredSettlement);
+        allPendingSettlement.parallelStream().forEach(this::processExpiredMerchantConfiguredSettlement);
     }
 
-        private void processExpiredMerchantConfiguredSettlement(TransactionSettlement transactionSettlement) {
-            @NotNull final String daemonToken = paymentGateWayCommonUtils.getDaemonAuthToken();
-            new Thread(() -> {
+    private void processExpiredMerchantConfiguredSettlement(TransactionSettlement transactionSettlement) {
+        @NotNull final String daemonToken = paymentGateWayCommonUtils.getDaemonAuthToken();
+        new Thread(() -> {
             List<PaymentGateway> transactionsToSettle = paymentGatewayRepo.findAllNotSettled(transactionSettlement.getMerchantId());
             try {
                 LocalDateTime merchantConfiguredSettlementDate = transactionSettlement.getMerchantConfiguredSettlementDate();
@@ -279,6 +279,12 @@ public class TransactionSettlementCronService {
     @Scheduled(cron = "0 0 17 * * FRI")
     public void settleEveryFivePMEveryFriday() {
         //CHECK MERCHANT SETTLEMENT SETTINGS
+    }
+
+    @Scheduled(cron = "* */30 * * * *")
+    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    public void expireTransactionAfterThirtyMinutes() {
+        wayaPaymentDAO.expireAllTransactionLessThan30Mins();
     }
 
     public void prorcessThirdPartyPaymentProcessed() {

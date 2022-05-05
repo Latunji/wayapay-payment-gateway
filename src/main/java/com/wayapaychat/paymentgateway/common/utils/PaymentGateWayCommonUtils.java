@@ -59,6 +59,8 @@ public class PaymentGateWayCommonUtils {
             throw new ApplicationException(403, "01", "Oops! Sorry resource(s) can't be accessed");
         if (!authenticatedUser.getAdmin() && !authenticatedUser.isCorporate())
             throw new ApplicationException(403, "01", "Oops! Access not allowed!");
+        if (!required && authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
+            return merchantId;
         return ObjectUtils.isEmpty(merchantId) ? authenticatedUser.getMerchantId() : merchantId;
     }
 

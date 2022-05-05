@@ -1,5 +1,6 @@
 package com.wayapaychat.paymentgateway.dao;
 
+import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
 import com.wayapaychat.paymentgateway.mapper.WalletRevenueMapper;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
@@ -228,8 +229,8 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                     simpleDateFormat.format(startDate), simpleDateFormat.format(endDate));
         else DATE_SUB_QUERY = String.format(" EXTRACT( year FROM tran_date ) = %s ", currentYear);
         @NotNull final String SUB_Q_MER = ObjectUtils.isNotEmpty(merchantId) ? String.format(" %s ", MER) : String.format(" %s ", ALT_Q);
-        @NotNull final String FINAL_Q = String.format(" SELECT %s as year , SUM(amount) AS total_revenue, TO_CHAR(tran_date, 'Mon') AS month, merchant_id FROM m_payment_gateway t " +
-                " WHERE %s AND %s AND status='SUCCESSFUL' GROUP BY month,merchant_id,year ;", EXTRACT_Q, DATE_SUB_QUERY, SUB_Q_MER);
+        @NotNull final String FINAL_Q = String.format(" SELECT %s as year , SUM(amount) AS total_revenue, TO_CHAR(tran_date, 'Mon') AS month FROM m_payment_gateway t " +
+                " WHERE %s AND %s AND status='SUCCESSFUL' GROUP BY month,year ;", EXTRACT_Q, DATE_SUB_QUERY, SUB_Q_MER);
         return FINAL_Q;
     }
 
@@ -295,6 +296,15 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         Map<String, Object> results = jdbcTemplate.call(csc, returnedParams);
         return PageableExecutionUtils.getPage((List<TransactionSettlementPojo>) results.get("transaction_settlement"),
                 pageable, () -> ((ArrayList<CountWrapper>) results.get("count")).get(0).getCount().longValue());
+    }
+
+    @Override
+    public void expireAllTransactionLessThan30Mins() {
+        @NotNull final String UPDATE_QUERY = " UPDATE m_payment_gateway SET transaction_expired=true WHERE transaction_expired = false " +
+                " AND EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - tran_date ))/60 >= 30.0000 ";
+        int updatedRows = jdbcTemplate.update(UPDATE_QUERY);
+        if (!(updatedRows >= 0))
+            throw new ApplicationException(400, "01", "Failed to update transaction expiry");
     }
 
 

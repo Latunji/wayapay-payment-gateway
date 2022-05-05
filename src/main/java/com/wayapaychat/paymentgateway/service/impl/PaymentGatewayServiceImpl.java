@@ -1007,9 +1007,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate) {
-        if (ObjectUtils.isEmpty(merchantId) && !PaymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
-            throw new ApplicationException(403, "forbidden", "Oops! Operation not allowed. You need to provide the merchantId!");
-        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantId, year, startDate, endDate);
+        String merchantIdToUse = getMerchantIdToUse(merchantId,false);
+        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year, startDate, endDate);
         BigDecimal totalRevenueForSelectedDateRange = transactionYearMonthStats.stream()
                 .map(TransactionYearMonthStats::getTotalRevenue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -1027,7 +1026,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId) {
-        String merchantIdToUse = getMerchantIdToUse(merchantId,true);
+        String merchantIdToUse = getMerchantIdToUse(merchantId,false);
         TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
     }

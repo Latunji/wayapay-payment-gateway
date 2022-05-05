@@ -134,7 +134,7 @@ public class TransactionSettlementCronService {
     @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void processSettlementForAllPendingTransactionsEveryDay() {
         List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();
-        allPendingSettlement.parallelStream().forEach(this::processExpiredMerchantConfiguredSettlement);
+            allPendingSettlement.parallelStream().forEach(this::processExpiredMerchantConfiguredSettlement);
     }
 
         private void processExpiredMerchantConfiguredSettlement(TransactionSettlement transactionSettlement) {

@@ -49,7 +49,7 @@ public class CronService {
     private PaymemtGatewayEntityListener paymemtGatewayEntityListener;
 
 
-    @Scheduled(cron = "* */30 * * * *")
+//    @Scheduled(cron = "* */30 * * * *")
     private void runEveryFiveSeconds() {
         updateTransactionStatus();
     }

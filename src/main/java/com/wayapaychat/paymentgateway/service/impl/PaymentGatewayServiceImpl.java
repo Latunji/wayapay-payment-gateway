@@ -837,11 +837,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> queryTranStatus(HttpServletRequest req) {
-        @NotNull final String queryWithMerchantId = paymentGateWayCommonUtils.validateUserAndGetMerchantId(null);
         List<PaymentGateway> mPay = paymentGatewayRepo.findByPayment();
-        if (mPay == null) {
+        if (mPay == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        }
         List<ReportPayment> sPay = mapList(mPay, ReportPayment.class);
         return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
     }
@@ -852,9 +850,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> getMerchantTransactionReport(HttpServletRequest req, String merchantId) {
-        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,true);
-        @NotNull final List<PaymentGateway> paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment(merchantIdToUse);
-        if (paymentGatewayList == null)
+        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, false);
+        @NotNull List<PaymentGateway> paymentGatewayList;
+        if (ObjectUtils.isEmpty(merchantIdToUse)) paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment();
+        else paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment(merchantIdToUse);
+        if (ObjectUtils.isEmpty(paymentGatewayList))
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
         final List<ReportPayment> sPay = mapList(paymentGatewayList, ReportPayment.class);
         return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
@@ -894,7 +894,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId) {
-        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,true);
+        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, true);
         WalletRevenue revenue = wayaPayment.getRevenue(merchantIdToUse);
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
@@ -1007,7 +1007,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate) {
-        String merchantIdToUse = getMerchantIdToUse(merchantId,false);
+        String merchantIdToUse = getMerchantIdToUse(merchantId, false);
         List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year, startDate, endDate);
         BigDecimal totalRevenueForSelectedDateRange = transactionYearMonthStats.stream()
                 .map(TransactionYearMonthStats::getTotalRevenue)
@@ -1019,14 +1019,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(String merchantId) {
-        String merchantIdToUse = getMerchantIdToUse(merchantId,false);
+        String merchantIdToUse = getMerchantIdToUse(merchantId, false);
         TransactionOverviewResponse transactionOverviewResponse = wayaPaymentDAO.getTransactionReport(merchantIdToUse);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionOverviewResponse), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId) {
-        String merchantIdToUse = getMerchantIdToUse(merchantId,false);
+        String merchantIdToUse = getMerchantIdToUse(merchantId, false);
         TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
     }

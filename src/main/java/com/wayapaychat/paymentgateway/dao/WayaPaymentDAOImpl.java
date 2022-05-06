@@ -6,7 +6,7 @@ import com.wayapaychat.paymentgateway.mapper.WalletRevenueMapper;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.*;
-import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletRevenue;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.TransactionReportStats;
 import com.wayapaychat.paymentgateway.service.impl.TransactionSettlementPojo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -32,52 +32,38 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     private TransactionSettlementDAO transactionSettlementDAO;
 
     @Override
-    public List<WalletRevenue> getRevenue() {
-        List<WalletRevenue> product;
+    public List<TransactionReportStats> getTransactionReportStats() {
+        List<TransactionReportStats> product;
         StringBuilder query = new StringBuilder();
-//        query.append("SELECT merchant_id AS MERCHANTID, COUNT(a.TRAN_ID) AS TOTALTRAN,");
         query.append("SELECT COUNT(a.TRAN_ID) AS TOTALTRAN,");
         query.append("SUM(CASE WHEN a.status = 'SUCCESSFUL' THEN 1 ELSE 0 END) as TOTALSUCCESS,");
         query.append("SUM(CASE WHEN a.status = 'FAILED'     THEN 1 ELSE 0 END) as TOTALFAILED,");
         query.append("SUM(CASE WHEN a.status = 'ABANDONED'  THEN 1 ELSE 0 END) as TOTALABANDONED,");
         query.append("SUM(CASE WHEN a.status = 'REFUNDED'   THEN 1 ELSE 0 END) as TOTALREFUNDED,");
         query.append("SUM(CASE WHEN a.status = 'PENDING'    THEN 1 ELSE 0 END) as TOTALPENDING,");
-        query.append("SUM(CASE WHEN settled =  'SETTLED'    THEN 1 ELSE 0 END) as TOTALSETTLED,");
-        query.append("SUM(CASE WHEN settled =  'SETTLED'    THEN tran_amount ELSE 0 END) as TOTALSETTLEDAMT,");
-        query.append("SUM(CASE WHEN settled =  'NOT_SETTLED' THEN tran_amount ELSE 0 END) as TOTALUNSETTLEDAMT  ");
+        query.append("SUM(CASE WHEN settlement_status =  'SETTLED'    THEN 1 ELSE 0 END) as TOTALSETTLED ");
         query.append("FROM m_payment_gateway a ");
-//        query.append("FROM m_payment_gateway a LEFT JOIN m_payment_wallet b ON a.ref_no = b.ref_no  ");
-//        query.append("GROUP BY merchant_id ORDER BY TOTALTRAN DESC");
         String sql = query.toString();
-        try {
-            WalletRevenueMapper rowMapper = new WalletRevenueMapper();
-            product = jdbcTemplate.query(sql, rowMapper);
-            return product;
-        } catch (Exception ex) {
-            log.error("An error Occured: Cause: {} \r\n Message: {}", ex.getCause(), ex.getMessage());
-            return null;
-        }
+        WalletRevenueMapper rowMapper = new WalletRevenueMapper();
+        product = jdbcTemplate.query(sql, rowMapper);
+        return product;
     }
 
     @Override
-    public WalletRevenue getRevenue(String merchantId) {
-        WalletRevenue product = new WalletRevenue();
+    public TransactionReportStats getTransactionReportStats(String merchantId) {
+        TransactionReportStats product;
         StringBuilder query = new StringBuilder();
-        query.append("SELECT merchant_id AS MERCHANTID, COUNT(a.TRAN_ID) AS TOTALTRAN,");
+        query.append("SELECT COUNT(a.TRAN_ID) AS TOTALTRAN,");
         query.append("SUM(CASE WHEN a.status = 'SUCCESSFUL' THEN 1 ELSE 0 END) as TOTALSUCCESS,");
-        query.append("SUM(CASE WHEN a.status = 'FAILED' THEN 1 ELSE 0 END) as TOTALFAILED,");
-        query.append("SUM(CASE WHEN a.status = 'ABANDONED' THEN 1 ELSE 0 END) as TOTALABANDONED,");
-        query.append("SUM(CASE WHEN a.status = 'REFUNDED' THEN 1 ELSE 0 END) as TOTALREFUNDED,");
-        query.append("SUM(CASE WHEN a.status = 'PENDING' THEN 1 ELSE 0 END) as TOTALPENDING,");
-        query.append("SUM(CASE WHEN settled = 'SETTLED' THEN 1 ELSE 0 END) as TOTALSETTLED,");
-        query.append("SUM(CASE WHEN settled = 'SETTLED' THEN tran_amount ELSE 0 END) as TOTALSETTLEDAMT,");
-        query.append("SUM(CASE WHEN settled = 'NOT_SETTLED' THEN tran_amount ELSE 0 END) as TOTALUNSETTLEDAMT  ");
-        query.append("FROM m_payment_gateway a LEFT JOIN m_payment_wallet b ON a.ref_no = b.ref_no where merchant_id = ?  ");
-        query.append("GROUP BY merchant_id ORDER BY TOTALTRAN DESC");
+        query.append("SUM(CASE WHEN a.status = 'FAILED'     THEN 1 ELSE 0 END) as TOTALFAILED,");
+        query.append("SUM(CASE WHEN a.status = 'ABANDONED'  THEN 1 ELSE 0 END) as TOTALABANDONED,");
+        query.append("SUM(CASE WHEN a.status = 'REFUNDED'   THEN 1 ELSE 0 END) as TOTALREFUNDED,");
+        query.append("SUM(CASE WHEN a.status = 'PENDING'    THEN 1 ELSE 0 END) as TOTALPENDING,");
+        query.append("SUM(CASE WHEN settlement_status =  'SETTLED'    THEN 1 ELSE 0 END) as TOTALSETTLED ");
+        query.append(String.format("FROM m_payment_gateway a WHERE merchant_id = '%s' ", merchantId));
         String sql = query.toString();
         WalletRevenueMapper rowMapper = new WalletRevenueMapper();
-        Object[] params = new Object[]{merchantId};
-        product = jdbcTemplate.queryForObject(sql, rowMapper, params);
+        product = jdbcTemplate.queryForObject(sql, rowMapper);
         return product;
     }
 

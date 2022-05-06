@@ -1,12 +1,11 @@
 package com.wayapaychat.paymentgateway.dao;
 
-import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionOverviewResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionRevenueStats;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionYearMonthStats;
-import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletRevenue;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.TransactionReportStats;
 import com.wayapaychat.paymentgateway.service.impl.TransactionSettlementPojo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +15,9 @@ import java.util.List;
 
 public interface WayaPaymentDAO {
 
-    List<WalletRevenue> getRevenue();
+    List<TransactionReportStats> getTransactionReportStats();
 
-    WalletRevenue getRevenue(String merchantId);
+    TransactionReportStats getTransactionReportStats(String merchantId);
 
     TransactionOverviewResponse getTransactionReport(String merchantId);
 

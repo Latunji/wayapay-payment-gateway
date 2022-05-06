@@ -22,7 +22,7 @@ import lombok.ToString;
 })
 @ToString
 @Data
-public class WalletTransactionStatus {
+public class TransactionStatusResponse {
 	
 	@JsonProperty("OrderId")
 	private String orderId;
@@ -51,8 +51,8 @@ public class WalletTransactionStatus {
 	
 	private Customer customer;
 
-	public WalletTransactionStatus(String orderId, BigDecimal amount, String description, BigDecimal fee,
-			String currency, String status, String productName, String businessName, Customer customer) {
+	public TransactionStatusResponse(String orderId, BigDecimal amount, String description, BigDecimal fee,
+									 String currency, String status, String productName, String businessName, Customer customer) {
 		super();
 		this.orderId = orderId;
 		this.amount = amount;
@@ -65,7 +65,7 @@ public class WalletTransactionStatus {
 		this.customer = customer;
 	}
 
-	public WalletTransactionStatus() {
+	public TransactionStatusResponse() {
 		super();
 	}
 

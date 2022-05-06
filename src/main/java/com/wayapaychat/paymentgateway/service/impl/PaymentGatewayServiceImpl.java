@@ -401,7 +401,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 mPay.setChannel(PaymentChannel.CARD);
                 WayaPaymentRequest mAccount = new WayaPaymentRequest(mPay.getMerchantId(), mPay.getDescription(),
                         mPay.getAmount(), mPay.getFee(), mPay.getCurrencyCode(), mPay.getSecretKey(),
-                        new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(),mPay.getCustomerId()),
+                        new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId()),
                         mPay.getPreferenceNo());
                 String tranId = uniPaymentProxy.postUnified(mAccount);
                 if (ObjectUtils.isEmpty(tranId))
@@ -439,7 +439,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
             WayaPaymentRequest mAccount = new WayaPaymentRequest(mPay.getMerchantId(), mPay.getDescription(),
                     mPay.getAmount(), mPay.getFee(), mPay.getCurrencyCode(), mPay.getSecretKey(),
-                    new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(),mPay.getCustomerId()),
+                    new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId()),
                     mPay.getPreferenceNo());
             String tranId = uniPaymentProxy.postUnified(mAccount);
             if (ObjectUtils.isEmpty(tranId)) {
@@ -744,7 +744,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, WayaUSSDRequest account) {
+    public ResponseEntity<?> initiateUSSDTransaction(HttpServletRequest request, WayaUSSDRequest ussdRequest) {
         PaymentGateway payment = new PaymentGateway();
         try {
             LoginRequest auth = new LoginRequest();
@@ -758,18 +758,18 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
             PaymentData payData = authToken.getData();
             String token = payData.getToken();
-            MerchantResponse merchant = merchantProxy.getMerchantInfo(token, account.getMerchantId());
+            MerchantResponse merchant = merchantProxy.getMerchantInfo(token, ussdRequest.getMerchantId());
             if (!merchant.getCode().equals("00")) {
                 return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
             }
             log.info("Merchant: " + merchant);
             MerchantData sMerchant = merchant.getData();
             if (sMerchant.getMerchantKeyMode().equals("TEST")) {
-                if (!account.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
+                if (!ussdRequest.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
                     return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
                 }
             } else {
-                if (!account.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
+                if (!ussdRequest.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
                     return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT KEY"), HttpStatus.BAD_REQUEST);
                 }
             }
@@ -780,23 +780,23 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             long milliSeconds = dte.getTime();
             String strLong = Long.toString(milliSeconds);
             payment.setRefNo(strLong);
-            payment.setMerchantId(account.getMerchantId());
-            payment.setDescription(account.getPaymentDescription());
-            payment.setAmount(account.getAmount());
+            payment.setMerchantId(ussdRequest.getMerchantId());
+            payment.setDescription(ussdRequest.getPaymentDescription());
+            payment.setAmount(ussdRequest.getAmount());
             //TODO: Update wayapay processing fee here
-            payment.setWayapayFee(account.getFee());
-            payment.setCurrencyCode(account.getCurrency());
+            payment.setWayapayFee(ussdRequest.getFee());
+            payment.setCurrencyCode(ussdRequest.getCurrency());
             payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
-            String vt = UnifiedPaymentProxy.getDataEncrypt(account.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
+            String vt = UnifiedPaymentProxy.getDataEncrypt(ussdRequest.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(vt);
-            payment.setTranId(account.getReferenceNo());
-            payment.setPreferenceNo(account.getReferenceNo());
+            payment.setTranId(ussdRequest.getReferenceNo());
+            payment.setPreferenceNo(ussdRequest.getReferenceNo());
             payment.setTranDate(LocalDateTime.now());
             payment.setRcre_time(LocalDateTime.now());
             payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
-            payment.setCustomerName(account.getCustomer().getName());
-            payment.setCustomerEmail(account.getCustomer().getEmail());
-            payment.setCustomerPhone(account.getCustomer().getPhoneNumber());
+            payment.setCustomerName(ussdRequest.getCustomer().getName());
+            payment.setCustomerEmail(ussdRequest.getCustomer().getEmail());
+            payment.setCustomerPhone(ussdRequest.getCustomer().getPhoneNumber());
             payment.setChannel(PaymentChannel.USSD);
             payment.setStatus(TransactionStatus.PENDING);
             payment.setVendorDate(LocalDateTime.now());
@@ -824,6 +824,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         payment.setStatus(status);
         payment.setTranId(account.getTranId());
         payment.setSuccessfailure(account.isSuccessfailure());
+        payment.setChannel(PaymentChannel.USSD);
         LocalDateTime toDate = account.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         payment.setVendorDate(toDate);
         if (payment.getStatus() == TransactionStatus.SUCCESSFUL && !payment.getTransactionReceiptSent())
@@ -872,7 +873,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         if (mPay == null) {
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
         }
-        Customer customer = new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(),mPay.getCustomerId());
+        Customer customer = new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId());
 
         response = new WalletTransactionStatus(mPay.getPreferenceNo(), mPay.getAmount(), mPay.getDescription(),
                 mPay.getFee(), mPay.getCurrencyCode(), mPay.getStatus().name(), mPay.getChannel().name(),

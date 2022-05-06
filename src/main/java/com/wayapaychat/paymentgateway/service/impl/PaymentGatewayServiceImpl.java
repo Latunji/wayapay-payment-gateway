@@ -895,7 +895,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId) {
         @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, true);
-        WalletRevenue revenue = wayaPayment.getRevenue(merchantIdToUse);
+        TransactionReportStats revenue = wayaPayment.getTransactionReportStats(merchantIdToUse);
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
 
@@ -903,7 +903,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
         if (!PaymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
             throw new ApplicationException(403, "01", "Oops! Operation not allowed.");
-        List<WalletRevenue> revenue = wayaPayment.getRevenue();
+        List<TransactionReportStats> revenue = wayaPayment.getTransactionReportStats();
         return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
     }
 

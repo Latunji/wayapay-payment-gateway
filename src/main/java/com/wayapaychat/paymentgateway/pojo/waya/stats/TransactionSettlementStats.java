@@ -15,4 +15,5 @@ public class TransactionSettlementStats {
     private BigDecimal latestSettlement;
     private BigDecimal nextSettlement;
     private BigDecimal netRevenue;
+    private BigDecimal failedNetSettledRevenue;
 }

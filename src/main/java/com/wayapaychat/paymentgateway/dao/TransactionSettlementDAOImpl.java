@@ -34,14 +34,16 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
         @NotNull final String LATEST_SETTLEMENT = getLatestSettlementQuery(merchantId);
         @NotNull final String NEXT_SETTLEMENT = getNextSettlementQuery(merchantId);
         @NotNull final String NET_SETTLED_TRANSACTIONS = getNetSettledTransactionQuery(merchantId);
-        @NotNull final String FINAL_Q = MERCHANT_SETTLEMENT_STATS_Q + LATEST_SETTLEMENT + NEXT_SETTLEMENT + NET_SETTLED_TRANSACTIONS;
+        @NotNull final String FAILED_NET_SETTLEMENT_TRANSACTIONS = String.format("SELECT SUM(settlement_net_amount) as amount FROM m_transaction_settlement WHERE %s AND settlement_status='FAILED';", MER_Q);
+        @NotNull final String FINAL_Q = MERCHANT_SETTLEMENT_STATS_Q + LATEST_SETTLEMENT + NEXT_SETTLEMENT + NET_SETTLED_TRANSACTIONS + FAILED_NET_SETTLEMENT_TRANSACTIONS;
         var csf = new CallableStatementCreatorFactory(FINAL_Q);
         var csc = csf.newCallableStatementCreator(new HashMap<>());
         var requestParams = List.<SqlParameter>of(
                 new SqlReturnResultSet("stats_count", BeanPropertyRowMapper.newInstance(BigDecimalCountStatusWrapper.class)),
                 new SqlReturnResultSet("latest_settlement", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
                 new SqlReturnResultSet("next_settlement", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
-                new SqlReturnResultSet("net_settled_transactions", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)));
+                new SqlReturnResultSet("net_settled_transactions", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
+                new SqlReturnResultSet("failed_net_settlement_transactions", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)));
         Map<String, Object> results = jdbcTemplate.call(csc, requestParams);
         TransactionSettlementsResponse transactionSettlementsResponse = TransactionSettlementsResponse.builder().build();
         if (ObjectUtils.isNotEmpty(results)) {
@@ -49,16 +51,20 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
             List<BigDecimalAmountWrapper> latestSettlement = (List<BigDecimalAmountWrapper>) results.get("latest_settlement");
             List<BigDecimalAmountWrapper> nextSettlement = (List<BigDecimalAmountWrapper>) results.get("next_settlement");
             List<BigDecimalAmountWrapper> netSettledTransactions = (List<BigDecimalAmountWrapper>) results.get("net_settled_transactions");
+            List<BigDecimalAmountWrapper> failedNetSettledTransactions = (List<BigDecimalAmountWrapper>) results.get("failed_net_settlement_transactions");
             TransactionSettlementStats transactionSettlementStats = TransactionSettlementStats.builder().build();
-            if (ObjectUtils.isNotEmpty(latestSettlement))
+            if (ObjectUtils.isNotEmpty(latestSettlement) && ObjectUtils.isNotEmpty(latestSettlement.get(0).getAmount()))
                 transactionSettlementStats.setLatestSettlement(latestSettlement.get(0).getAmount());
             else transactionSettlementStats.setLatestSettlement(BigDecimal.ZERO);
-            if (ObjectUtils.isNotEmpty(nextSettlement))
+            if (ObjectUtils.isNotEmpty(nextSettlement) && ObjectUtils.isNotEmpty(nextSettlement.get(0).getAmount()))
                 transactionSettlementStats.setNextSettlement(nextSettlement.get(0).getAmount());
             else transactionSettlementStats.setNextSettlement(BigDecimal.ZERO);
-            if (ObjectUtils.isNotEmpty(netSettledTransactions))
+            if (ObjectUtils.isNotEmpty(netSettledTransactions) && ObjectUtils.isNotEmpty(netSettledTransactions.get(0).getAmount()))
                 transactionSettlementStats.setNetRevenue(netSettledTransactions.get(0).getAmount());
             else transactionSettlementStats.setNetRevenue(BigDecimal.ZERO);
+            if (ObjectUtils.isNotEmpty(failedNetSettledTransactions) && ObjectUtils.isNotEmpty(failedNetSettledTransactions.get(0).getAmount()))
+                transactionSettlementStats.setFailedNetSettledRevenue(failedNetSettledTransactions.get(0).getAmount());
+            else transactionSettlementStats.setFailedNetSettledRevenue(BigDecimal.ZERO);
             transactionSettlementsResponse.setStats(transactionSettlementStats);
 
             List<SettlementStatus> settlementStatuses = List.of(SettlementStatus.SETTLED, SettlementStatus.FAILED, SettlementStatus.PENDING);

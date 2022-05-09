@@ -861,6 +861,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
+    public ResponseEntity<?> fetchAllMerchantTransactions(String merchantId) {
+        @NotNull List<PaymentGateway> paymentGatewayList;
+        paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment(merchantId);
+        if (ObjectUtils.isEmpty(paymentGatewayList))
+            return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+        final List<ReportPayment> sPay = mapList(paymentGatewayList, ReportPayment.class);
+        return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
+    }
+
+    @Override
     public ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo) {
         PaymentGateway mPay = null;
         try {

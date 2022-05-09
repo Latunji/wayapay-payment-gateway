@@ -12,6 +12,7 @@ import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.impl.UnifiedPaymentProxy;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,12 +50,13 @@ public class CronService {
 
 
     @Scheduled(cron = "0 0 0 * * *")
-    private void runEveryFiveSeconds() {
+    @SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    public void updateTransactionStatusEveryDay() {
         updateTransactionStatus();
     }
 
     @Scheduled(cron = "0 0 0 * * *")
-    private void runEveryDay() {
+    public void runEveryDay() {
 //        processNextRecurrentTransaction();
     }
 

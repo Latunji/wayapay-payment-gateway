@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.ws.rs.Path;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
@@ -215,9 +216,9 @@ public class PaymentGatewayController {
         return paymentGatewayService.getMerchantTransactionReport(request, merchantId);
     }
 
-    @ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Get all merchant transactions", notes = "This endpoint get all merchant transactions", tags = {"PAYMENT-GATEWAY"})
     @GetMapping("/report/query/{merchantId}")
-    public ResponseEntity<?> getAllMerchantTransactionsByMerchantId(@RequestParam final String merchantId) {
+    public ResponseEntity<?> getAllMerchantTransactionsByMerchantId(@PathVariable final String merchantId) {
         return paymentGatewayService.fetchAllMerchantTransactions(merchantId);
     }
 

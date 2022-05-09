@@ -44,6 +44,8 @@ public interface PaymentGatewayService {
 
     ResponseEntity<?> getTransactionStatus(HttpServletRequest req, String tranId);
 
+    ResponseEntity<?> fetchAllMerchantTransactions(String merchantId);
+
     ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo);
 
     WayaTransactionQuery getTransactionStatus(String tranId);

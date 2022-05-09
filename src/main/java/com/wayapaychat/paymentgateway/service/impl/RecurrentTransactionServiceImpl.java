@@ -35,7 +35,7 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> fetchCustomerTransaction(String customerId, Pageable pageable) {
-        AuthenticatedUser authenticatedUser = paymentGateWayCommonUtils.getAuthenticatedUser();
+        AuthenticatedUser authenticatedUser = PaymentGateWayCommonUtils.getAuthenticatedUser();
         String token = paymentGateWayCommonUtils.getDaemonAuthToken();
         MerchantResponse merchantResponse = identityManager.getMerchantDetail(token, authenticatedUser.getMerchantId());
         MerchantData merchantData = merchantResponse.getData();

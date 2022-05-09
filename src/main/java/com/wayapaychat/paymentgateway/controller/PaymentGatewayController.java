@@ -205,6 +205,7 @@ public class PaymentGatewayController {
         return paymentGatewayService.queryTranStatus(request);
     }
 
+
     //TODO: protect this endpoint before request comes IN
     @ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
     @GetMapping("/transaction/report")
@@ -212,6 +213,12 @@ public class PaymentGatewayController {
             HttpServletRequest request,
             @RequestParam(value = "merchantId", required = false) final String merchantId) {
         return paymentGatewayService.getMerchantTransactionReport(request, merchantId);
+    }
+
+    @ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
+    @GetMapping("/report/query/{merchantId}")
+    public ResponseEntity<?> getAllMerchantTransactionsByMerchantId(@RequestParam final String merchantId) {
+        return paymentGatewayService.fetchAllMerchantTransactions(merchantId);
     }
 
     @ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})

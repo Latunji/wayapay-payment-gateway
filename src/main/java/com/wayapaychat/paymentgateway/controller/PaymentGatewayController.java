@@ -216,7 +216,7 @@ public class PaymentGatewayController {
         return paymentGatewayService.getMerchantTransactionReport(request, merchantId);
     }
 
-    @ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Get all merchant transactions", notes = "This endpoint get all merchant transactions", tags = {"PAYMENT-GATEWAY"})
     @GetMapping("/report/query/{merchantId}")
     public ResponseEntity<?> getAllMerchantTransactionsByMerchantId(@PathVariable final String merchantId) {
         return paymentGatewayService.fetchAllMerchantTransactions(merchantId);

@@ -30,6 +30,14 @@ eureka:
   instance:
     preferIpAddress: true
 
+kafka:
+  #  bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:https://kafka-service:9092}
+  groupId: ${KAFKA_GROUP_ID:waya}
+  consumer:
+    group-id: waya
+    auto-offset-reset: newest
+
 waya:
   wallet:
     auth: AUTHENTICATION-SERVICE

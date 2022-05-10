@@ -131,15 +131,18 @@ public class TransactionSettlementCronService {
     }
 
     @Scheduled(cron = "*/59 * * * * *")
-    @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void processSettlementForAllPendingTransactionsMinutes() {
-        List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();
-        allPendingSettlement.parallelStream().forEach(this::processExpiredMerchantConfiguredSettlement);
+       processSettlements();
     }
 
     @Scheduled(cron = "0 0 0 * * *")
     @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void processSettlementForAllPendingTransactionsEveryDay() {
+        processSettlements();
+    }
+
+    private void processSettlements(){
         List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();
         allPendingSettlement.parallelStream().forEach(this::processExpiredMerchantConfiguredSettlement);
     }

@@ -130,7 +130,14 @@ public class TransactionSettlementCronService {
         });
     }
 
-    @Scheduled(cron = "*/10 * * * * *")
+    @Scheduled(cron = "*/59 * * * * *")
+    @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    public void processSettlementForAllPendingTransactionsMinutes() {
+        List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();
+        allPendingSettlement.parallelStream().forEach(this::processExpiredMerchantConfiguredSettlement);
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
     @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void processSettlementForAllPendingTransactionsEveryDay() {
         List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();

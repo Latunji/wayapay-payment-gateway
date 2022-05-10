@@ -108,7 +108,7 @@ public class TransactionSettlementCronService {
                 }
                 @NotNull final String settlementReferenceId = "SET_REF_" + RandomStringUtils.randomAlphanumeric(5) + System.currentTimeMillis()
                         + RandomStringUtils.randomAlphanumeric(5);
-                Interval settlementInterval = ObjectUtils.isEmpty(wayaMerchantConfiguration.getSettlementInterval()) ? Interval.TWO_DAYS : wayaMerchantConfiguration.getSettlementInterval();
+                Interval settlementInterval = ObjectUtils.isEmpty(wayaMerchantConfiguration.getSettlementInterval()) ? Interval.ZERO_DAYS : wayaMerchantConfiguration.getSettlementInterval();
                 merchantUnsettledPayments.parallelStream().forEach(paymentGateway -> paymentGateway.setSettlementReferenceId(settlementReferenceId));
                 TransactionSettlement transactionSettlement = TransactionSettlement.builder()
                         .settlementGrossAmount(unsettledSuccessfulTransaction.getGrossAmount())

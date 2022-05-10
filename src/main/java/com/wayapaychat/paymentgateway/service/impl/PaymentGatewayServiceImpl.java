@@ -328,7 +328,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
         Object response;
         String pan = "**** **** **** ****";
-        String keygen = replacePublicKeyWithEmptyString(card.getWayaPublicKey());
+        String keygen = replaceKeyPrefixWithEmptyString(card.getWayaPublicKey());
 
         if (card.getScheme().equalsIgnoreCase("Amex") || card.getScheme().equalsIgnoreCase("Mastercard")
                 || card.getScheme().equalsIgnoreCase("Visa")) {
@@ -482,7 +482,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public PaymentGatewayResponse encryptCard(HttpServletRequest request, WayaEncypt pay) {
-        String keygen = replacePublicKeyWithEmptyString(pay.getMerchantSecretKey());
+        String keygen = replaceKeyPrefixWithEmptyString(pay.getMerchantSecretKey());
         String vt = UnifiedPaymentProxy.getDataEncrypt(pay.getEncryptString(), keygen);
         if (ObjectUtils.isEmpty(vt))
             return (new PaymentGatewayResponse(false, "Encryption fail", null));
@@ -491,7 +491,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public PaymentGatewayResponse decryptCard(HttpServletRequest request, WayaDecypt pay) {
-        String keygen = replacePublicKeyWithEmptyString(pay.getMerchantSecretKey());
+        String keygen = replaceKeyPrefixWithEmptyString(pay.getMerchantSecretKey());
         String vt = UnifiedPaymentProxy.getDataDecrypt(pay.getDecryptString(), keygen);
         if (ObjectUtils.isEmpty(vt))
             return (new PaymentGatewayResponse(false, "Decryption fail", null));
@@ -1037,7 +1037,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
     }
 
-    private String replacePublicKeyWithEmptyString(String pub) {
+    private String replaceKeyPrefixWithEmptyString(String pub) {
         return pub.contains("WAYA") ?
                 pub.replace("WAYAPUBK_TEST_0x", "") :
                 pub.replace("WAYAPUBK_PROD_0x", "");

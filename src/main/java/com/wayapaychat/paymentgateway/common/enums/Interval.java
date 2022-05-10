@@ -9,6 +9,7 @@ public enum Interval {
     DAILY(1),
     FIVE_DAYS(5),
     TWO_DAYS(2),
+    ZERO_DAYS(0),
     ANNUALLY(365),
     BI_ANNUAL(730),
     QUARTERLY(90),

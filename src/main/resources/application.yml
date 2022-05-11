@@ -23,20 +23,22 @@ spring:
         show-sql: true
         hbm2ddl:
           auto: update
+  kafka:
+    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:https://kafka-service:9092}
+    groupId: ${KAFKA_GROUP_ID:waya}
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: waya
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
 eureka:
   client:
     serviceUrl:
       defaultZone: ${EUREKA_SERVER_URL:http://eureka-service/eureka}
   instance:
     preferIpAddress: true
-
-kafka:
-  #  bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-  bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:https://kafka-service:9092}
-  groupId: ${KAFKA_GROUP_ID:waya}
-  consumer:
-    group-id: waya
-    auto-offset-reset: newest
 
 waya:
   wallet:

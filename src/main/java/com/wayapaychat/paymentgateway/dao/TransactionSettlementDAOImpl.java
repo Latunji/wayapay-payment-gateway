@@ -3,6 +3,7 @@ package com.wayapaychat.paymentgateway.dao;
 
 import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
+import com.wayapaychat.paymentgateway.mapper.SettlementWrapper;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.BigDecimalCountStatusWrapper;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementStats;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementsResponse;
@@ -98,7 +99,7 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
     @Override
     public String getLatestSettlementQuery(String merchantId) {
         @NotNull String SUB = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND merchant_id='%s' ", merchantId);
-        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount FROM m_transaction_settlement WHERE settlement_status='SETTLED' " +
+        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount,date_settled as settlement_date  FROM m_transaction_settlement WHERE settlement_status='SETTLED' " +
                 " %s ORDER BY date_settled DESC LIMIT 1 ;", SUB);
         return LATEST_SETTLEMENT_Q;
     }
@@ -106,7 +107,8 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
     @Override
     public String getNextSettlementQuery(String merchantId) {
         @NotNull String SUB = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND merchant_id='%s' ", merchantId);
-        @NotNull final String NEXT_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount FROM m_transaction_settlement WHERE settlement_status='PENDING' " +
+        @NotNull final String NEXT_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount,merchant_configured_settlement_date settlement_date " +
+                " FROM m_transaction_settlement WHERE settlement_status='PENDING' " +
                 " %s ORDER BY merchant_configured_settlement_date DESC LIMIT 1 ;", SUB);
         return NEXT_SETTLEMENT_Q;
     }

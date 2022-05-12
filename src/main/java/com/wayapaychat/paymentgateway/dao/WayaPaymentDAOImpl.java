@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.dao;
 
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
+import com.wayapaychat.paymentgateway.mapper.SettlementWrapper;
 import com.wayapaychat.paymentgateway.mapper.WalletRevenueMapper;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
@@ -118,8 +119,8 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                 new SqlReturnResultSet("gross_revenue", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
                 new SqlReturnResultSet("net_revenue", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
                 new SqlReturnResultSet("year_month_stats", BeanPropertyRowMapper.newInstance(TransactionYearMonthStats.class)),
-                new SqlReturnResultSet("latest_settlement", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
-                new SqlReturnResultSet("next_settlement", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
+                new SqlReturnResultSet("latest_settlement", BeanPropertyRowMapper.newInstance(SettlementWrapper.class)),
+                new SqlReturnResultSet("next_settlement", BeanPropertyRowMapper.newInstance(SettlementWrapper.class)),
                 new SqlReturnResultSet("success_error_stats", BeanPropertyRowMapper.newInstance(BigDecimalCountStatusWrapper.class)),
                 new SqlReturnResultSet("refusal_error_stats", BeanPropertyRowMapper.newInstance(BigDecimalCountStatusWrapper.class)),
                 new SqlReturnResultSet("payment_channel_stats", BeanPropertyRowMapper.newInstance(TransactionPaymentChannelStats.class)));
@@ -135,8 +136,8 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             List<BigDecimalAmountWrapper> grossRevenue = (List<BigDecimalAmountWrapper>) results.get("gross_revenue");
             List<BigDecimalAmountWrapper> netRevenue = (List<BigDecimalAmountWrapper>) results.get("net_revenue");
             List<TransactionYearMonthStats> yearMonthStats = (List<TransactionYearMonthStats>) results.get("year_month_stats");
-            List<BigDecimalAmountWrapper> latestSettlement = (List<BigDecimalAmountWrapper>) results.get("latest_settlement");
-            List<BigDecimalAmountWrapper> nextSettlement = (List<BigDecimalAmountWrapper>) results.get("next_settlement");
+            List<SettlementWrapper> latestSettlement = (List<SettlementWrapper>) results.get("latest_settlement");
+            List<SettlementWrapper> nextSettlement = (List<SettlementWrapper>) results.get("next_settlement");
             List<BigDecimalCountStatusWrapper> successErrorStats = (List<BigDecimalCountStatusWrapper>) results.get("success_error_stats");
             List<BigDecimalCountStatusWrapper> refusalErrorStats = (List<BigDecimalCountStatusWrapper>) results.get("refusal_error_stats");
             List<TransactionPaymentChannelStats> paymentChannelStats = (List<TransactionPaymentChannelStats>) results.get("payment_channel_stats");
@@ -146,11 +147,15 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             if (ObjectUtils.isNotEmpty(netRevenue))
                 revenueStats.setNetRevenue(netRevenue.get(0).getAmount());
             transactionOverviewResponse.setRevenueStats(revenueStats);
-            if (ObjectUtils.isNotEmpty(latestSettlement))
+            if (ObjectUtils.isNotEmpty(latestSettlement)) {
                 settlementStats.setLatestSettlement(latestSettlement.get(0).getAmount());
+                settlementStats.setLatestSettlementDate(latestSettlement.get(0).getSettlementDate());
+            }
             else settlementStats.setLatestSettlement(BigDecimal.ZERO);
-            if (ObjectUtils.isNotEmpty(nextSettlement))
+            if (ObjectUtils.isNotEmpty(nextSettlement)) {
                 settlementStats.setNextSettlement(nextSettlement.get(0).getAmount());
+                settlementStats.setNextSettlementDate(nextSettlement.get(0).getSettlementDate());
+            }
             else settlementStats.setNextSettlement(BigDecimal.ZERO);
 
 

@@ -271,7 +271,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         var cscFactory = new CallableStatementCreatorFactory(String.format("SELECT mpg.ref_no settlement_reference_id, mts.settlement_status, " +
                 " mpg.amount settlement_net_amount,mpg.amount - mpg.fee settlement_gross_amount, " +
                 " mpg.fee fee, mpg.merchant_id , mts.settlement_account, mts.account_settlement_option, " +
-                " mts.settlement_beneficiary_account, mts.merchant_configured_settlement_date settlement_date, mpg.merchant_id " +
+                " mts.settlement_beneficiary_account, mts.merchant_configured_settlement_date settlement_date, mpg.merchant_id, mpg.merchant_name " +
                 " FROM m_payment_gateway mpg INNER JOIN m_transaction_settlement mts ON mts.settlement_reference_id = mpg.settlement_reference_id " +
                 " WHERE status='SUCCESSFUL' %s %s LIMIT %s OFFSET %s;", SUB_Q_MER_AND, STATUS_QUERY, limit, offSet) +
                 String.format(" SELECT COUNT(*) FROM m_payment_gateway mpg " +

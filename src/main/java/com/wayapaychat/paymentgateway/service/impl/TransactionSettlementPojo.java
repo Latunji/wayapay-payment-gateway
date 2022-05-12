@@ -30,6 +30,7 @@ public class TransactionSettlementPojo {
     private String settlementAccount;
     private AccountSettlementOption accountSettlementOption;
     private String settlementBeneficiaryAccount;
+    private String merchantName;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)

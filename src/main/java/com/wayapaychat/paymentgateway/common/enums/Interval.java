@@ -12,6 +12,7 @@ public enum Interval {
     ZERO_DAYS(0),
     ANNUALLY(365),
     BI_ANNUAL(730),
+    INSTANTLY(0),
     QUARTERLY(90),
     SEMI_ANNUAL(180);
     final int days;

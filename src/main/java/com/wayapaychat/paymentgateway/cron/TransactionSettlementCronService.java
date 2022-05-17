@@ -133,7 +133,7 @@ public class TransactionSettlementCronService {
     @Scheduled(cron = "*/59 * * * * *")
     @SchedulerLock(name = "TaskScheduler_processSettlementForAllPendingTransactionsMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void processSettlementForAllPendingTransactionsMinutes() {
-       processSettlements();
+        processSettlements();
     }
 
     @Scheduled(cron = "0 0 0 * * *")
@@ -142,7 +142,7 @@ public class TransactionSettlementCronService {
         processSettlements();
     }
 
-    private void processSettlements(){
+    private void processSettlements() {
         List<TransactionSettlement> allPendingSettlement = transactionSettlementRepository.findAllMerchantSettlementPending();
         allPendingSettlement.parallelStream().forEach(this::processExpiredMerchantConfiguredSettlement);
     }

@@ -3,12 +3,15 @@ package com.wayapaychat.paymentgateway.proxy;
 import com.wayapaychat.paymentgateway.config.PaymentGatewayClientConfiguration;
 import com.wayapaychat.paymentgateway.pojo.waya.CustomerRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantCustomer;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantProductPricingResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentLinkResponsePojo;
+import com.wayapaychat.paymentgateway.proxy.pojo.MerchantProductPricingQuery;
 import com.wayapaychat.paymentgateway.proxy.pojo.WayaMerchantConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -29,4 +32,7 @@ public interface IdentityManager {
 
     @GetMapping("/waya-merchant/configuration/fetch")
     WayaMerchantConfigurationResponse getMerchantConfiguration(@RequestParam(required = false) String merchantId, @NotNull @NotEmpty @RequestHeader("Authorization") String authorizationToken);
+
+    @GetMapping("/merchant-product-pricing/fetch-product-pricing")
+    MerchantProductPricingResponse getMerchantProductPricing(@Valid MerchantProductPricingQuery query, @NotNull @NotEmpty @RequestHeader("Authorization") String token);
 }

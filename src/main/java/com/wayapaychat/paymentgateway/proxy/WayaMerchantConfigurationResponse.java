@@ -9,5 +9,5 @@ public class WayaMerchantConfigurationResponse {
     private String code;
     private String date;
     private String message;
-    private WayaMerchantConfiguration data;
+    private Pro data;
 }

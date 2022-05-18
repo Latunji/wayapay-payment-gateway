@@ -382,6 +382,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             upCardPaymentRequest.setCvv(cvv);
             log.info("Card Info: " + upCardPaymentRequest);
         } else if (card.getScheme().equalsIgnoreCase("PayAttitude")) {
+            //TODO: Get the country IP Address to be able to charge the customer with fee
             upCardPaymentRequest.setCvv(card.getEncryptCardNo());
             paymentGateway.setChannel(PaymentChannel.PAYATTITUDE);
             BigDecimal wayapayFee = calculateWayapayFee(

@@ -22,4 +22,7 @@ public interface WalletProxy {
 
     @PostMapping("/wallet/official/user/transfer")
     WalletSettlementResponse creditMerchantDefaultWallet(@RequestHeader("authorization") String token, WayaMerchantWalletSettlementPojo wayaMerchantWalletSettlementPojo);
+
+    @PostMapping("/wallet/event/charge/payment")
+    WalletSettlementResponse creditMerchantDefaultWalletWithEventId(@RequestHeader("authorization") String token, WalletSettlementWithEventIdPojo walletSettlementWithEventIdPojo);
 }

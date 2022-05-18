@@ -13,6 +13,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.DefaultWalletResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletSettlementResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletSettlementWithEventIdPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.WayaMerchantWalletSettlementPojo;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.IdentityManager;
@@ -71,7 +72,7 @@ public class TransactionSettlementCronService {
     @Autowired
     private WalletProxy walletProxy;
     @Value(value = "${waya.wallet.wayapay-debit-account}")
-    private String debitWalletAccountNumber;
+    private String debitWalletEventId;
 
     @Scheduled(cron = "*/59 * * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
@@ -185,26 +186,26 @@ public class TransactionSettlementCronService {
                                 preprocessFailedSettlement(transactionSettlement, transactionsToSettle);
                             } else {
                                 LocalDateTime dateSettled = LocalDateTime.now();
-                                @NotNull final String DEBIT_WALLET_ACCOUNT_NO = ObjectUtils.isEmpty(debitWalletAccountNumber) ? "NGN000016002001" : debitWalletAccountNumber;
+                                @NotNull final String DEBIT_WALLET_EVENT_ID = ObjectUtils.isEmpty(debitWalletEventId) ? "WPSETTLE" : debitWalletEventId;
                                 @NotNull final String CREDIT_WALLET_ACCOUNT_NO = merchantDefaultWallet.getData().getAccountNo();
-                                WayaMerchantWalletSettlementPojo walletCreditingRequest = WayaMerchantWalletSettlementPojo
+                                WalletSettlementWithEventIdPojo walletCreditingRequest = WalletSettlementWithEventIdPojo
                                         .builder()
                                         .amount(netAmount)
-                                        .customerCreditAccount(CREDIT_WALLET_ACCOUNT_NO)
+                                        .customerAccountNumber(CREDIT_WALLET_ACCOUNT_NO)
                                         .tranCrncy("NGN")
-                                        .officeDebitAccount(DEBIT_WALLET_ACCOUNT_NO)
+                                        .eventId(DEBIT_WALLET_EVENT_ID)
                                         .tranNarration(String.format("Settlement transaction for %s successful payment", transactionsToSettle.size())
-                                        ).tranType("TRANSFER")
+                                        ).transactionCategory("TRANSFER")
                                         .paymentReference(transactionSettlement.getSettlementReferenceId() + "_" + System.currentTimeMillis())
                                         .build();
-                                WalletSettlementResponse walletSettlementResponse = walletProxy.creditMerchantDefaultWallet(
+                                WalletSettlementResponse walletSettlementResponse = walletProxy.creditMerchantDefaultWalletWithEventId(
                                         daemonToken,
                                         walletCreditingRequest
                                 );
                                 log.info("-----||||WALLET SETTLEMENT RESPONSE FROM TEMPORAL SERVICE|||| {}----", walletSettlementResponse);
                                 if (ObjectUtils.isNotEmpty(walletSettlementResponse.getData())) {
                                     log.info("----||||WALLET SETTLEMENT CREDITING TRANSACTION WAS SUCCESSFUL FROM[{}]" +
-                                            " TO MERCHANT ACCOUNT NO[{}]||||----", DEBIT_WALLET_ACCOUNT_NO, merchantDefaultWallet.getData().getAccountNo());
+                                            " TO MERCHANT ACCOUNT NO[{}]||||----", DEBIT_WALLET_EVENT_ID, merchantDefaultWallet.getData().getAccountNo());
                                     saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
                                     preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt, merchantData.getUserId());
                                 } else {

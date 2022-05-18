@@ -6,6 +6,7 @@ import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.enumm.AccountSettlementOption;
+import com.wayapaychat.paymentgateway.enumm.Constants;
 import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
@@ -186,14 +187,15 @@ public class TransactionSettlementCronService {
                                 preprocessFailedSettlement(transactionSettlement, transactionsToSettle);
                             } else {
                                 LocalDateTime dateSettled = LocalDateTime.now();
-                                @NotNull final String DEBIT_WALLET_EVENT_ID = ObjectUtils.isEmpty(debitWalletEventId) ? "WPSETTLE" : debitWalletEventId;
+//                                @NotNull final String DEBIT_WALLET_EVENT_ID = ObjectUtils.isEmpty(debitWalletEventId) ? "WPSETTLE" : debitWalletEventId;
+                                @NotNull final String DEBIT_WALLET_EVENT_ID = Constants.SETTLEMENT_DEBIT_WALLET;
                                 @NotNull final String CREDIT_WALLET_ACCOUNT_NO = merchantDefaultWallet.getData().getAccountNo();
                                 WalletSettlementWithEventIdPojo walletCreditingRequest = WalletSettlementWithEventIdPojo
                                         .builder()
                                         .amount(netAmount)
                                         .customerAccountNumber(CREDIT_WALLET_ACCOUNT_NO)
                                         .tranCrncy("NGN")
-                                        .eventId(DEBIT_WALLET_EVENT_ID)
+                                        .eventId(Constants.SETTLEMENT_DEBIT_WALLET)
                                         .tranNarration(String.format("Settlement transaction for %s successful payment", transactionsToSettle.size())
                                         ).transactionCategory("TRANSFER")
                                         .paymentReference(transactionSettlement.getSettlementReferenceId() + "_" + System.currentTimeMillis())

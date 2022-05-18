@@ -1,6 +1,5 @@
 package com.wayapaychat.paymentgateway.proxy;
 
-import com.wayapaychat.paymentgateway.pojo.waya.PaymentLinkResponse;
 import com.wayapaychat.paymentgateway.proxy.pojo.WayaMerchantConfiguration;
 import lombok.Data;
 

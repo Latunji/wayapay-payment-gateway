@@ -16,23 +16,13 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class WayaUSSDRequest {
-
-	private String paymentDescription;
-
-	private String referenceNo;
-
-	private String merchantId;
-
-	private BigDecimal amount;
-
-	private String wayaPublicKey;
-
-	private String phoneNo;
-
-	private String currency;
-
-	private BigDecimal fee;
-	
-	private Customer customer;
-
+    private String paymentDescription;
+    private String referenceNo;
+    private String merchantId;
+    private BigDecimal amount;
+    private String wayaPublicKey;
+    private String phoneNo;
+    private String currency;
+    private BigDecimal fee;
+    private Customer customer;
 }

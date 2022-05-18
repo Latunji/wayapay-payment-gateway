@@ -70,6 +70,9 @@ waya:
   identitymanager:
     name: IDENTITYMANAGER-SERVICE
     url: https://services.staging.wayabank.ng/identity-manager-service/api/v1
+  settlementservice:
+    name: SETTLEMENT-SERVICE
+    url: https://services.staging.wayapay.ng/settlement-service/api/v1
 
 service:
   wayapay-payment-status-url: https://pay.staging.wayapay.ng/status

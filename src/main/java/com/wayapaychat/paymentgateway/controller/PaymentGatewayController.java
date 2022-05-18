@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.ws.rs.Path;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
@@ -97,7 +96,7 @@ public class PaymentGatewayController {
     @PostMapping("/request/transaction")
     public ResponseEntity<?> initiateTransaction(HttpServletRequest request, Device device,
                                                  @Valid @RequestBody WayaPaymentRequest account) throws JsonProcessingException {
-        PaymentGatewayResponse resp = paymentGatewayService.initiateTransaction(request, account, device);
+        PaymentGatewayResponse resp = paymentGatewayService.initiateCardTransaction(request, account, device);
         if (!resp.getStatus())
             return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);

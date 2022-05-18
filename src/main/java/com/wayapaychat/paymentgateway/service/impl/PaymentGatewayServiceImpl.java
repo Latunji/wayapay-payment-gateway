@@ -3,6 +3,7 @@ package com.wayapaychat.paymentgateway.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
+import com.wayapaychat.paymentgateway.common.enums.ProductName;
 import com.wayapaychat.paymentgateway.common.enums.RecurrentPaymentStatus;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
@@ -21,16 +22,16 @@ import com.wayapaychat.paymentgateway.pojo.ussd.USSDResponse;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
-import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantCustomer;
-import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
-import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.*;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionOverviewResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionRevenueStats;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionYearMonthStats;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
+import com.wayapaychat.paymentgateway.proxy.ISettlementProductPricingProxy;
 import com.wayapaychat.paymentgateway.proxy.IdentityManager;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
+import com.wayapaychat.paymentgateway.proxy.pojo.MerchantProductPricingQuery;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
 import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
@@ -54,6 +55,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.io.BufferedInputStream;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -83,6 +85,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private IdentityManager identManager;
     @Autowired
+    private ISettlementProductPricingProxy iSettlementProductPricingProxy;
+    @Autowired
     private PaymentGatewayRepository paymentGatewayRepo;
     @Autowired
     private WalletProxy wallProxy;
@@ -96,6 +100,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private String username;
     @Value("${service.pass}")
     private String passSecret;
+    @Value("${service.token}")
+    private String daemonToken;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -114,7 +120,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private PaymemtGatewayEntityListener paymemtGatewayEntityListener;
 
     @Override
-    public PaymentGatewayResponse initiateTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
+    public PaymentGatewayResponse initiateCardTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         try {
             MerchantResponse merchant = null;
@@ -182,8 +188,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setMerchantEmail(merchant.getData().getMerchantEmailAddress());
             payment.setDescription(transactionRequestPojo.getDescription());
             payment.setAmount(transactionRequestPojo.getAmount());
-            //TODO: update wayapay processing fee
-            payment.setWayapayFee(transactionRequestPojo.getFee());
+            //TODO: update wayapay processing fee... update the region later
+            // get the IP region of where the transaction was initiated from
+            BigDecimal wayapayFee = calculateWayapayFee(
+                    sMerchant.getMerchantId(), transactionRequestPojo.getAmount(),
+                    ProductName.CARD, "LOCAL", token);
+            payment.setWayapayFee(wayapayFee);
             payment.setCustomerIpAddress(PaymentGateWayCommonUtils.getClientRequestIP(request));
             payment.setCurrencyCode(transactionRequestPojo.getCurrency());
             payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
@@ -373,6 +383,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.info("Card Info: " + upCardPaymentRequest);
         } else if (card.getScheme().equalsIgnoreCase("PayAttitude")) {
             upCardPaymentRequest.setCvv(card.getEncryptCardNo());
+            paymentGateway.setChannel(PaymentChannel.PAYATTITUDE);
+            BigDecimal wayapayFee = calculateWayapayFee(
+                    paymentGateway.getMerchantId(), paymentGateway.getAmount(),
+                    ProductName.PAYATTITUDE, "LOCAL", daemonToken);
+            paymentGateway.setWayapayFee(wayapayFee);
             log.info("Card Info: " + upCardPaymentRequest);
         }
         response = new PaymentGatewayResponse(false, "Encrypt Card fail", null);
@@ -591,6 +606,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setRcre_time(LocalDateTime.now());
                 payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL);
                 payment.setChannel(PaymentChannel.WALLET);
+                //TODO: update wayapay processing fee... update the region later
+                // get the IP region of where the transaction was initiated from
+                BigDecimal wayapayFee = calculateWayapayFee(
+                        sMerchant.getMerchantId(), payment.getAmount(),
+                        ProductName.WALLET, "LOCAL", token);
+                payment.setWayapayFee(wayapayFee);
+
                 payment.setPaymentMetaData(account.getDeviceInformation());
                 payment.setSuccessfailure(true);
                 paymentGatewayRepo.save(payment);
@@ -783,7 +805,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setDescription(ussdRequest.getPaymentDescription());
             payment.setAmount(ussdRequest.getAmount());
             //TODO: Update wayapay processing fee here
-            payment.setWayapayFee(ussdRequest.getFee());
+            payment.setProcessingFee(ussdRequest.getFee());
             payment.setCurrencyCode(ussdRequest.getCurrency());
             payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
             String vt = UnifiedPaymentProxy.getDataEncrypt(ussdRequest.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
@@ -799,6 +821,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setChannel(PaymentChannel.USSD);
             payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.PENDING);
             payment.setVendorDate(LocalDateTime.now());
+
+            BigDecimal wayapayFee = calculateWayapayFee(
+                    ussdRequest.getMerchantId(), ussdRequest.getAmount(),
+                    ProductName.USSD, "LOCAL", token);
+
+            payment.setWayapayFee(wayapayFee);
             PaymentGateway pay = paymentGatewayRepo.save(payment);
             USSDResponse ussd = new USSDResponse();
             ussd.setRefNo(pay.getRefNo());
@@ -1041,6 +1069,33 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return pub.contains("WAYA") ?
                 pub.replace("WAYAPUBK_TEST_0x", "") :
                 pub.replace("WAYAPUBK_PROD_0x", "");
+    }
+
+    //REGION : LOCAL , INTERNATIONAL
+    private BigDecimal calculateWayapayFee(
+            String merchantId, BigDecimal amount, ProductName productName, String region, String token) {
+        MerchantProductPricingQuery merchantProductPricingQuery = MerchantProductPricingQuery
+                .builder()
+                .merchantId(merchantId)
+                .productName(productName)
+                .build();
+        MerchantProductPricingResponse merchantProductPricingResponse = iSettlementProductPricingProxy.getMerchantProductPricing(
+                merchantProductPricingQuery.getMerchantId(), merchantProductPricingQuery.getProductName(), token
+        );
+        ProductPricingResponse productPricingResponse = merchantProductPricingResponse.getData();
+        Double feePercentage = 0D;
+        if (productPricingResponse.getLocalDiscountRate() > 0)
+            feePercentage = productPricingResponse.getLocalDiscountRate();
+        if (productPricingResponse.getLocalRate() > 0)
+            feePercentage += productPricingResponse.getLocalRate();
+        BigDecimal fee = amount.multiply(new BigDecimal(feePercentage)).divide(new BigDecimal(100), MathContext.DECIMAL64);
+        if ((productName.equals(ProductName.WALLET) || productName.equals(ProductName.CARD) || productName.equals(ProductName.BANK)
+                || productName.equals(ProductName.USSD)) || productName.equals(ProductName.PAYATTITUDE) && region.equals("LOCAL")) {
+            BigDecimal cappedFee = productPricingResponse.getLocalProcessingFeeCappedAt();
+            if (fee.compareTo(cappedFee) > 0)
+                return cappedFee;
+        }
+        return fee;
     }
 }
 

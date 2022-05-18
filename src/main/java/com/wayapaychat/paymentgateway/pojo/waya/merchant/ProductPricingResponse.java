@@ -1,5 +1,9 @@
 package com.wayapaychat.paymentgateway.pojo.waya.merchant;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.wayapaychat.paymentgateway.common.enums.PricingStatus;
 import com.wayapaychat.paymentgateway.common.enums.ProductName;
 import lombok.AllArgsConstructor;
@@ -25,7 +29,11 @@ public class ProductPricingResponse {
     private Double internationalRate;
     private Double internationalDiscountRate;
     private ProductName productName;
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime dateCreated;
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime dateModified;
     private BigDecimal localProcessingFeeCappedAt;
     private BigDecimal internationalProcessingFeeCappedAt;

@@ -33,6 +33,4 @@ public interface IdentityManager {
     @GetMapping("/waya-merchant/configuration/fetch")
     WayaMerchantConfigurationResponse getMerchantConfiguration(@RequestParam(required = false) String merchantId, @NotNull @NotEmpty @RequestHeader("Authorization") String authorizationToken);
 
-    @GetMapping("/merchant-product-pricing/fetch-product-pricing")
-    MerchantProductPricingResponse getMerchantProductPricing(@Valid MerchantProductPricingQuery query, @NotNull @NotEmpty @RequestHeader("Authorization") String token);
 }

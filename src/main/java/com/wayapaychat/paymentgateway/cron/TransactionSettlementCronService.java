@@ -58,6 +58,8 @@ public class TransactionSettlementCronService {
     public String username;
     @Value("${service.pass}")
     public String passSecret;
+    @Value("${service.token}")
+    public String daemonToken;
     @Autowired
     PaymentGatewayRepository paymentGatewayRepo;
     @Autowired
@@ -103,7 +105,7 @@ public class TransactionSettlementCronService {
                 //TODO: Get the merchant configuration
                 WayaMerchantConfiguration wayaMerchantConfiguration = null;
                 try {
-                    wayaMerchantConfiguration = identityManager.getMerchantConfiguration(merchantId, paymentGateWayCommonUtils.getDaemonAuthToken()).getData();
+                    wayaMerchantConfiguration = identityManager.getMerchantConfiguration(merchantId, daemonToken).getData();
                 } catch (Exception e) {
                     log.error("--------||||ERROR OCCURRED TO CREATE MERCHANT SETTLEMENT||||----------", e);
                     return;

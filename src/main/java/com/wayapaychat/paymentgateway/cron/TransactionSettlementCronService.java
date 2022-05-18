@@ -60,6 +60,8 @@ public class TransactionSettlementCronService {
     public String passSecret;
     @Value("${service.token}")
     public String daemonToken;
+    @Value("${waya.wallet.wayapay-debit-account}")
+    public String settlementWallet;
     @Autowired
     PaymentGatewayRepository paymentGatewayRepo;
     @Autowired
@@ -190,14 +192,14 @@ public class TransactionSettlementCronService {
                             } else {
                                 LocalDateTime dateSettled = LocalDateTime.now();
 //                                @NotNull final String DEBIT_WALLET_EVENT_ID = ObjectUtils.isEmpty(debitWalletEventId) ? "WPSETTLE" : debitWalletEventId;
-                                @NotNull final String DEBIT_WALLET_EVENT_ID = Constants.SETTLEMENT_DEBIT_WALLET;
+//                                @NotNull final String DEBIT_WALLET_EVENT_ID = Constants.SETTLEMENT_DEBIT_WALLET;
                                 @NotNull final String CREDIT_WALLET_ACCOUNT_NO = merchantDefaultWallet.getData().getAccountNo();
                                 WalletSettlementWithEventIdPojo walletCreditingRequest = WalletSettlementWithEventIdPojo
                                         .builder()
                                         .amount(netAmount)
                                         .customerAccountNumber(CREDIT_WALLET_ACCOUNT_NO)
                                         .tranCrncy("NGN")
-                                        .eventId(Constants.SETTLEMENT_DEBIT_WALLET)
+                                        .eventId(settlementWallet)
                                         .tranNarration(String.format("Settlement transaction for %s successful payment", transactionsToSettle.size())
                                         ).transactionCategory("TRANSFER")
                                         .paymentReference(transactionSettlement.getSettlementReferenceId() + "_" + System.currentTimeMillis())
@@ -209,7 +211,7 @@ public class TransactionSettlementCronService {
                                 log.info("-----||||WALLET SETTLEMENT RESPONSE FROM TEMPORAL SERVICE|||| {}----", walletSettlementResponse);
                                 if (ObjectUtils.isNotEmpty(walletSettlementResponse.getData())) {
                                     log.info("----||||WALLET SETTLEMENT CREDITING TRANSACTION WAS SUCCESSFUL FROM[{}]" +
-                                            " TO MERCHANT ACCOUNT NO[{}]||||----", DEBIT_WALLET_EVENT_ID, merchantDefaultWallet.getData().getAccountNo());
+                                            " TO MERCHANT ACCOUNT NO[{}]||||----", settlementWallet, merchantDefaultWallet.getData().getAccountNo());
                                     saveProcessSettledTransactions(transactionsToSettle, dateSettled, transactionSettlement.getSettlementReferenceId());
                                     preprocessSuccessfulSettlement(transactionSettlement, dateSettled, totalFees, netAmount, grossAmount, settlementInitiatedAt, merchantData.getUserId());
                                 } else {

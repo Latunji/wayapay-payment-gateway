@@ -6,7 +6,6 @@ import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.enumm.AccountSettlementOption;
-import com.wayapaychat.paymentgateway.enumm.Constants;
 import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
@@ -15,9 +14,8 @@ import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.DefaultWalletResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletSettlementResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.WalletSettlementWithEventIdPojo;
-import com.wayapaychat.paymentgateway.pojo.waya.wallet.WayaMerchantWalletSettlementPojo;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
-import com.wayapaychat.paymentgateway.proxy.IdentityManager;
+import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.proxy.pojo.WayaMerchantConfiguration;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
@@ -73,7 +71,7 @@ public class TransactionSettlementCronService {
     @Autowired
     AuthApiClient authProxy;
     @Autowired
-    private IdentityManager identityManager;
+    private IdentityManagementServiceProxy identityManagementServiceProxy;
     @Autowired
     private WalletProxy walletProxy;
     @Value(value = "${waya.wallet.wayapay-debit-account}")
@@ -107,7 +105,7 @@ public class TransactionSettlementCronService {
                 //TODO: Get the merchant configuration
                 WayaMerchantConfiguration wayaMerchantConfiguration = null;
                 try {
-                    wayaMerchantConfiguration = identityManager.getMerchantConfiguration(merchantId, daemonToken).getData();
+                    wayaMerchantConfiguration = identityManagementServiceProxy.getMerchantConfiguration(merchantId, daemonToken).getData();
                 } catch (Exception e) {
                     log.error("--------||||ERROR OCCURRED TO CREATE MERCHANT SETTLEMENT||||----------", e);
                     return;
@@ -173,7 +171,7 @@ public class TransactionSettlementCronService {
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     BigDecimal netAmount = grossAmount.subtract(totalFees);
 
-                    MerchantResponse merchantResponse = identityManager.getMerchantDetail(daemonToken, merchantId);
+                    MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(daemonToken, merchantId);
                     MerchantData merchantData = merchantResponse.getData();
 
                     if (transactionSettlement.getAccountSettlementOption().equals(AccountSettlementOption.BANK)) {

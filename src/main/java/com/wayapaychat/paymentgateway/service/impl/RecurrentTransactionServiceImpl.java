@@ -6,7 +6,7 @@ import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
-import com.wayapaychat.paymentgateway.proxy.IdentityManager;
+import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
 import com.wayapaychat.paymentgateway.service.RecurrentTransactionService;
 import lombok.AllArgsConstructor;
@@ -25,7 +25,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class RecurrentTransactionServiceImpl implements RecurrentTransactionService {
     private final RecurrentTransactionRepository recurrentTransactionRepository;
-    private final IdentityManager identityManager;
+    private final IdentityManagementServiceProxy identityManagementServiceProxy;
     private final PaymentGateWayCommonUtils paymentGateWayCommonUtils;
 
     @Override
@@ -37,7 +37,7 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
     public ResponseEntity<PaymentGatewayResponse> fetchCustomerTransaction(String customerId, Pageable pageable) {
         AuthenticatedUser authenticatedUser = PaymentGateWayCommonUtils.getAuthenticatedUser();
         String token = paymentGateWayCommonUtils.getDaemonAuthToken();
-        MerchantResponse merchantResponse = identityManager.getMerchantDetail(token, authenticatedUser.getMerchantId());
+        MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, authenticatedUser.getMerchantId());
         MerchantData merchantData = merchantResponse.getData();
         String merchantId = merchantData.getMerchantId();
         return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",

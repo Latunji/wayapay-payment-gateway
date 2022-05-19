@@ -29,7 +29,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionYearMonthStats;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.ISettlementProductPricingProxy;
-import com.wayapaychat.paymentgateway.proxy.IdentityManager;
+import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.proxy.pojo.MerchantProductPricingQuery;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
@@ -83,7 +83,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private AuthApiClient authProxy;
     @Autowired
-    private IdentityManager identManager;
+    private IdentityManagementServiceProxy identManager;
     @Autowired
     private ISettlementProductPricingProxy iSettlementProductPricingProxy;
     @Autowired
@@ -1029,7 +1029,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 foundRecurrentTransaction.setModifiedBy(0L);
                 foundRecurrentTransaction.setDateModified(date);
                 foundRecurrentTransaction.setActive(true);
-                foundRecurrentTransaction.setStatus(RecurrentPaymentStatus.ACTIVE);
+                foundRecurrentTransaction.setStatus(RecurrentPaymentStatus.ACTIVE_RENEWING);
                 foundRecurrentTransaction.setLastChargeDate(date);
                 foundRecurrentTransaction.setUpSessionId(paymentGateway.getSessionId());
                 foundRecurrentTransaction.setTotalChargeCount(totalChargeCount);

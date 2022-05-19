@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
-import com.wayapaychat.paymentgateway.proxy.IdentityManager;
+import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MerchantProxy {
 
 	@Autowired
-	IdentityManager identManager;
+	IdentityManagementServiceProxy identManager;
 
 	public MerchantResponse getMerchantInfo(String token, String id) {
 		try {

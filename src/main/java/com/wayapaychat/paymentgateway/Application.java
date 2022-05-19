@@ -19,6 +19,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.concurrent.TimeUnit;
+
 @SpringBootApplication(scanBasePackages = "com.wayapaychat.paymentgateway")
 @EnableDiscoveryClient
 @EnableFeignClients

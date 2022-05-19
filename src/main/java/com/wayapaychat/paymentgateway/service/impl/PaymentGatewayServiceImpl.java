@@ -1036,6 +1036,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
                         date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
                 recurrentTransactionRepository.save(foundRecurrentTransaction);
+                CompletableFuture.runAsync(() -> {
+                    if (foundRecurrentTransaction.getPaymentLinkType().equals(PaymentLinkType.CUSTOMER_SUBSCRIPTION_PAYMENT_LINK)) {
+                        identManager.updateCustomerSubscriptionStatus(
+                                foundRecurrentTransaction.getPaymentLinkId(),
+                                foundRecurrentTransaction.getStatus(),
+                                "Payment was successfully made",
+                                daemonToken
+                        );
+                    }
+                });
             }
         }
     }

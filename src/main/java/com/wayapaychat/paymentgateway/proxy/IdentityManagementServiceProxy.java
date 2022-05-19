@@ -31,7 +31,7 @@ public interface IdentityManagementServiceProxy {
     WayaMerchantConfigurationResponse getMerchantConfiguration(@RequestParam(required = false) String merchantId, @NotNull @NotEmpty @RequestHeader("Authorization") String authorizationToken);
 
     @PutMapping("/webpos/customer-subscription/status-update/{paymentLinkId}")
-    WayaMerchantConfigurationResponse updateCustomerSubscription(
+    WayaMerchantConfigurationResponse updateCustomerSubscriptionStatus(
             @PathVariable String paymentLinkId,
             @RequestParam RecurrentPaymentStatus status,
             @RequestParam(required = false) String subscriptionStatusUpdateReason,

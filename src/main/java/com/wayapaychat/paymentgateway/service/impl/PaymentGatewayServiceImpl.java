@@ -14,9 +14,8 @@ import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.*;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
-import com.wayapaychat.paymentgateway.kafkamessagebroker.consumer.IKafkaMessageConsumer;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.model.ProducerMessageDto;
-import com.wayapaychat.paymentgateway.kafkamessagebroker.producer.MessageQueueProducer;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.producer.IkafkaMessageProducer;
 import com.wayapaychat.paymentgateway.pojo.User;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.USSDResponse;
@@ -24,6 +23,7 @@ import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.*;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.event.SubscriptionEventPayload;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionOverviewResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionRevenueStats;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionYearMonthStats;
@@ -120,7 +120,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private PaymemtGatewayEntityListener paymemtGatewayEntityListener;
     @Autowired
-    private MessageQueueProducer messageQueueProducer;
+    private IkafkaMessageProducer messageQueueProducer;
 
     @Override
     public PaymentGatewayResponse initiateCardTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
@@ -1050,7 +1050,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
                 recurrentTransactionRepository.save(foundRecurrentTransaction);
 
-                SubscriptionPayload subscriptionPayload = SubscriptionPayload.builder()
+                SubscriptionEventPayload subscriptionEventPayload = SubscriptionEventPayload.builder()
                         .planId(foundRecurrentTransaction.getPlanId())
                         .merchantId(foundRecurrentTransaction.getMerchantId())
                         .customerSubscriptionId(foundRecurrentTransaction.getCustomerSubscriptionId())
@@ -1062,7 +1062,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         .build();
 
                 ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
-                        .data(subscriptionPayload)
+                        .data(subscriptionEventPayload)
                         .eventCategory(EventType.CUSTOMER_SUBSCRIPTION)
                         .build();
 

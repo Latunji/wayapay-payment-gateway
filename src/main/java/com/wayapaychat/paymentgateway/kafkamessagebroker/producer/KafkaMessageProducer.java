@@ -12,7 +12,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 
 @Slf4j
 @Service
-public class KafkaMessageProducer implements MessageQueueProducer {
+public class KafkaMessageProducer implements IkafkaMessageProducer {
     @Autowired
     private KafkaTemplate<String, Object> template;
 

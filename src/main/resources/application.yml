@@ -69,8 +69,8 @@ waya:
     baseurl: https://services.staging.wayabank.ng/payment-gateway/waya/callback
   identitymanager:
     name: IDENTITYMANAGER-SERVICE
-#    url: https://services.staging.wayabank.ng/identity-manager-service/api/v1
-    url: https://localhost:8099/identity-manager-service/api/v1
+    url: https://services.staging.wayabank.ng/identity-manager-service/api/v1
+#    url: https://localhost:8099/identity-manager-service/api/v1
   settlementservice:
     name: SETTLEMENT-SERVICE
     url: https://services.staging.wayapay.ng/settlement-service/api/v1

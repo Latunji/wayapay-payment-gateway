@@ -6,7 +6,10 @@ import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.enumm.AccountSettlementOption;
+import com.wayapaychat.paymentgateway.enumm.EventType;
 import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.model.ProducerMessageDto;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.producer.IkafkaMessageProducer;
 import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
@@ -39,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -76,6 +80,7 @@ public class TransactionSettlementCronService {
     private WalletProxy walletProxy;
     @Value(value = "${waya.wallet.wayapay-debit-account}")
     private String debitWalletEventId;
+    private IkafkaMessageProducer ikafkaMessageProducer;
 
     @Scheduled(cron = "*/59 * * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
@@ -207,6 +212,13 @@ public class TransactionSettlementCronService {
                                         walletCreditingRequest
                                 );
                                 log.info("-----||||WALLET SETTLEMENT RESPONSE FROM TEMPORAL SERVICE|||| {}----", walletSettlementResponse);
+                                CompletableFuture.runAsync(() -> {
+                                    ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
+                                            .data(walletCreditingRequest)
+                                            .eventCategory(EventType.MERCHANT_TRANSACTION_SETTLEMENT)
+                                            .build();
+                                    ikafkaMessageProducer.send("merchant",producerMessageDto);
+                                });
                                 if (ObjectUtils.isNotEmpty(walletSettlementResponse.getData())) {
                                     log.info("----||||WALLET SETTLEMENT CREDITING TRANSACTION WAS SUCCESSFUL FROM[{}]" +
                                             " TO MERCHANT ACCOUNT NO[{}]||||----", settlementWallet, merchantDefaultWallet.getData().getAccountNo());

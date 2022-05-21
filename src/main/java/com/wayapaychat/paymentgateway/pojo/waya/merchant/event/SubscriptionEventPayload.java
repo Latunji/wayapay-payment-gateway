@@ -1,4 +1,4 @@
-package com.wayapaychat.paymentgateway.pojo.waya.merchant;
+package com.wayapaychat.paymentgateway.pojo.waya.merchant.event;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubscriptionPayload {
+public class SubscriptionEventPayload {
     private String planId;
     private String merchantId;
     private String customerSubscriptionId;

@@ -12,12 +12,10 @@ import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
-import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
-import com.wayapaychat.paymentgateway.enumm.TStatus;
-import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
-import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
+import com.wayapaychat.paymentgateway.enumm.*;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.consumer.IKafkaMessageConsumer;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.model.ProducerMessageDto;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.producer.MessageQueueProducer;
 import com.wayapaychat.paymentgateway.pojo.User;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
@@ -1061,7 +1059,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         .status(foundRecurrentTransaction.getStatus())
                         .nextChargeDate(foundRecurrentTransaction.getNextChargeDate())
                         .build();
-                messageQueueProducer.send("merchant", subscriptionPayload);
+                ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
+                        .data(subscriptionPayload)
+                        .eventCategory(EventType.CUSTOMER_SUBSCRIPTION)
+                        .build();
+                messageQueueProducer.send("merchant", producerMessageDto);
             }
         }
     }

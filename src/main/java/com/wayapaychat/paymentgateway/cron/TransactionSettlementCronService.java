@@ -80,6 +80,7 @@ public class TransactionSettlementCronService {
     private WalletProxy walletProxy;
     @Value(value = "${waya.wallet.wayapay-debit-account}")
     private String debitWalletEventId;
+    @Autowired
     private IkafkaMessageProducer ikafkaMessageProducer;
 
     @Scheduled(cron = "*/59 * * * * *")
@@ -212,13 +213,6 @@ public class TransactionSettlementCronService {
                                         walletCreditingRequest
                                 );
                                 log.info("-----||||WALLET SETTLEMENT RESPONSE FROM TEMPORAL SERVICE|||| {}----", walletSettlementResponse);
-                                CompletableFuture.runAsync(() -> {
-                                    ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
-                                            .data(walletCreditingRequest)
-                                            .eventCategory(EventType.MERCHANT_TRANSACTION_SETTLEMENT)
-                                            .build();
-                                    ikafkaMessageProducer.send("merchant",producerMessageDto);
-                                });
                                 if (ObjectUtils.isNotEmpty(walletSettlementResponse.getData())) {
                                     log.info("----||||WALLET SETTLEMENT CREDITING TRANSACTION WAS SUCCESSFUL FROM[{}]" +
                                             " TO MERCHANT ACCOUNT NO[{}]||||----", settlementWallet, merchantDefaultWallet.getData().getAccountNo());
@@ -227,6 +221,14 @@ public class TransactionSettlementCronService {
                                 } else {
                                     preprocessFailedSettlement(transactionSettlement, transactionsToSettle);
                                 }
+                                CompletableFuture.runAsync(() -> {
+                                    walletCreditingRequest.setMerchantId(transactionSettlement.getMerchantId());
+                                    ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
+                                            .data(walletCreditingRequest)
+                                            .eventCategory(EventType.MERCHANT_SETTLEMENT_COMPLETED)
+                                            .build();
+                                    ikafkaMessageProducer.send("merchant", producerMessageDto);
+                                });
                             }
                         }
                     }

@@ -41,5 +41,6 @@ public class WalletSettlementWithEventIdPojo {
     @NotNull
     @Size(min = 3, max = 20)
     private String transactionCategory;
+    private String merchantId;
 
 }

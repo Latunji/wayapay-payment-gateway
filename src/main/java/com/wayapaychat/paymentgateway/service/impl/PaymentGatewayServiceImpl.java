@@ -1049,6 +1049,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
                         date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
                 recurrentTransactionRepository.save(foundRecurrentTransaction);
+
                 SubscriptionPayload subscriptionPayload = SubscriptionPayload.builder()
                         .planId(foundRecurrentTransaction.getPlanId())
                         .merchantId(foundRecurrentTransaction.getMerchantId())
@@ -1059,10 +1060,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         .status(foundRecurrentTransaction.getStatus())
                         .nextChargeDate(foundRecurrentTransaction.getNextChargeDate())
                         .build();
+
                 ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
                         .data(subscriptionPayload)
                         .eventCategory(EventType.CUSTOMER_SUBSCRIPTION)
                         .build();
+
                 messageQueueProducer.send("merchant", producerMessageDto);
             }
         }

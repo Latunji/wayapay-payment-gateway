@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @Slf4j
 public class KafkaMessageConsumer implements IKafkaMessageConsumer {
-    private static final String TOPIC = "merchant";
+    private static final String TOPIC = "payment.gateway";
     private static final String GROUP = "waya";
     private final ModelMapper modelMapper;
     private final ObjectMapper objectMapper;

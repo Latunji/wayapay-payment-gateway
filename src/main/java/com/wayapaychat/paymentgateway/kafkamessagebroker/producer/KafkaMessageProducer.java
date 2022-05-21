@@ -19,8 +19,7 @@ public class KafkaMessageProducer implements IkafkaMessageProducer {
     @SuppressWarnings("unused")
     @Override
     public void send(String topic, Object data) {
-        Gson gson = new GsonBuilder().create();
-        ListenableFuture<SendResult<String, Object>> future = template.send(topic, gson.toJson(data));
+        ListenableFuture<SendResult<String, Object>> future = template.send(topic, data);
         future.addCallback(new ListenableFutureCallback<>() {
             @Override
             public void onSuccess(SendResult<String, Object> result) {

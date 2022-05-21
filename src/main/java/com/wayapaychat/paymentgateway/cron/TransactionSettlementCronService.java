@@ -227,7 +227,7 @@ public class TransactionSettlementCronService {
                                             .data(walletCreditingRequest)
                                             .eventCategory(EventType.MERCHANT_SETTLEMENT_COMPLETED)
                                             .build();
-                                    ikafkaMessageProducer.send("merchant", producerMessageDto);
+                                    ikafkaMessageProducer.send("merchant.settlement", producerMessageDto);
                                 });
                             }
                         }

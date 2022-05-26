@@ -1056,9 +1056,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         .customerSubscriptionId(foundRecurrentTransaction.getCustomerSubscriptionId())
                         .paymentLinkId(foundRecurrentTransaction.getPaymentLinkId())
                         .amountPaid(paymentGateway.getAmount())
+                        .currencyCode(paymentGateway.getCurrencyCode())
+                        .maxCount(foundRecurrentTransaction.getMaxChargeCount())
                         .currentCount(foundRecurrentTransaction.getTotalChargeCount())
                         .status(foundRecurrentTransaction.getStatus())
                         .nextChargeDate(foundRecurrentTransaction.getNextChargeDate())
+                        .paymentDate(paymentGateway.getVendorDate())
+                        .unsubscribed(false)
+                        .paymentLinkType(foundRecurrentTransaction.getPaymentLinkType())
                         .build();
 
                 ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()

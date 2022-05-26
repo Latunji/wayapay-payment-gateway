@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
 import com.wayapaychat.paymentgateway.common.enums.RecurrentPaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,8 +24,9 @@ public class SubscriptionEventPayload {
     private String customerSubscriptionId;
     private String paymentLinkId;
     private BigDecimal amountPaid;
+    private String currencyCode;
     private Integer currentCount;
-    private Long maxCount;
+    private Integer maxCount;
     private RecurrentPaymentStatus status;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -32,4 +34,6 @@ public class SubscriptionEventPayload {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime nextChargeDate;
+    private Boolean unsubscribed;
+    private PaymentLinkType paymentLinkType;
 }

@@ -171,7 +171,7 @@ public class PaymemtGatewayEntityListener {
                     .data(litePaymentGatewayMessagePayload)
                     .eventCategory(EventType.PENDING_TRANSACTION_SETTLEMENT)
                     .build();
-            ikafkaMessageProducer.send("merchant.settlement.pending", producerMessageDto);
+            ikafkaMessageProducer.send("merchant.settlement", producerMessageDto);
             log.info("------||||SUCCESSFULLY PUBLISHED PENDING SETTLEMENT FOR PROCESSING {}||||--------", producerMessageDto);
         }
     }

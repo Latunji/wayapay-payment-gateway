@@ -164,7 +164,8 @@ public class PaymemtGatewayEntityListener {
     @PostPersist
     public void sendTransactionForSettlement(PaymentGateway paymentGateway) {
         log.info("------||||PENDING SETTLEMENT PUBLISHED FOR PROCESSING||||--------");
-        if (!Objects.equals(paymentGateway.getSettlementStatus(), SettlementStatus.SETTLED)) {
+        if (Objects.equals(paymentGateway.getStatus(), TransactionStatus.SUCCESSFUL) &&
+                !Objects.equals(paymentGateway.getSettlementStatus(), SettlementStatus.SETTLED)) {
             LitePaymentGatewayMessagePayload litePaymentGatewayMessagePayload = new LitePaymentGatewayMessagePayload();
             modelMapper.map(paymentGateway, litePaymentGatewayMessagePayload);
             ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()

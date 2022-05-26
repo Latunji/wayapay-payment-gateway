@@ -253,6 +253,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                 " WHERE status='SUCCESSFUL' %s ;", SUB_Q_MER_AND);
     }
 
+    //TODO: Remove after settlement removal
     @Override
     @SuppressWarnings(value = "unchecked")
     public List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessTransactions(final String merchantId) {

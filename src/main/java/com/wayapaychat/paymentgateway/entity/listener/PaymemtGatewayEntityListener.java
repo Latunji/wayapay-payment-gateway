@@ -3,10 +3,10 @@ package com.wayapaychat.paymentgateway.entity.listener;
 
 import com.wayapaychat.paymentgateway.common.utils.VariableUtil;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
-import com.wayapaychat.paymentgateway.enumm.EventCategory;
-import com.wayapaychat.paymentgateway.enumm.EventType;
-import com.wayapaychat.paymentgateway.enumm.ProductType;
-import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
+import com.wayapaychat.paymentgateway.enumm.*;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.model.LitePaymentGatewayMessagePayload;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.model.ProducerMessageDto;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.producer.IkafkaMessageProducer;
 import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationReceiver;
 import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceResponse;
@@ -18,12 +18,15 @@ import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
+import javax.persistence.PostPersist;
 import java.util.Currency;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -34,6 +37,8 @@ public class PaymemtGatewayEntityListener {
     private static NotificationServiceProxy notificationServiceProxy;
     private static AuthApiClient authApiClient;
     private static VariableUtil variableUtil;
+    private static IkafkaMessageProducer ikafkaMessageProducer;
+    private static ModelMapper modelMapper;
 
     private static String getDaemonAuthToken() throws Exception {
         TokenAuthResponse authToken = authApiClient.authenticateUser(
@@ -67,6 +72,12 @@ public class PaymemtGatewayEntityListener {
     public void setVariableUtil(VariableUtil variableUtil) {
         PaymemtGatewayEntityListener.variableUtil = variableUtil;
         log.info("Initializing with dependency [" + variableUtil + "]");
+    }
+
+    @Autowired
+    public void setIkafkaMessageProducer(IkafkaMessageProducer ikafkaMessageProducer) {
+        PaymemtGatewayEntityListener.ikafkaMessageProducer = ikafkaMessageProducer;
+        log.info("Initializing with dependency [" + ikafkaMessageProducer + "]");
     }
 
     //    @PostPersist
@@ -148,5 +159,20 @@ public class PaymemtGatewayEntityListener {
         if (currency.isPresent())
             return currency.get().getCurrencyCode();
         return CURRENCY_DISPLAY;
+    }
+
+    @PostPersist
+    public void sendTransactionForSettlement(PaymentGateway paymentGateway) {
+        log.info("------||||PENDING SETTLEMENT PUBLISHED FOR PROCESSING||||--------");
+        if (!Objects.equals(paymentGateway.getSettlementStatus(), SettlementStatus.SETTLED)) {
+            LitePaymentGatewayMessagePayload litePaymentGatewayMessagePayload = new LitePaymentGatewayMessagePayload();
+            modelMapper.map(paymentGateway, litePaymentGatewayMessagePayload);
+            ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
+                    .data(litePaymentGatewayMessagePayload)
+                    .eventCategory(EventType.PENDING_TRANSACTION_SETTLEMENT)
+                    .build();
+            ikafkaMessageProducer.send("merchant.settlement.pending", producerMessageDto);
+            log.info("------||||SUCCESSFULLY PUBLISHED PENDING SETTLEMENT FOR PROCESSING {}||||--------", producerMessageDto);
+        }
     }
 }

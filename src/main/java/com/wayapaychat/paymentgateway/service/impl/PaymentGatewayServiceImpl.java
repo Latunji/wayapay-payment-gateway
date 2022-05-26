@@ -935,8 +935,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         PaymentGateway mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
         if (mPay == null)
             return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        mPay.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.ABANDONED);
-        paymentGatewayRepo.save(mPay);
+        if (mPay.getStatus() != TransactionStatus.SUCCESSFUL) {
+            mPay.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.ABANDONED);
+            paymentGatewayRepo.save(mPay);
+        }
         return new ResponseEntity<>(new SuccessResponse("Updated", "Success Updated"), HttpStatus.OK);
     }
 

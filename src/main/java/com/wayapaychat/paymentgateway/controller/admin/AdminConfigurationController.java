@@ -2,7 +2,6 @@ package com.wayapaychat.paymentgateway.controller.admin;
 
 
 import com.wayapaychat.paymentgateway.pojo.SettlementPricingConfigurationPojo;
-import com.wayapaychat.paymentgateway.service.SettlementPricingConfigurationService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

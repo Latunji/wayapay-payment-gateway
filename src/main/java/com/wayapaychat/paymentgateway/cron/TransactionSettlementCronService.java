@@ -284,11 +284,6 @@ public class TransactionSettlementCronService {
         paymentGatewayRepo.saveAllAndFlush(paymentGateways);
     }
 
-    @Scheduled(cron = "* */30 * * * *")
-    @SchedulerLock(name = "TaskScheduler_settleEveryFiveSeconds", lockAtLeastFor = "10s", lockAtMostFor = "15s")
-    public void settleEveryFiveSeconds() {
-        prorcessThirdPartyPaymentProcessed();
-    }
 
     @Scheduled(cron = "0 0 0 28-31 JAN-DEC MON-FRI")
     public void settleTransactionMonth() {
@@ -308,32 +303,5 @@ public class TransactionSettlementCronService {
     @Scheduled(cron = "0 0 17 * * FRI")
     public void settleEveryFivePMEveryFriday() {
         //CHECK MERCHANT SETTLEMENT SETTINGS
-    }
-
-    @Scheduled(cron = "* */30 * * * *")
-    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
-    public void expireTransactionAfterThirtyMinutes() {
-        wayaPaymentDAO.expireAllTransactionLessThan30Mins();
-    }
-
-    public void prorcessThirdPartyPaymentProcessed() {
-        new Thread(() -> {
-            List<PaymentGateway> payment = paymentGatewayRepo.findAllNotFlaggedAndSuccessful();
-            String token = paymentGateWayCommonUtils.getDaemonAuthToken();
-            for (PaymentGateway mPayment : payment) {
-                try {
-                    PaymentGateway sPayment = paymentGatewayRepo.findByRefNo(mPayment.getRefNo()).orElse(null);
-                    if (ObjectUtils.isEmpty(sPayment))
-                        continue;
-                    FundEventResponse response = uniPayProxy.postTransactionPosition(token, mPayment);
-                    if (response.getPostedFlg() && (!response.getTranId().isBlank())) {
-                        sPayment.setTranflg(true);
-                        paymentGatewayRepo.save(sPayment);
-                    }
-                } catch (Exception ex) {
-                    log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());
-                }
-            }
-        }).start();
     }
 }

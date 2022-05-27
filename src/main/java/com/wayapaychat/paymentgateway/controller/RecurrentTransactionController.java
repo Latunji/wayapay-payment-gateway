@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api/v1/transactions")
+@RequestMapping("/api/v1/transactions/recurrent")
 @Tag(name = "RECURRENT-TRANSACTIONS", description = "Recurrent payments APIs")
 @Validated
 @AllArgsConstructor
@@ -36,7 +36,7 @@ public class RecurrentTransactionController {
                 ));
     }
 
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/recurrent/fetch-all/{customerId}")
+    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/fetch-all/{customerId}")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions", tags = {"RECURRENT-TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> fetchCustomerRecurrentTransaction(

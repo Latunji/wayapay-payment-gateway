@@ -1105,8 +1105,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String paymentLinkId, Pageable pageable) {
-        return null;
+    public ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String merchantId, String paymentLinkId, Pageable pageable) {
+        String merchantIdToUse = getMerchantIdToUse(merchantId, false);
+        Page<PaymentGateway> result;
+        if (ObjectUtils.isEmpty(merchantIdToUse)) result = paymentGatewayRepo.getAllByPaymentLinkId(paymentLinkId, pageable);
+        else result = paymentGatewayRepo.getAllByPaymentLinkId(merchantIdToUse, paymentLinkId, pageable);
+        return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, result), HttpStatus.OK);
     }
 
     private String replaceKeyPrefixWithEmptyString(String pub) {

@@ -17,20 +17,20 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api/v1/transactions")
-@Tag(name = "TRANSACTIONS", description = "Payment gateway transaction APIs")
+@RequestMapping("/api/v1/transactions/payment-link")
+@Tag(name = "PAYMENT-LINK-TRANSACTIONS", description = "Payment gateway transaction APIs")
 @Validated
 @AllArgsConstructor
 public class PaymentLinkTransactionController {
     private final PaymentGatewayServiceImpl paymentGatewayService;
 
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/payment-link/fetch-all/{paymentLinkId}")
+    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{paymentLinkId}/fetch-all")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Filter Search transaction for a payment link", notes = "Get all transactions made using payment link", tags = {"TRANSACTIONS"})
+    @ApiOperation(value = "Filter Search transaction for a payment link", notes = "Get all transactions made using payment link", tags = {"PAYMENT-LINK-TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(
-            @PathVariable String paymentLinkId, PaginationPojo paginationPojo) {
+            @PathVariable String paymentLinkId, @RequestParam(required = false) String merchantId, PaginationPojo paginationPojo) {
         return paymentGatewayService.fetchPaymentLinkTransactions(
-                paymentLinkId, PageableResponseUtil.createPageRequest(paginationPojo.getPage(),
+                merchantId, paymentLinkId, PageableResponseUtil.createPageRequest(paginationPojo.getPage(),
                         paginationPojo.getSize(), paginationPojo.getOrder(),
                         paginationPojo.getSortBy(), true, "tran_date"
                 ));

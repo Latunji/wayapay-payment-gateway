@@ -80,5 +80,5 @@ public interface PaymentGatewayService {
 
     ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId);
 
-    ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String paymentLinkId, Pageable pageable);
+    ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String merchantId, String paymentLinkId, Pageable pageable);
 }

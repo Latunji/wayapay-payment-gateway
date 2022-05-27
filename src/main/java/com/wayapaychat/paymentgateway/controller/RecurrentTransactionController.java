@@ -18,16 +18,16 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api/v1/recurrent-transactions")
-@Tag(name = "RECURRENT-TRANSACTION", description = "Payment gateway fraud rule APIs")
+@RequestMapping("/api/v1/transactions")
+@Tag(name = "RECURRENT-TRANSACTIONS", description = "Recurrent payments APIs")
 @Validated
 @AllArgsConstructor
 public class RecurrentTransactionController {
     private final RecurrentTransactionService recurrentTransactionService;
 
-//    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    //        @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/recurrent")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions",tags = {"RECURRENT-TRANSACTION"})
+    @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions", tags = {"RECURRENT-TRANSACTION"})
     public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerRecurrentSubscription(QueryRecurrentTransactionPojo queryCustomerTransactionPojo) {
         return recurrentTransactionService.filterSearchRecurrentTransaction(
                 queryCustomerTransactionPojo, PageableResponseUtil.createPageRequest(queryCustomerTransactionPojo.getPage(),
@@ -36,9 +36,9 @@ public class RecurrentTransactionController {
                 ));
     }
 
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/fetch/{customerId}")
+    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/recurrent/fetch-all/{customerId}")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions", tags = {"RECURRENT-TRANSACTION"})
+    @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions", tags = {"RECURRENT-TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> fetchCustomerRecurrentTransaction(
             @PathVariable String customerId, PaginationPojo paginationPojo) {
         return recurrentTransactionService.fetchCustomerTransaction(
@@ -47,4 +47,5 @@ public class RecurrentTransactionController {
                         paginationPojo.getSortBy(), true, "date_created"
                 ));
     }
+
 }

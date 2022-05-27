@@ -55,7 +55,7 @@ public class Application {
     @Bean
     @Scope(scopeName = "singleton")
     public Retryer feignClientRetryer() {
-        return new Retryer.Default(30000, 60000, 10000);
+        return new Retryer.Default(30000, 60000, 5);
     }
 
     @Bean

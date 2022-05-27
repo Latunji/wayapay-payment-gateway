@@ -1104,6 +1104,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
     }
 
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String paymentLinkId, Pageable pageable) {
+        return null;
+    }
+
     private String replaceKeyPrefixWithEmptyString(String pub) {
         return pub.contains("WAYA") ?
                 pub.replace("WAYAPUBK_TEST_0x", "") :

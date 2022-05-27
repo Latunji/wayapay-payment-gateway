@@ -53,8 +53,7 @@ public class KafkaMessageConsumer implements IKafkaMessageConsumer {
         System.out.println(eventType);
         switch (eventType) {
             case TRANSACTION_SETTLED:
-                List<LitePaymentGateway> paymentGateways = objectMapper.convertValue(event.getData(), new TypeReference<>() {
-                });
+                List<LitePaymentGateway> paymentGateways = objectMapper.convertValue(event.getData(), new TypeReference<>() {});
                 Map<String, List<LitePaymentGateway>> grouped = paymentGateways.stream().sequential().collect(Collectors.groupingBy(LitePaymentGateway::getRefNo));
                 String delimitedRefNo = paymentGateways.stream().map(litePaymentGateway -> "'" + litePaymentGateway.getRefNo() + "'").collect(Collectors.joining(","));
                 List<PaymentGateway> results = wayaPaymentDAO.getAllTransactionsByRefNo(delimitedRefNo);

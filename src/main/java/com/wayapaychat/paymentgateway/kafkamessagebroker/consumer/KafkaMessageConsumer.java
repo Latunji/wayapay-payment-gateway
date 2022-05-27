@@ -3,6 +3,7 @@ package com.wayapaychat.paymentgateway.kafkamessagebroker.consumer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.enumm.EventType;
 import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
@@ -32,6 +33,7 @@ public class KafkaMessageConsumer implements IKafkaMessageConsumer {
     private final ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
     private final PaymentGatewayRepository paymentGatewayRepository;
+    private final WayaPaymentDAO wayaPaymentDAO;
 
     @KafkaListener(topics = {TOPIC}, groupId = GROUP)
     public void customerSubscriptionTopicListener(String message) throws JsonProcessingException {
@@ -55,7 +57,7 @@ public class KafkaMessageConsumer implements IKafkaMessageConsumer {
                 });
                 Map<String, List<LitePaymentGateway>> grouped = paymentGateways.stream().sequential().collect(Collectors.groupingBy(LitePaymentGateway::getRefNo));
                 String delimitedRefNo = paymentGateways.stream().map(litePaymentGateway -> "'" + litePaymentGateway.getRefNo() + "'").collect(Collectors.joining(","));
-                List<PaymentGateway> results = paymentGatewayRepository.findAll(delimitedRefNo);
+                List<PaymentGateway> results = wayaPaymentDAO.getAllTransactionsByRefNo(delimitedRefNo);
                 results.forEach(paymentGateway -> {
                     if (ObjectUtils.isNotEmpty(grouped.get(paymentGateway.getRefNo()))) {
                         LitePaymentGateway litePaymentGateway = grouped.get(paymentGateway.getRefNo()).get(0);

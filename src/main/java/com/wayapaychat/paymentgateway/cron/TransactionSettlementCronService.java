@@ -82,7 +82,7 @@ public class TransactionSettlementCronService {
     @Autowired
     private IkafkaMessageProducer ikafkaMessageProducer;
 
-    @Scheduled(cron = "*/59 * * * * *")
+//    @Scheduled(cron = "*/59 * * * * *")
     @SchedulerLock(name = "TaskScheduler_createAndUpdateMerchantTransactionSettlement", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void createAndUpdateMerchantTransactionSettlement() {
         LockAssert.assertLocked();

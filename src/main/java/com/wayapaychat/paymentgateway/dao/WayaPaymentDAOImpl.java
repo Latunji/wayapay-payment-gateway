@@ -1,5 +1,6 @@
 package com.wayapaychat.paymentgateway.dao;
 
+import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
 import com.wayapaychat.paymentgateway.mapper.SettlementWrapper;
@@ -150,13 +151,11 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             if (ObjectUtils.isNotEmpty(latestSettlement)) {
                 settlementStats.setLatestSettlement(latestSettlement.get(0).getAmount());
                 settlementStats.setLatestSettlementDate(latestSettlement.get(0).getSettlementDate());
-            }
-            else settlementStats.setLatestSettlement(BigDecimal.ZERO);
+            } else settlementStats.setLatestSettlement(BigDecimal.ZERO);
             if (ObjectUtils.isNotEmpty(nextSettlement)) {
                 settlementStats.setNextSettlement(nextSettlement.get(0).getAmount());
                 settlementStats.setNextSettlementDate(nextSettlement.get(0).getSettlementDate());
-            }
-            else settlementStats.setNextSettlement(BigDecimal.ZERO);
+            } else settlementStats.setNextSettlement(BigDecimal.ZERO);
 
 
             transactionOverviewResponse.setYearMonthStats(yearMonthStats);
@@ -265,6 +264,20 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         Map<String, Object> results = jdbcTemplate.call(csc, returnedParams);
         if (ObjectUtils.isNotEmpty(results))
             return (List<MerchantUnsettledSuccessfulTransaction>) results.get("unsettled_transaction");
+        return List.of();
+    }
+
+    @Override
+    @SuppressWarnings(value = "unchecked")
+    public List<PaymentGateway> getAllTransactionsByRefNo(final String delimiterRefNo) {
+        @NotNull final String P_QUERY = String.format("SELECT * FROM m_payment_gateway WHERE ref_no IN (%s)", delimiterRefNo);
+        var cscFactory = new CallableStatementCreatorFactory(P_QUERY);
+        var csc = cscFactory.newCallableStatementCreator(new HashMap<>());
+        var returnedParams = List.<SqlParameter>of(
+                new SqlReturnResultSet("transactions", BeanPropertyRowMapper.newInstance(PaymentGateway.class)));
+        Map<String, Object> results = jdbcTemplate.call(csc, returnedParams);
+        if (ObjectUtils.isNotEmpty(results))
+            return (List<PaymentGateway>) results.get("transactions");
         return List.of();
     }
 

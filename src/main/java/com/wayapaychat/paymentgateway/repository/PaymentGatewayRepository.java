@@ -72,5 +72,5 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
     Page<PaymentGateway> getAllByPaymentLinkId(String paymentLinkId, Pageable pageable);
 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE ref_no IN (?1)", nativeQuery = true)
-    List<PaymentGateway> findAll(String delimitedRefNo);
+    List<PaymentGateway> findAllByDelimiters(String delimitedRefNo);
 }

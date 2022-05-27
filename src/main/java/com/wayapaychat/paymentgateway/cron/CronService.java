@@ -1,11 +1,13 @@
 package com.wayapaychat.paymentgateway.cron;
 
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
+import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.WayaTransactionQuery;
+import com.wayapaychat.paymentgateway.pojo.waya.FundEventResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
@@ -13,6 +15,7 @@ import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import com.wayapaychat.paymentgateway.service.impl.UnifiedPaymentProxy;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,9 +50,10 @@ public class CronService {
     private String passSecret;
     @Autowired
     private PaymemtGatewayEntityListener paymemtGatewayEntityListener;
+    private WayaPaymentDAO wayaPaymentDAO;
 
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "*/30 * * * * *")
     @SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void updateTransactionStatusEveryDay() {
         updateTransactionStatus();
@@ -103,6 +107,39 @@ public class CronService {
             mPay.setSuccessfailure(false);
             paymentGatewayRepo.save(mPay);
         }
+    }
+
+    @Scheduled(cron = "* */30 * * * *")
+    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    public void expireTransactionAfterThirtyMinutes() {
+        wayaPaymentDAO.expireAllTransactionLessThan30Mins();
+    }
+
+    @Scheduled(cron = "* */30 * * * *")
+    @SchedulerLock(name = "TaskScheduler_settleEveryFiveSeconds", lockAtLeastFor = "10s", lockAtMostFor = "15s")
+    public void settleEveryFiveSeconds() {
+        prorcessThirdPartyPaymentProcessed();
+    }
+
+    public void prorcessThirdPartyPaymentProcessed() {
+        new Thread(() -> {
+            List<PaymentGateway> payment = paymentGatewayRepo.findAllNotFlaggedAndSuccessful();
+            String token = paymentGateWayCommonUtils.getDaemonAuthToken();
+            for (PaymentGateway mPayment : payment) {
+                try {
+                    PaymentGateway sPayment = paymentGatewayRepo.findByRefNo(mPayment.getRefNo()).orElse(null);
+                    if (ObjectUtils.isEmpty(sPayment))
+                        continue;
+                    FundEventResponse response = uniPayProxy.postTransactionPosition(token, mPayment);
+                    if (response.getPostedFlg() && (!response.getTranId().isBlank())) {
+                        sPayment.setTranflg(true);
+                        paymentGatewayRepo.save(sPayment);
+                    }
+                } catch (Exception ex) {
+                    log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());
+                }
+            }
+        }).start();
     }
 
     private void processNextRecurrentTransaction() {

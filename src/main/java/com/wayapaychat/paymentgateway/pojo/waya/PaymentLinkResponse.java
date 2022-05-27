@@ -41,4 +41,6 @@ public class PaymentLinkResponse {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime startDateAfterFirstPayment;
+    private String customerSubscriptionId;
+    private String belongsToCustomerId;
 }

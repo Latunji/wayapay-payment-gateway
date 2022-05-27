@@ -1,6 +1,6 @@
 package com.wayapaychat.paymentgateway.kafkamessagebroker.producer;
 
-public interface MessageQueueProducer {
+public interface IkafkaMessageProducer {
     @SuppressWarnings("unused")
     void send(String topic, Object data);
 }

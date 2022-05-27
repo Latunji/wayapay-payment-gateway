@@ -12,15 +12,14 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 
 @Slf4j
 @Service
-public class KafkaMessageProducer implements MessageQueueProducer {
+public class KafkaMessageProducer implements IkafkaMessageProducer {
     @Autowired
     private KafkaTemplate<String, Object> template;
 
     @SuppressWarnings("unused")
     @Override
     public void send(String topic, Object data) {
-        Gson gson = new GsonBuilder().create();
-        ListenableFuture<SendResult<String, Object>> future = template.send(topic, gson.toJson(data));
+        ListenableFuture<SendResult<String, Object>> future = template.send(topic, data);
         future.addCallback(new ListenableFutureCallback<>() {
             @Override
             public void onSuccess(SendResult<String, Object> result) {

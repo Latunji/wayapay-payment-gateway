@@ -64,4 +64,10 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND (status = 'PENDING' OR status='FAILED') AND transaction_expired=false " +
             " AND (channel = 'CARD' OR channel='PAYATTITUDE') ", nativeQuery = true)
     List<PaymentGateway> findAllFailedAndPendingTransactions();
+
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE payment_link=:paymentLinkId AND merchant_id=:merchantId AND del_flg=false ", nativeQuery = true)
+    Page<PaymentGateway> getAllByPaymentLinkId(String merchantId, String paymentLinkId, Pageable pageable);
+
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE payment_link=:paymentLinkId AND del_flg=false ", nativeQuery = true)
+    Page<PaymentGateway> getAllByPaymentLinkId(String paymentLinkId, Pageable pageable);
 }

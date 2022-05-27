@@ -229,6 +229,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
 
     //TODO: Get the transaction graph by start date and end date
+    @Deprecated
     private String buildYearMonthQueryWithDateRange(Date startDate, Date endDate, String merchantId) {
         @NotNull final String ALT_Q = " merchant_id IS NOT NULL ";
         @NotNull final String MER = String.format(" merchant_id = '%s' ", merchantId);
@@ -252,6 +253,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                 " WHERE status='SUCCESSFUL' %s ;", SUB_Q_MER_AND);
     }
 
+    //TODO: Remove after settlement removal
     @Override
     @SuppressWarnings(value = "unchecked")
     public List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessTransactions(final String merchantId) {

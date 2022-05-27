@@ -2,10 +2,15 @@ package com.wayapaychat.paymentgateway.common.enums;
 
 
 public enum RecurrentPaymentStatus {
-    CANCELLED,
     ACTIVE,
+    ACTIVE_NON_RENEWING,
+    ACTIVE_RENEWING,
+    CANCELLED,
+    INACTIVE,
     PENDING,
-    IN_ACTIVE,
-    EXPIRED,
-    AWAITING_PAYMENT
+    ATTENTION,
+    SUBSCRIBED,
+    RE_SUBSCRIBED,
+    PENDING_SUBSCRIPTION,
+    CREATED
 }

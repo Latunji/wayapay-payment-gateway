@@ -70,4 +70,7 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE payment_link=:paymentLinkId AND del_flg=false ", nativeQuery = true)
     Page<PaymentGateway> getAllByPaymentLinkId(String paymentLinkId, Pageable pageable);
+
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE ref_no IN (?1)", nativeQuery = true)
+    List<PaymentGateway> findAll(String delimitedRefNo);
 }

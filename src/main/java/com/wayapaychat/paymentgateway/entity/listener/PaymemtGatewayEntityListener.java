@@ -24,8 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
 import java.util.Currency;
 import java.util.List;
 import java.util.Objects;
@@ -176,8 +174,8 @@ public class PaymemtGatewayEntityListener {
         return CURRENCY_DISPLAY;
     }
 
-    @PostPersist
-    @PostUpdate
+    //    @PostPersist
+//    @PostUpdate
     public void sendTransactionForSettlement(PaymentGateway paymentGateway) {
         log.info("------||||PENDING SETTLEMENT PUBLISHED FOR PROCESSING||||--------");
         if (!paymentGateway.isSentForSettlement()) {

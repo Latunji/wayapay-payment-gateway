@@ -520,7 +520,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public PaymentGatewayResponse decryptCard(HttpServletRequest request, WayaDecypt pay) {
-        String keygen = replaceKeyPrefixWithEmptyString(pay.getMerchantSecretKey());
+        String keygen = replaceKeyPrefixWithEmptyString(pay.getMerchantPublicKey());
         String vt = UnifiedPaymentProxy.getDataDecrypt(pay.getDecryptString(), keygen);
         if (ObjectUtils.isEmpty(vt))
             return (new PaymentGatewayResponse(false, "Decryption fail", null));

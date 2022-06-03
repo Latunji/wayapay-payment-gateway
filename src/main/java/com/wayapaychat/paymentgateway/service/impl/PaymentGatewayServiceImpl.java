@@ -511,7 +511,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     @Override
     public PaymentGatewayResponse encryptCard(HttpServletRequest request, WayaEncypt pay) {
-        String keygen = replaceKeyPrefixWithEmptyString(pay.getMerchantSecretKey());
+        String keygen = replaceKeyPrefixWithEmptyString(pay.getMerchantPublicKey());
         String vt = UnifiedPaymentProxy.getDataEncrypt(pay.getEncryptString(), keygen);
         if (ObjectUtils.isEmpty(vt))
             return (new PaymentGatewayResponse(false, "Encryption fail", null));

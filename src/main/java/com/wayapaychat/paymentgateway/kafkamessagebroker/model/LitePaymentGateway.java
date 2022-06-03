@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LitePaymentGatewayMessagePayload {
+public class LitePaymentGateway {
     private String refNo;
     private String tranId;
     private String merchantId;

@@ -4,7 +4,7 @@ package com.wayapaychat.paymentgateway.entity.listener;
 import com.wayapaychat.paymentgateway.common.utils.VariableUtil;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.enumm.*;
-import com.wayapaychat.paymentgateway.kafkamessagebroker.model.LitePaymentGatewayMessagePayload;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.model.LitePaymentGateway;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.model.ProducerMessageDto;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.producer.IkafkaMessageProducer;
 import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
@@ -17,13 +17,13 @@ import com.wayapaychat.paymentgateway.pojo.waya.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
+import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
-import javax.persistence.PostPersist;
 import java.util.Currency;
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +39,7 @@ public class PaymemtGatewayEntityListener {
     private static VariableUtil variableUtil;
     private static IkafkaMessageProducer ikafkaMessageProducer;
     private static ModelMapper modelMapper;
+    private static PaymentGatewayRepository paymentGatewayRepository;
 
     private static String getDaemonAuthToken() throws Exception {
         TokenAuthResponse authToken = authApiClient.authenticateUser(
@@ -78,6 +79,18 @@ public class PaymemtGatewayEntityListener {
     public void setIkafkaMessageProducer(IkafkaMessageProducer ikafkaMessageProducer) {
         PaymemtGatewayEntityListener.ikafkaMessageProducer = ikafkaMessageProducer;
         log.info("Initializing with dependency [" + ikafkaMessageProducer + "]");
+    }
+
+    @Autowired
+    public void setIkafkaMessageProducer(ModelMapper modelMapper) {
+        PaymemtGatewayEntityListener.modelMapper = modelMapper;
+        log.info("Initializing with dependency [" + modelMapper + "]");
+    }
+
+    @Autowired
+    public void setIkafkaMessageProducer(PaymentGatewayRepository paymentGatewayRepository) {
+        PaymemtGatewayEntityListener.paymentGatewayRepository = paymentGatewayRepository;
+        log.info("Initializing with dependency [" + paymentGatewayRepository + "]");
     }
 
     //    @PostPersist
@@ -161,19 +174,24 @@ public class PaymemtGatewayEntityListener {
         return CURRENCY_DISPLAY;
     }
 
-    @PostPersist
+    //    @PostPersist
+//    @PostUpdate
     public void sendTransactionForSettlement(PaymentGateway paymentGateway) {
         log.info("------||||PENDING SETTLEMENT PUBLISHED FOR PROCESSING||||--------");
-        if (Objects.equals(paymentGateway.getStatus(), TransactionStatus.SUCCESSFUL) &&
-                !Objects.equals(paymentGateway.getSettlementStatus(), SettlementStatus.SETTLED)) {
-            LitePaymentGatewayMessagePayload litePaymentGatewayMessagePayload = new LitePaymentGatewayMessagePayload();
-            modelMapper.map(paymentGateway, litePaymentGatewayMessagePayload);
-            ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
-                    .data(litePaymentGatewayMessagePayload)
-                    .eventCategory(EventType.PENDING_TRANSACTION_SETTLEMENT)
-                    .build();
-            ikafkaMessageProducer.send("merchant.settlement", producerMessageDto);
-            log.info("------||||SUCCESSFULLY PUBLISHED PENDING SETTLEMENT FOR PROCESSING {}||||--------", producerMessageDto);
+        if (!paymentGateway.isSentForSettlement()) {
+            if (Objects.equals(paymentGateway.getStatus(), TransactionStatus.SUCCESSFUL) &&
+                    !Objects.equals(paymentGateway.getSettlementStatus(), SettlementStatus.SETTLED)) {
+                LitePaymentGateway litePaymentGateway = new LitePaymentGateway();
+                modelMapper.map(paymentGateway, litePaymentGateway);
+                ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
+                        .data(litePaymentGateway)
+                        .eventCategory(EventType.PENDING_TRANSACTION_SETTLEMENT)
+                        .build();
+                ikafkaMessageProducer.send("merchant.settlement", producerMessageDto);
+                paymentGateway.setSentForSettlement(true);
+                paymentGatewayRepository.save(paymentGateway);
+                log.info("------||||SUCCESSFULLY PUBLISHED PENDING SETTLEMENT FOR PROCESSING {}||||--------", producerMessageDto);
+            }
         }
     }
 }

@@ -159,6 +159,9 @@ public class PaymentGateway {
     private Boolean transactionReceiptSent;
     @Column(name = "transaction_expired")
     private Boolean transactionExpired;
+    @JsonIgnore
+    @Column(name = "sent_for_settlement", columnDefinition = "bool default false")
+    private boolean sentForSettlement;
 
     @PrePersist
     void prePersist() {

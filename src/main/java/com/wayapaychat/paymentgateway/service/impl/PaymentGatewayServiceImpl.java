@@ -925,7 +925,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         Customer customer = new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId());
         TransactionStatusResponse response = new TransactionStatusResponse(mPay.getPreferenceNo(), mPay.getAmount(), mPay.getDescription(),
                 mPay.getFee(), mPay.getCurrencyCode(), mPay.getStatus().name(), mPay.getChannel().name(),
-                mPay.getMerchantName(), customer);
+                mPay.getMerchantName(), customer, mPay.getMerchantId(), mPay.getTranDate());
         return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
     }
 

@@ -75,8 +75,8 @@ public class CronService {
                     }
                 } else if (mPay.getStatus() == TransactionStatus.FAILED) {
                     if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-                        WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
-                        preprocessSuccessfulTransaction(mPay, query);
+                       // WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
+                       // preprocessSuccessfulTransaction(mPay, query);
                     }
                 }
             });

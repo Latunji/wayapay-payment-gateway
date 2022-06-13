@@ -4,9 +4,9 @@ server:
     context-path: /
 spring:
   flyway:
-    baseline-on-migrate: true
+    baseline-on-migrate: false
 #    out-of-order: true
-    enabled: true
+    enabled: false
   application:
     name: payment-gateway
   datasource:
@@ -24,10 +24,10 @@ spring:
         hbm2ddl:
           auto: update
   kafka:
-    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:http://kafka-service:9092}
+    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:http://localhost:9092}
     groupId: ${KAFKA_GROUP_ID:waya}
     consumer:
-      bootstrap-servers: kafka-service:9092
+      bootstrap-servers: localhost:9092
       group-id: waya
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer

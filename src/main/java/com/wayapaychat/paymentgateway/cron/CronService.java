@@ -53,7 +53,8 @@ public class CronService {
     private WayaPaymentDAO wayaPaymentDAO;
 
 
-    @Scheduled(cron = "*/30 * * * * *")
+//    @Scheduled(cron = "*/30 * * * * *") // 30sec for dev env
+    @Scheduled(cron = "* */20 * * * *") // 20min for staging and prod
     @SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void updateTransactionStatusEveryDay() {
         updateTransactionStatus();
@@ -75,8 +76,8 @@ public class CronService {
                     }
                 } else if (mPay.getStatus() == TransactionStatus.FAILED) {
                     if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
-                       // WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
-                       // preprocessSuccessfulTransaction(mPay, query);
+                        WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
+                        preprocessSuccessfulTransaction(mPay, query);
                     }
                 }
             });

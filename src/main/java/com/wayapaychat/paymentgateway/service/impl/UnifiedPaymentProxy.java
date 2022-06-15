@@ -414,6 +414,7 @@ public class UnifiedPaymentProxy {
         qrgen.setCustomerSessionId(account.getRefNo());
         qrgen.setMerchantId(account.getMerchantId());
         qrgen.setPaymentChannel("QR");
+        qrgen.setMerchantEmail(account.getMerchantEmail());
         String tranParticular = account.getDescription() + "-" + account.getRefNo();
         qrgen.setTransactionNarration(tranParticular);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");

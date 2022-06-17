@@ -37,6 +37,13 @@ public class TransactionsSettlementController {
         ));
     }
 
+    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{settlementReferenceId}")
+    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
+    @ApiOperation(value = "Get merchant settlement by reference id", notes = "View a merchant settlement by reference id", tags = {"TRANSACTIONS-SETTLEMENT"})
+    public ResponseEntity<PaymentGatewayResponse> getTransactionSettlementByReferenceId(
+            @PathVariable(value = "settlementReferenceId") final String settlementReferenceId) {
+        return transactionSettlementService.getSettlementByReferenceId(settlementReferenceId);
+    }
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/cumulative-settlement/fetch-all")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})

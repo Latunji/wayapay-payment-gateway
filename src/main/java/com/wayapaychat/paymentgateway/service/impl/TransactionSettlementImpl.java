@@ -8,6 +8,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementsResponse;
+import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.TransactionSettlementRepository;
 import com.wayapaychat.paymentgateway.service.TransactionSettlementService;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TransactionSettlementImpl implements TransactionSettlementService {
     private TransactionSettlementRepository transactionSettlementRepository;
+    private PaymentGatewayRepository paymentGatewayRepository;
     private TransactionSettlementDAO transactionSettlementDAO;
     private WayaPaymentDAO wayaPaymentDAO;
 
@@ -76,5 +78,10 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,false);
         data = wayaPaymentDAO.getAllTransactionSettlement(settlementQueryPojo,merchantIdToUse, pageable);
         return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getSettlementByReferenceId(String settlementReferenceId) {
+        return new ResponseEntity<>(new SuccessResponse("Search Completed", transactionSettlementRepository.getTransactionSettlementBySettlementReferenceId(settlementReferenceId)), HttpStatus.OK);
     }
 }

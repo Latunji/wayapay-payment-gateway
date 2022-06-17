@@ -12,4 +12,6 @@ public interface TransactionSettlementService {
     ResponseEntity<PaymentGatewayResponse> getCumulativeTransactionSettlement(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable dateSettled);
 
     ResponseEntity<PaymentGatewayResponse> getAllSettledSuccessfulTransactions(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable pageable);
+
+    ResponseEntity<PaymentGatewayResponse> getSettlementByReferenceId(String settlementReferenceId);
 }

@@ -33,4 +33,8 @@ public class WalletQRGenerate {
 
 	  private String merchantEmail;
 
+	  private String firstName;
+
+	  private String surname;
+
 }

@@ -14,10 +14,13 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 @CrossOrigin
 @RestController
@@ -25,38 +28,15 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "TRANSACTIONS", description = "Payment gateway transaction APIs")
 @Validated
 @AllArgsConstructor
-public class TransactionsController {
+public class TransactionController {
     private final RecurrentTransactionService recurrentTransactionService;
     @Autowired
     PaymentGatewayService paymentGatewayService;
 
-    //        @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/recurrent")
-    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions", tags = {"RECURRENT-TRANSACTION"})
-    public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerRecurrentSubscription(QueryRecurrentTransactionPojo queryCustomerTransactionPojo) {
-        return recurrentTransactionService.filterSearchRecurrentTransaction(
-                queryCustomerTransactionPojo, PageableResponseUtil.createPageRequest(queryCustomerTransactionPojo.getPage(),
-                        queryCustomerTransactionPojo.getSize(), queryCustomerTransactionPojo.getOrder(),
-                        queryCustomerTransactionPojo.getSortBy(), true, "date_created"
-                ));
-    }
-
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/recurrent/fetch/{customerId}")
-    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Filter Search recurrent customer transactions", notes = "recurrent customer transactions", tags = {"TRANSACTIONS"})
-    public ResponseEntity<PaymentGatewayResponse> fetchCustomerRecurrentTransaction(
-            @PathVariable String customerId, PaginationPojo paginationPojo) {
-        return recurrentTransactionService.fetchCustomerTransaction(
-                customerId, PageableResponseUtil.createPageRequest(paginationPojo.getPage(),
-                        paginationPojo.getSize(), paginationPojo.getOrder(),
-                        paginationPojo.getSortBy(), true, "date_created"
-                ));
-    }
-
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{customerId}")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Filter search customers", notes = "Search customers", tags = {"TRANSACTIONS"})
-    public ResponseEntity<PaymentGatewayResponse> filterSearchAllCustomerSubscription(
+    public ResponseEntity<PaymentGatewayResponse> filterSearchAllCustomerTransactions(
             QueryCustomerTransactionPojo queryCustomerTransactionPojo,
             @PathVariable("customerId") final String customerId) {
         queryCustomerTransactionPojo.setCustomerId(customerId);
@@ -70,15 +50,20 @@ public class TransactionsController {
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Get merchant transaction year statistics stats", notes = "Transaction Year-Month statistics", tags = {"TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(
-            @RequestParam(value = "merchantId", required = false) final String merchantId, @RequestParam(value = "year", required = false) final Long year) {
-        return paymentGatewayService.getMerchantYearMonthTransactionStats(merchantId, year);
+            @RequestParam(value = "merchantId", required = false) final String merchantId,
+            @RequestParam(value = "year", required = false) final Long year,
+            @RequestParam(value = "startDate", required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "endDate", required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate
+    ) {
+        return paymentGatewayService.getMerchantYearMonthTransactionStats(merchantId, year, startDate, endDate);
     }
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/overview")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Get merchant transaction report dashboard overview statistics", notes = "Transaction report dashboard overview Stats", tags = {"TRANSACTIONS"})
-    public ResponseEntity<PaymentGatewayResponse> getMerchantDashboardOverviewStats(
-            @RequestParam(value = "merchantId", required = false) final String merchantId) {
+    public ResponseEntity<PaymentGatewayResponse> getMerchantDashboardOverviewStats(@RequestParam(value = "merchantId", required = false) final String merchantId) {
         return paymentGatewayService.getMerchantTransactionOverviewStats(merchantId);
     }
 

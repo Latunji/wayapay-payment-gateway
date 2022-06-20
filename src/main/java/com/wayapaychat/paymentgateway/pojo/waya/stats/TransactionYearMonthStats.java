@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class TransactionYearMonthStats {
     private String merchantId;
-    private BigDecimal count;
+    private BigDecimal totalRevenue;
     private Long year;
     private String month;
 }

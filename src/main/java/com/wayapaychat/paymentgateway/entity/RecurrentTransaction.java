@@ -126,7 +126,7 @@ public class RecurrentTransaction extends GenericBaseEntity {
         if (ObjectUtils.isEmpty(active))
             this.active = false;
         if (ObjectUtils.isEmpty(status))
-            status = RecurrentPaymentStatus.PENDING;
+            status = RecurrentPaymentStatus.INACTIVE;
         if (ObjectUtils.isEmpty(totalChargeCount))
             this.totalChargeCount = 0;
         if (ObjectUtils.isEmpty(applyDateAfterFirstPayment))

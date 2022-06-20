@@ -9,4 +9,5 @@ public class Constants {
     public static final String EMAIL_TOPIC = "email";
     public static final String TWILIO_PROVIDER = "twilio";
     public static final String SMS_TOPIC = "sms";
+    public static final String SETTLEMENT_DEBIT_WALLET = "WPSETTLE";
 }

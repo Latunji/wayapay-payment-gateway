@@ -695,7 +695,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setChannel(PaymentChannel.QR);
             payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.PENDING);
 
-            WalletQRResponse tranRep = uniPaymentProxy.postQRTransaction(payment, token, account);
+            WalletQRResponse tranRep = uniPaymentProxy.postQRTransaction(payment, token, account, profile);
             if (tranRep != null) {
                 tranRep.setName(profile.getData().getOtherDetails().getOrganisationName());
                 response = new ResponseEntity<>(new SuccessResponse("SUCCESS GENERATED", tranRep), HttpStatus.CREATED);

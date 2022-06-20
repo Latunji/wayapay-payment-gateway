@@ -2,11 +2,13 @@ package com.wayapaychat.paymentgateway.service.impl;
 
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.TransactionSettlementDAO;
+import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementsResponse;
+import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.TransactionSettlementRepository;
 import com.wayapaychat.paymentgateway.service.TransactionSettlementService;
 import lombok.AllArgsConstructor;
@@ -23,19 +25,21 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TransactionSettlementImpl implements TransactionSettlementService {
     private TransactionSettlementRepository transactionSettlementRepository;
+    private PaymentGatewayRepository paymentGatewayRepository;
     private TransactionSettlementDAO transactionSettlementDAO;
+    private WayaPaymentDAO wayaPaymentDAO;
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantSettlementStats(String merchantId) {
-        String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId);
+        String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,false);
         TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse);
         return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<PaymentGatewayResponse> getMerchantSettlements(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable pageable) {
+    public ResponseEntity<PaymentGatewayResponse> getCumulativeTransactionSettlement(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable pageable) {
         Page<TransactionSettlement> data;
-        String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId);
+        String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,true);
         if (ObjectUtils.isNotEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isEmpty(settlementQueryPojo.getStartSettlementDate()))
             data = transactionSettlementRepository.findAllWithStatus(merchantIdToUse, settlementQueryPojo.getStatus().name(), pageable);
         else if (ObjectUtils.isNotEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isNotEmpty(settlementQueryPojo.getStartSettlementDate())
@@ -66,5 +70,18 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
         else
             data = transactionSettlementRepository.findAll(merchantIdToUse, pageable);
         return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getAllSettledSuccessfulTransactions(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable pageable) {
+        Page<TransactionSettlementPojo> data;
+        String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,false);
+        data = wayaPaymentDAO.getAllTransactionSettlement(settlementQueryPojo,merchantIdToUse, pageable);
+        return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<PaymentGatewayResponse> getSettlementByReferenceId(String settlementReferenceId) {
+        return new ResponseEntity<>(new SuccessResponse("Search Completed", transactionSettlementRepository.getTransactionSettlementBySettlementReferenceId(settlementReferenceId)), HttpStatus.OK);
     }
 }

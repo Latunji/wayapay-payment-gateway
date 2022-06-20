@@ -11,4 +11,5 @@ public class WayaWalletPayment {
     private String accountNo;
     private String pin;
     private String refNo;
+    private String deviceInformation;
 }

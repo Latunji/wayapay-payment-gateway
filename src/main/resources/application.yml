@@ -4,9 +4,9 @@ server:
     context-path: /
 spring:
   flyway:
-    baseline-on-migrate: true
+    baseline-on-migrate: false
 #    out-of-order: true
-    enabled: true
+    enabled: false
   application:
     name: payment-gateway
   datasource:
@@ -23,6 +23,16 @@ spring:
         show-sql: true
         hbm2ddl:
           auto: update
+  kafka:
+    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:http://localhost:9092}
+    groupId: ${KAFKA_GROUP_ID:waya}
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: waya
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
 eureka:
   client:
     serviceUrl:
@@ -38,7 +48,7 @@ waya:
     tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
 #    tempurl:  http://localhost:9009/api/v1
 #    wayapay-debit-account: ${WALLET_ACCOUNT_DEBIT_ACCOUNT_NUMBER:NGN000012010003}
-    wayapay-debit-account: ${WALLET_ACCOUNT_DEBIT_ACCOUNT_NUMBER:NGN000016002001}
+    wayapay-debit-account: ${WALLET_ACCOUNT_DEBIT_ACCOUNT_NUMBER:WPSETTLE}
   application:
     payment-gateway-mode: ${PAYMENT_GATEWAY_MODE:TEST}
   notification-service:
@@ -60,11 +70,16 @@ waya:
   identitymanager:
     name: IDENTITYMANAGER-SERVICE
     url: https://services.staging.wayabank.ng/identity-manager-service/api/v1
+#    url: https://localhost:8099/identity-manager-service/api/v1
+  settlementservice:
+    name: SETTLEMENT-SERVICE
+    url: https://services.staging.wayapay.ng/settlement-service/api/v1
 
 service:
   wayapay-payment-status-url: https://pay.staging.wayapay.ng/status
-  name: ${SERVICE_NAME:tbaadm@wayapaychat.com}
-  pass: ${SERVICE_PASS:fintemp@#123}
+  name: ${SERVICE_NAME:admin@wayapaychat.com}
+  pass: ${SERVICE_PASS:kKo0a9@=&?*#}
+  token: serial eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjpbeyJjcmVhdGVkQXQiOiIxNS0wMi0yMDIyIDA3OjI3OjEzIiwidXBkYXRlZEF0IjoiMTUtMDItMjAyMiAwNzoyNzoxMyIsImNyZWF0ZWRCeSI6Ik1HUiIsIm1vZGlmaWVkQnkiOiJNR1IiLCJpZCI6MTMsIm5hbWUiOiJST0xFX1VTRVIiLCJkZXNjcmlwdGlvbiI6IlVTRVIgUk9MRSJ9LHsiY3JlYXRlZEF0IjoiMTUtMDItMjAyMiAwNzoyNzoxMyIsInVwZGF0ZWRBdCI6IjE1LTAyLTIwMjIgMDc6Mjc6MTMiLCJjcmVhdGVkQnkiOiJNR1IiLCJtb2RpZmllZEJ5IjoiTUdSIiwiaWQiOjE2LCJuYW1lIjoiUk9MRV9BUFBfQURNSU4iLCJkZXNjcmlwdGlvbiI6IkFQUExJQ0FUSU9OIEFETUlOIn1dLCJpZCI6MzQ4LCJzdWIiOiJhZG1pbkB3YXlhcGF5Y2hhdC5jb20iLCJpYXQiOjE2NTA4ODUxODMsImV4cCI6MTY4MjQ0Mjc4M30.1pwMAMn7yBBphc1M1mkp1kKFhD1UZg0isojWYZB1w9_zdeJ9hR6cWhsN8d-9R53Xh33cYdRQfZgJ47ZJ48YCTw
   encrypt-all-merchant-secretkey-with: S@$@@@@@!!!!!ads#$%#$@#!#$@$@545345fdsdf@@$353^^*(*@#$%#@$%#$@#@#$%#%#@
   thirdparty:
     unified-payment:

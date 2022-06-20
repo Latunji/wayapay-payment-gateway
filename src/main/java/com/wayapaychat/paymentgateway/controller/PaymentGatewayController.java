@@ -96,7 +96,7 @@ public class PaymentGatewayController {
     @PostMapping("/request/transaction")
     public ResponseEntity<?> initiateTransaction(HttpServletRequest request, Device device,
                                                  @Valid @RequestBody WayaPaymentRequest account) throws JsonProcessingException {
-        PaymentGatewayResponse resp = paymentGatewayService.initiateTransaction(request, account, device);
+        PaymentGatewayResponse resp = paymentGatewayService.initiateCardTransaction(request, account, device);
         if (!resp.getStatus())
             return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
@@ -205,20 +205,25 @@ public class PaymentGatewayController {
         return paymentGatewayService.queryTranStatus(request);
     }
 
+
     //TODO: protect this endpoint before request comes IN
     @ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
-    @GetMapping("/report/query/{merchantId}")
+    @GetMapping("/transaction/report")
     public ResponseEntity<?> getMerchantTransactionReport(
             HttpServletRequest request,
-            @PathVariable(value = "merchantId", required = false) final String merchantId) {
+            @RequestParam(value = "merchantId", required = false) final String merchantId) {
         return paymentGatewayService.getMerchantTransactionReport(request, merchantId);
     }
 
-    //TODO: Protect this endpoint
+    @ApiOperation(value = "Get all merchant transactions", notes = "This endpoint get all merchant transactions", tags = {"PAYMENT-GATEWAY"})
+    @GetMapping("/report/query/{merchantId}")
+    public ResponseEntity<?> getAllMerchantTransactionsByMerchantId(@PathVariable final String merchantId) {
+        return paymentGatewayService.fetchAllMerchantTransactions(merchantId);
+    }
+
     @ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
     @GetMapping("/revenue/query/{merchantId}")
-    public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest request,
-                                                           @PathVariable("merchantId") final String merchantId) {
+    public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest request, @PathVariable("merchantId") final String merchantId) {
         return paymentGatewayService.getMerchantTransactionRevenue(request, merchantId);
     }
 

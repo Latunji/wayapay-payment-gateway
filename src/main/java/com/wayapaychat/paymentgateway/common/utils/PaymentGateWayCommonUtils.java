@@ -51,12 +51,16 @@ public class PaymentGateWayCommonUtils {
         return new DevicePojo(deviceType, platform, "");
     }
 
-    public static String getMerchantIdToUse(String merchantId) {
+    public static String getMerchantIdToUse(String merchantId, boolean required) {
         AuthenticatedUser authenticatedUser = getAuthenticatedUser();
-        if (authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
+        if (required && authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
             throw new ApplicationException(400, "01", "Okay! Please provide merchant id to proceed.");
         if (!authenticatedUser.getAdmin() && (ObjectUtils.isNotEmpty(merchantId) && !merchantId.equals(authenticatedUser.getMerchantId())))
             throw new ApplicationException(403, "01", "Oops! Sorry resource(s) can't be accessed");
+        if (!authenticatedUser.getAdmin() && !authenticatedUser.isCorporate())
+            throw new ApplicationException(403, "01", "Oops! Access not allowed!");
+        if (!required && authenticatedUser.getAdmin() && ObjectUtils.isEmpty(merchantId))
+            return merchantId;
         return ObjectUtils.isEmpty(merchantId) ? authenticatedUser.getMerchantId() : merchantId;
     }
 
@@ -78,26 +82,5 @@ public class PaymentGateWayCommonUtils {
         }
         PaymentData payData = authToken.getData();
         return payData.getToken();
-    }
-
-    public String validateUserAndGetMerchantId(String merchantId) {
-//        AuthenticatedUser user = getAuthenticatedUser();
-//        if (!user.isEmailVerified())
-//            throw new ApplicationException(403, "01", "Account needs email verification");
-////        if (!user.isPhoneVerified())
-////            throw new ApplicationException(403, "01", "Account needs email verification");
-//        else if (!user.getAdmin() && ObjectUtils.isNotEmpty(merchantId))
-//            throw new ApplicationException(403, "01", "Oops! Operation not allowed");
-//        else if (!user.isCorporate() && ObjectUtils.isEmpty(merchantId))
-//            throw new ApplicationException(403, "01", "Oops! Operation allowed to only corporate account");
-//        if (user.getAdmin() && ObjectUtils.isNotEmpty(merchantId))
-//            return merchantId;
-//        else {
-//            MerchantData merchantResponse = this.merchantProxy.getMerchantAccount().getData();
-//            if (ObjectUtils.isEmpty(merchantResponse))
-//                throw new ApplicationException(403, "01", "Oops! Merchant account not found");
-//            return merchantResponse.getMerchantId();
-//        }
-        return merchantId;
     }
 }

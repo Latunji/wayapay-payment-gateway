@@ -406,7 +406,7 @@ public class UnifiedPaymentProxy {
         return result;
     }
 
-    public WalletQRResponse postQRTransaction(PaymentGateway account, String token, WayaQRRequest request) {
+    public WalletQRResponse postQRTransaction(PaymentGateway account, String token, WayaQRRequest request, ProfileResponse profile) {
         WalletQRResponse wallet = new WalletQRResponse();
         WalletQRGenerate qrgen = new WalletQRGenerate();
         qrgen.setPayableAmount(account.getAmount());
@@ -414,6 +414,9 @@ public class UnifiedPaymentProxy {
         qrgen.setCustomerSessionId(account.getRefNo());
         qrgen.setMerchantId(account.getMerchantId());
         qrgen.setPaymentChannel("QR");
+        qrgen.setMerchantEmail(account.getMerchantEmail());
+        qrgen.setFirstName(profile.getData().getFirstName());
+        qrgen.setSurname(profile.getData().getSurname());
         String tranParticular = account.getDescription() + "-" + account.getRefNo();
         qrgen.setTransactionNarration(tranParticular);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");

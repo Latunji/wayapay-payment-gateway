@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
@@ -21,11 +19,10 @@ import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
-//@EntityListeners(value = PaymemtGatewayEntityListener.class)
+@EntityListeners(value = PaymemtGatewayEntityListener.class)
 @Builder
 @Entity
 @Getter
@@ -74,13 +71,13 @@ public class PaymentGateway {
     private String encyptCard;
 
     @Column(nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    @JsonSerialize(using = LocalDateSerializer.class)
-    private LocalDate tranDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime tranDate;
 
     @Column(nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime rcre_time;
@@ -90,10 +87,10 @@ public class PaymentGateway {
     private boolean successfailure;
 
     @Column(nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    @JsonSerialize(using = LocalDateSerializer.class)
-    private LocalDate vendorDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime vendorDate;
 
     private String merchantName;
 
@@ -143,10 +140,10 @@ public class PaymentGateway {
     private SettlementStatus settlementStatus = SettlementStatus.PENDING;
 
     @Column(name = "settlement_date", columnDefinition = "TIMESTAMPTZ DEFAULT NULL")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    @JsonSerialize(using = LocalDateSerializer.class)
-    private LocalDate settlementDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime settlementDate;
 
     @JsonIgnore
     @Column(name = "settlement_reference_id")
@@ -159,12 +156,23 @@ public class PaymentGateway {
     @Column(name = "wayapay_fee")
     private BigDecimal wayapayFee = BigDecimal.ZERO;
 
+    private Boolean transactionReceiptSent;
+    @Column(name = "transaction_expired")
+    private Boolean transactionExpired;
+    @JsonIgnore
+    @Column(name = "sent_for_settlement", columnDefinition = "bool default false")
+    private boolean sentForSettlement;
+
     @PrePersist
     void prePersist() {
         if (ObjectUtils.isEmpty(isFromRecurrentPayment))
             isFromRecurrentPayment = false;
         if (ObjectUtils.isEmpty(settlementStatus))
             settlementStatus = SettlementStatus.PENDING;
+        if (ObjectUtils.isEmpty(transactionReceiptSent))
+            transactionReceiptSent = false;
+        if (ObjectUtils.isEmpty(transactionExpired))
+            transactionExpired = false;
         fee = wayapayFee.add(processingFee);
     }
 }

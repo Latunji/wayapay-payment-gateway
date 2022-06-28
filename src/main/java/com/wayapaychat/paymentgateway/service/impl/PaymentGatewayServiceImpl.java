@@ -1132,6 +1132,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 merchantProductPricingQuery.getMerchantId(), merchantProductPricingQuery.getProductName(), token
         );
         ProductPricingResponse productPricingResponse = merchantProductPricingResponse.getData();
+        log.info("-------MERCHANT PRODUCT PRICING {}--------",productPricingResponse);
         Double feePercentage = 0D;
         if (productPricingResponse.getLocalDiscountRate() > 0)
             feePercentage = productPricingResponse.getLocalDiscountRate();

@@ -143,11 +143,14 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             List<BigDecimalCountStatusWrapper> refusalErrorStats = (List<BigDecimalCountStatusWrapper>) results.get("refusal_error_stats");
             List<TransactionPaymentChannelStats> paymentChannelStats = (List<TransactionPaymentChannelStats>) results.get("payment_channel_stats");
 
-            if (ObjectUtils.isNotEmpty(grossRevenue))
+            if (ObjectUtils.isNotEmpty(grossRevenue)){
                 revenueStats.setGrossRevenue(grossRevenue.get(0).getAmount());
-            if (ObjectUtils.isNotEmpty(netRevenue))
+            } else revenueStats.setGrossRevenue(BigDecimal.ZERO);
+            if (ObjectUtils.isNotEmpty(netRevenue)) {
                 revenueStats.setNetRevenue(netRevenue.get(0).getAmount());
+            } else revenueStats.setNetRevenue(BigDecimal.ZERO);
             transactionOverviewResponse.setRevenueStats(revenueStats);
+
             if (ObjectUtils.isNotEmpty(latestSettlement)) {
                 settlementStats.setLatestSettlement(latestSettlement.get(0).getAmount());
                 settlementStats.setLatestSettlementDate(latestSettlement.get(0).getSettlementDate());

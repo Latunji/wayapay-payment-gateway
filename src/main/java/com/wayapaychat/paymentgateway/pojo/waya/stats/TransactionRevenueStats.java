@@ -12,6 +12,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionRevenueStats {
-    private BigDecimal grossRevenue;
-    private BigDecimal netRevenue;
+    private BigDecimal grossRevenue = BigDecimal.ZERO;
+    private BigDecimal netRevenue = BigDecimal.ZERO;
 }

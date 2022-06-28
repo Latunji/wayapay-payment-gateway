@@ -203,10 +203,13 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         if (ObjectUtils.isNotEmpty(results)) {
             List<BigDecimalAmountWrapper> grossRevenue = (List<BigDecimalAmountWrapper>) results.get("gross_revenue");
             List<BigDecimalAmountWrapper> netRevenue = (List<BigDecimalAmountWrapper>) results.get("net_revenue");
-            if (ObjectUtils.isNotEmpty(grossRevenue))
+            if (ObjectUtils.isNotEmpty(grossRevenue)){
                 revenueStats.setGrossRevenue(grossRevenue.get(0).getAmount());
-            if (ObjectUtils.isNotEmpty(netRevenue))
+            } else revenueStats.setGrossRevenue(BigDecimal.ZERO);
+            if (ObjectUtils.isNotEmpty(netRevenue)) {
                 revenueStats.setNetRevenue(netRevenue.get(0).getAmount());
+            } else revenueStats.setNetRevenue(BigDecimal.ZERO);
+
             return revenueStats;
         }
         return revenueStats;

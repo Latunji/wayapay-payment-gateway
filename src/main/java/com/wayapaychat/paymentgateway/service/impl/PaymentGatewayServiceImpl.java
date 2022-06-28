@@ -227,6 +227,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             return response;
         } catch (Exception ex) {
             ex.printStackTrace();
+            log.error("Wahala wey no gree finish ", ex);
         }
         return response;
     }

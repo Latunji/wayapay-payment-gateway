@@ -102,7 +102,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Value("${service.pass}")
     private String passSecret;
     @Value("${service.token}")
-    private String daemonToken;
+    private String DAEMON_TOKEN;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -195,7 +195,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             // get the IP region of where the transaction was initiated from
             BigDecimal wayapayFee = calculateWayapayFee(
                     sMerchant.getMerchantId(), transactionRequestPojo.getAmount(),
-                    ProductName.CARD, "LOCAL", token);
+                    ProductName.CARD, "LOCAL");
             payment.setWayapayFee(wayapayFee);
             payment.setCustomerIpAddress(PaymentGateWayCommonUtils.getClientRequestIP(request));
             payment.setCurrencyCode(transactionRequestPojo.getCurrency());
@@ -227,6 +227,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             return response;
         } catch (Exception ex) {
             ex.printStackTrace();
+            log.error("Wahala wey no gree finish ", ex);
         }
         return response;
     }
@@ -400,7 +401,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             paymentGateway.setChannel(PaymentChannel.PAYATTITUDE);
             BigDecimal wayapayFee = calculateWayapayFee(
                     paymentGateway.getMerchantId(), paymentGateway.getAmount(),
-                    ProductName.PAYATTITUDE, "LOCAL", daemonToken);
+                    ProductName.PAYATTITUDE, "LOCAL");
             paymentGateway.setWayapayFee(wayapayFee);
             log.info("Card Info: " + upCardPaymentRequest);
         }
@@ -622,9 +623,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setChannel(PaymentChannel.WALLET);
                 //TODO: update wayapay processing fee... update the region later
                 // get the IP region of where the transaction was initiated from
-                BigDecimal wayapayFee = calculateWayapayFee(
-                        sMerchant.getMerchantId(), payment.getAmount(),
-                        ProductName.WALLET, "LOCAL", token);
+                BigDecimal wayapayFee = calculateWayapayFee(sMerchant.getMerchantId(), payment.getAmount(),
+                        ProductName.WALLET, "LOCAL");
                 payment.setWayapayFee(wayapayFee);
 
                 payment.setPaymentMetaData(account.getDeviceInformation());
@@ -838,7 +838,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
             BigDecimal wayapayFee = calculateWayapayFee(
                     ussdRequest.getMerchantId(), ussdRequest.getAmount(),
-                    ProductName.USSD, "LOCAL", token);
+                    ProductName.USSD, "LOCAL");
 
             payment.setWayapayFee(wayapayFee);
             PaymentGateway pay = paymentGatewayRepo.save(payment);
@@ -1108,7 +1108,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String merchantId, String paymentLinkId, Pageable pageable) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
         Page<PaymentGateway> result;
-        if (ObjectUtils.isEmpty(merchantIdToUse)) result = paymentGatewayRepo.getAllByPaymentLinkId(paymentLinkId, pageable);
+        if (ObjectUtils.isEmpty(merchantIdToUse))
+            result = paymentGatewayRepo.getAllByPaymentLinkId(paymentLinkId, pageable);
         else result = paymentGatewayRepo.getAllByPaymentLinkId(merchantIdToUse, paymentLinkId, pageable);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, result), HttpStatus.OK);
     }
@@ -1121,17 +1122,22 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     //REGION : LOCAL , INTERNATIONAL
     private BigDecimal calculateWayapayFee(
-            String merchantId, BigDecimal amount, ProductName productName, String region, String token) {
+            String merchantId, BigDecimal amount, ProductName productName, String region) {
         MerchantProductPricingQuery merchantProductPricingQuery = MerchantProductPricingQuery
                 .builder()
                 .merchantId(merchantId)
                 .productName(productName)
                 .build();
+        log.info("PRODUCT NAME ::: " + productName + "REGION " + region );
+        log.info("TOKEN ::: " + DAEMON_TOKEN + "  MERCHANT_ID " + merchantId );
         MerchantProductPricingResponse merchantProductPricingResponse = iSettlementProductPricingProxy.getMerchantProductPricing(
-                merchantProductPricingQuery.getMerchantId(), merchantProductPricingQuery.getProductName(), token
+                merchantProductPricingQuery.getMerchantId(), merchantProductPricingQuery.getProductName(), DAEMON_TOKEN
         );
         ProductPricingResponse productPricingResponse = merchantProductPricingResponse.getData();
+        log.info("-------MERCHANT PRODUCT PRICING {}--------", productPricingResponse);
         Double feePercentage = 0D;
+        if (ObjectUtils.isEmpty(productPricingResponse))
+            throw new ApplicationException(400, "product_pricing_not_found", "Merchant Product pricing not found");
         if (productPricingResponse.getLocalDiscountRate() > 0)
             feePercentage = productPricingResponse.getLocalDiscountRate();
         if (productPricingResponse.getLocalRate() > 0)

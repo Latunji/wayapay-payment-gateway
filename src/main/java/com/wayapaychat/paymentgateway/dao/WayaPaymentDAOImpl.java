@@ -215,6 +215,9 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             }
 
             return revenueStats;
+        } else {
+            revenueStats.setGrossRevenue(BigDecimal.ZERO);
+            revenueStats.setNetRevenue(BigDecimal.ZERO);
         }
         return revenueStats;
     }

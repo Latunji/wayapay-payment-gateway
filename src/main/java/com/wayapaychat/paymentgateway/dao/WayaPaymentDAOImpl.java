@@ -143,10 +143,10 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             List<BigDecimalCountStatusWrapper> refusalErrorStats = (List<BigDecimalCountStatusWrapper>) results.get("refusal_error_stats");
             List<TransactionPaymentChannelStats> paymentChannelStats = (List<TransactionPaymentChannelStats>) results.get("payment_channel_stats");
 
-            if (ObjectUtils.isNotEmpty(grossRevenue)){
+            if (grossRevenue.size() > 0){
                 revenueStats.setGrossRevenue(grossRevenue.get(0).getAmount());
             } else revenueStats.setGrossRevenue(BigDecimal.ZERO);
-            if (ObjectUtils.isNotEmpty(netRevenue)) {
+            if (netRevenue.size() > 0) {
                 revenueStats.setNetRevenue(netRevenue.get(0).getAmount());
             } else revenueStats.setNetRevenue(BigDecimal.ZERO);
             transactionOverviewResponse.setRevenueStats(revenueStats);
@@ -169,6 +169,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             transactionOverviewResponse.setPaymentChannelStats(paymentChannelStats);
 
         }
+        log.info("Result: "+transactionOverviewResponse.toString());
         return transactionOverviewResponse;
     }
 
@@ -302,7 +303,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         int limit = pageable.getPageSize();
         Long offSet = pageable.getOffset();
         var cscFactory = new CallableStatementCreatorFactory(String.format("SELECT mpg.ref_no settlement_reference_id, mts.settlement_status, " +
-                " mpg.amount settlement_gross_amount,mpg.amount - mpg.fee settlement_net_amount, " +
+                " mpg.amount settlement_gross_amount,mpg.amount - mpg.fee settlement_net_amount, mpg.wayapay_fee, mpg.processing_fee, " +
                 " mpg.fee fee, mpg.merchant_id , mts.settlement_account, mts.account_settlement_option, " +
                 " mts.settlement_beneficiary_account, mts.merchant_configured_settlement_date settlement_date, mpg.merchant_id, mpg.merchant_name " +
                 " FROM m_payment_gateway mpg INNER JOIN m_transaction_settlement mts ON mts.settlement_reference_id = mpg.settlement_reference_id " +

@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -12,6 +13,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -24,6 +26,8 @@ public class TransactionSettlementPojo {
     private BigDecimal settlementNetAmount;
     private BigDecimal settlementGrossAmount;
     private BigDecimal fee;
+    private BigDecimal processingFee;
+    private BigDecimal wayapayFee;
 
     private String merchantId;
     private String settlementReferenceId;
@@ -36,4 +40,9 @@ public class TransactionSettlementPojo {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime settlementDate;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime tranDate;
 }

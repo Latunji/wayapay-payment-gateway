@@ -57,6 +57,7 @@ public class CronService {
     @Scheduled(cron = "* */20 * * * *") // 20min for staging and prod
     @SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void updateTransactionStatusEveryDay() {
+        log.info("----------------------------- Starting SCHEDULE -----------------------------");
         updateTransactionStatus();
     }
 

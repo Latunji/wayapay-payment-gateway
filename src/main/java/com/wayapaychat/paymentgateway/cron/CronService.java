@@ -96,17 +96,20 @@ public class CronService {
                 if (mPay.getIsFromRecurrentPayment())
                     paymentService.updateRecurrentTransaction(mPay);
                 paymentGatewayRepo.save(mPay);
+                log.info("------||| transaction "+mPay.getTranId()+" set to successful |||-------");
                 paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(mPay);
             } else if (query.getStatus().contains("REJECT")) {
                 mPay.setStatus(TransactionStatus.FAILED);
                 mPay.setSuccessfailure(false);
                 paymentGatewayRepo.save(mPay);
+                log.info("------||| transaction "+mPay.getTranId()+" set to FAILED |||-------");
             }
         } catch (Exception e) {
             log.error("------||||SYSTEM ERROR ON PROCESSING TRANSACTION FROM CRON||||-------", e);
             mPay.setStatus(TransactionStatus.FAILED);
             mPay.setSuccessfailure(false);
             paymentGatewayRepo.save(mPay);
+            log.info("------||| transaction "+mPay.getTranId()+" set to FAILED |||-------");
         }
     }
 

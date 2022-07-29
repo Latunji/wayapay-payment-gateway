@@ -103,7 +103,7 @@ public class CronService {
                 paymentGatewayRepo.save(mPay);
             }
         } catch (Exception e) {
-            log.error("------||||SYSTEM ERROR||||-------", e);
+            log.error("------||||SYSTEM ERROR ON PROCESSING TRANSACTION FROM CRON||||-------", e);
             mPay.setStatus(TransactionStatus.FAILED);
             mPay.setSuccessfailure(false);
             paymentGatewayRepo.save(mPay);

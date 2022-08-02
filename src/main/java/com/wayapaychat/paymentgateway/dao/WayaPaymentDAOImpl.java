@@ -200,7 +200,8 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                 new SqlReturnResultSet("gross_revenue", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
                 new SqlReturnResultSet("net_revenue", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)));
         Map<String, Object> results = jdbcTemplate.call(csc, returnedParams);
-        TransactionRevenueStats revenueStats = TransactionRevenueStats.builder().build();
+        return results;
+        /*TransactionRevenueStats revenueStats = TransactionRevenueStats.builder().build();
         if (ObjectUtils.isNotEmpty(results)) {
             List<BigDecimalAmountWrapper> grossRevenue = (List<BigDecimalAmountWrapper>) results.get("gross_revenue");
             List<BigDecimalAmountWrapper> netRevenue = (List<BigDecimalAmountWrapper>) results.get("net_revenue");
@@ -222,7 +223,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             revStats.setNetRevenue(0);
 
             return revStats;
-        }
+        } */
     }
 
     private String buildYearMonthQuery(String merchantId, Long year, Date startDate, Date endDate) {

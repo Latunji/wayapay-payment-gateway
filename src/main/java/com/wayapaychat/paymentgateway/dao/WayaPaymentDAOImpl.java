@@ -143,10 +143,10 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             List<BigDecimalCountStatusWrapper> refusalErrorStats = (List<BigDecimalCountStatusWrapper>) results.get("refusal_error_stats");
             List<TransactionPaymentChannelStats> paymentChannelStats = (List<TransactionPaymentChannelStats>) results.get("payment_channel_stats");
 
-            if (ObjectUtils.isNotEmpty(grossRevenue.get(0))){
+            if (ObjectUtils.isNotEmpty(grossRevenue.get(0)) && ObjectUtils.isNotEmpty(grossRevenue.get(0).getAmount())){
                 revenueStats.setGrossRevenue(grossRevenue.get(0).getAmount());
             } else revenueStats.setGrossRevenue(BigDecimal.ZERO);
-            if (ObjectUtils.isNotEmpty(netRevenue.get(0))) {
+            if (ObjectUtils.isNotEmpty(netRevenue.get(0)) && ObjectUtils.isNotEmpty(netRevenue.get(0).getAmount())) {
                 revenueStats.setNetRevenue(netRevenue.get(0).getAmount());
             } else revenueStats.setNetRevenue(BigDecimal.ZERO);
             transactionOverviewResponse.setRevenueStats(revenueStats);
@@ -204,23 +204,18 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             List<BigDecimalAmountWrapper> grossRevenue = (List<BigDecimalAmountWrapper>) results.get("gross_revenue");
             List<BigDecimalAmountWrapper> netRevenue = (List<BigDecimalAmountWrapper>) results.get("net_revenue");
             if (ObjectUtils.isNotEmpty(grossRevenue.get(0)) && ObjectUtils.isNotEmpty(grossRevenue.get(0).getAmount())){
-                log.info("gross revenue value found: "+grossRevenue.get(0).getAmount());
                 revenueStats.setGrossRevenue(grossRevenue.get(0).getAmount());
             } else {
-                log.info("gross revenue value not found, setting to zero");
                 revenueStats.setGrossRevenue(BigDecimal.ZERO);
             }
             if (ObjectUtils.isNotEmpty(netRevenue.get(0)) && ObjectUtils.isNotEmpty(netRevenue.get(0).getAmount())) {
-                log.info("net revenue value found: "+netRevenue.get(0).getAmount());
                 revenueStats.setNetRevenue(netRevenue.get(0).getAmount());
             } else {
-                log.info("net revenue value not found, setting to zero");
                 revenueStats.setNetRevenue(BigDecimal.ZERO);
             }
 
             return revenueStats;
         } else {
-            log.info("NO revenue value not found, setting BOTH to zero");
             revenueStats.setGrossRevenue(BigDecimal.ZERO);
             revenueStats.setNetRevenue(BigDecimal.ZERO);
 

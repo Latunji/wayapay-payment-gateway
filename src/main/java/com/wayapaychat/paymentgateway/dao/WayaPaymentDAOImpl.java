@@ -143,10 +143,10 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             List<BigDecimalCountStatusWrapper> refusalErrorStats = (List<BigDecimalCountStatusWrapper>) results.get("refusal_error_stats");
             List<TransactionPaymentChannelStats> paymentChannelStats = (List<TransactionPaymentChannelStats>) results.get("payment_channel_stats");
 
-            if (grossRevenue.size() > 0){
+            if (ObjectUtils.isNotEmpty(grossRevenue.get(0))){
                 revenueStats.setGrossRevenue(grossRevenue.get(0).getAmount());
             } else revenueStats.setGrossRevenue(BigDecimal.ZERO);
-            if (netRevenue.size() > 0) {
+            if (ObjectUtils.isNotEmpty(netRevenue.get(0))) {
                 revenueStats.setNetRevenue(netRevenue.get(0).getAmount());
             } else revenueStats.setNetRevenue(BigDecimal.ZERO);
             transactionOverviewResponse.setRevenueStats(revenueStats);
@@ -169,7 +169,6 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
             transactionOverviewResponse.setPaymentChannelStats(paymentChannelStats);
 
         }
-        log.info("Result: "+transactionOverviewResponse.toString());
         return transactionOverviewResponse;
     }
 
@@ -190,7 +189,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
     @Override
     @SuppressWarnings(value = "unchecked")
-    public Object getMerchantTransactionGrossAndNetRevenue(final String merchantId) {
+    public TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(final String merchantId) {
         @NotNull final String GROSS_REVENUE_Q = getGrossRevenueQuery(merchantId);
         @NotNull final String NET_REVENUE_Q = getNetRevenueQuery(merchantId);
         @NotNull final String FINAL_Q = GROSS_REVENUE_Q + NET_REVENUE_Q;
@@ -200,7 +199,6 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                 new SqlReturnResultSet("gross_revenue", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
                 new SqlReturnResultSet("net_revenue", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)));
         Map<String, Object> results = jdbcTemplate.call(csc, returnedParams);
-//        return results;
         TransactionRevenueStats revenueStats = TransactionRevenueStats.builder().build();
         if (ObjectUtils.isNotEmpty(results)) {
             List<BigDecimalAmountWrapper> grossRevenue = (List<BigDecimalAmountWrapper>) results.get("gross_revenue");
@@ -218,10 +216,6 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
             return revenueStats;
         } else {
-//            TransRevStats revStats = new TransRevStats();
-//            revStats.setGrossRevenue(0);
-//            revStats.setNetRevenue(0);
-//            return revStats;
 
             revenueStats.setGrossRevenue(BigDecimal.ZERO);
             revenueStats.setNetRevenue(BigDecimal.ZERO);

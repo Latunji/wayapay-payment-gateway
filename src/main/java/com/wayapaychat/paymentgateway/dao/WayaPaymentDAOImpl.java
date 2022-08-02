@@ -190,7 +190,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
     @Override
     @SuppressWarnings(value = "unchecked")
-    public TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(final String merchantId) {
+    public Object getMerchantTransactionGrossAndNetRevenue(final String merchantId) {
         @NotNull final String GROSS_REVENUE_Q = getGrossRevenueQuery(merchantId);
         @NotNull final String NET_REVENUE_Q = getNetRevenueQuery(merchantId);
         @NotNull final String FINAL_Q = GROSS_REVENUE_Q + NET_REVENUE_Q;
@@ -217,10 +217,12 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
             return revenueStats;
         } else {
-            revenueStats.setGrossRevenue(BigDecimal.ZERO);
-            revenueStats.setNetRevenue(BigDecimal.ZERO);
+            TransRevStats revStats = new TransRevStats();
+            revStats.setGrossRevenue(0);
+            revStats.setNetRevenue(0);
+
+            return revStats;
         }
-        return revenueStats;
     }
 
     private String buildYearMonthQuery(String merchantId, Long year, Date startDate, Date endDate) {

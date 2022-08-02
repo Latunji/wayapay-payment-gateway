@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Date;
 import java.util.List;
+import java.util.*;
 
 public interface WayaPaymentDAO {
 
@@ -26,7 +27,7 @@ public interface WayaPaymentDAO {
     List<TransactionYearMonthStats> getMerchantTransactionStatsByYearAndMonth(String merchantId, Long year, Date startDate, Date endDate);
 
     @SuppressWarnings(value = "unchecked")
-    TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(String merchantId);
+    Object getMerchantTransactionGrossAndNetRevenue(String merchantId);
 
     @SuppressWarnings(value = "unchecked")
     List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessTransactions(String merchantId);

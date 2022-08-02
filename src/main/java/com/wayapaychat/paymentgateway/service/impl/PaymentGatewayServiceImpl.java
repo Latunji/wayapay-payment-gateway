@@ -1101,8 +1101,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
-        Object transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse);
-        log.info("Result: "+transactionRevenueStats.toString());
+        TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
     }
 

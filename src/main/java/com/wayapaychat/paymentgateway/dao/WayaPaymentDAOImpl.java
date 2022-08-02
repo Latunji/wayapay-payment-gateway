@@ -200,17 +200,17 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                 new SqlReturnResultSet("gross_revenue", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)),
                 new SqlReturnResultSet("net_revenue", BeanPropertyRowMapper.newInstance(BigDecimalAmountWrapper.class)));
         Map<String, Object> results = jdbcTemplate.call(csc, returnedParams);
-        return results;
-        /*TransactionRevenueStats revenueStats = TransactionRevenueStats.builder().build();
+//        return results;
+        TransactionRevenueStats revenueStats = TransactionRevenueStats.builder().build();
         if (ObjectUtils.isNotEmpty(results)) {
             List<BigDecimalAmountWrapper> grossRevenue = (List<BigDecimalAmountWrapper>) results.get("gross_revenue");
             List<BigDecimalAmountWrapper> netRevenue = (List<BigDecimalAmountWrapper>) results.get("net_revenue");
-            if (ObjectUtils.isNotEmpty(grossRevenue)){
+            if (ObjectUtils.isNotEmpty(grossRevenue.get(0))){
                 revenueStats.setGrossRevenue(grossRevenue.get(0).getAmount());
             } else {
                 revenueStats.setGrossRevenue(BigDecimal.ZERO);
             }
-            if (ObjectUtils.isNotEmpty(netRevenue)) {
+            if (ObjectUtils.isNotEmpty(netRevenue.get(0))) {
                 revenueStats.setNetRevenue(netRevenue.get(0).getAmount());
             } else {
                 revenueStats.setNetRevenue(BigDecimal.ZERO);
@@ -218,12 +218,16 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
             return revenueStats;
         } else {
-            TransRevStats revStats = new TransRevStats();
-            revStats.setGrossRevenue(0);
-            revStats.setNetRevenue(0);
+//            TransRevStats revStats = new TransRevStats();
+//            revStats.setGrossRevenue(0);
+//            revStats.setNetRevenue(0);
+//            return revStats;
 
-            return revStats;
-        } */
+            revenueStats.setGrossRevenue(BigDecimal.ZERO);
+            revenueStats.setNetRevenue(BigDecimal.ZERO);
+
+            return revenueStats;
+        }
     }
 
     private String buildYearMonthQuery(String merchantId, Long year, Date startDate, Date endDate) {

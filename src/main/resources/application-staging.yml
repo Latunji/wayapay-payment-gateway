@@ -27,7 +27,7 @@ spring:
     bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:http://kafka-service:9092}
     groupId: ${KAFKA_GROUP_ID:waya}
     consumer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:http://kafka-service:9092}
       group-id: waya
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer

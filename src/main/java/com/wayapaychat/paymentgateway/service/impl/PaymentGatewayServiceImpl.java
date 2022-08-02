@@ -210,6 +210,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setPreferenceNo(transactionRequestPojo.getPreferenceNo());
             String encryptedMerchantSecretKey = UnifiedPaymentProxy.getDataEncrypt(transactionRequestPojo.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
             payment.setSecretKey(encryptedMerchantSecretKey);
+            payment.setPaymentLinkId(transactionRequestPojo.getPaymentLinkId());
             CardResponse card = new CardResponse();
             String tranId = UUID.randomUUID() + "";
             if (!tranId.isBlank()) {
@@ -1100,7 +1101,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
-        TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse);
+        Object transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse);
         log.info("Result: "+transactionRevenueStats.toString());
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
     }

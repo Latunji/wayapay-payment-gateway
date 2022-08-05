@@ -13,13 +13,13 @@ pipeline {
     }
 
     stages {
-        stage('Security Scan') {
+        /*stage('Security Scan') {
             steps {
                 withSonarQubeEnv('Waya Sonar') {
                     sh 'mvn clean verify sonar:sonar -DskipTests -Dsonar.projectKey=WAYA-PAY-CHAT-2.0-PAYMENT-GATEWAY'
                 }
             }
-        }
+        }*/
 
         stage('build') {
             steps {

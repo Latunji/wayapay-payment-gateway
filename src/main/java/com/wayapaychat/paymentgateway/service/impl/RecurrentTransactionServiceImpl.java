@@ -1,9 +1,9 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
+import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.entity.SandboxRecurrentTransaction;
-import com.wayapaychat.paymentgateway.enumm.TransactionMode;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
@@ -46,7 +46,7 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
         String merchantId = merchantData.getMerchantId();
         String mode = merchantData.getMerchantKeyMode();
         Page<?> result;
-        if (mode == TransactionMode.PRODUCTION.toString()) {
+        if (mode == MerchantTransactionMode.PRODUCTION.toString()) {
             result = recurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
 
         } else {
@@ -62,7 +62,7 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
         MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantId);
         MerchantData merchantData = merchantResponse.getData();
         String mode = merchantData.getMerchantKeyMode();
-        if (mode == TransactionMode.PRODUCTION.toString()) {
+        if (mode == MerchantTransactionMode.PRODUCTION.toString()) {
             return recurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
         } else {
             return sandboxRecurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
@@ -81,7 +81,7 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
         MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantId);
         MerchantData merchantData = merchantResponse.getData();
         String mode = merchantData.getMerchantKeyMode();
-        if (mode == TransactionMode.PRODUCTION.toString()) {
+        if (mode == MerchantTransactionMode.PRODUCTION.toString()) {
             Optional<RecurrentTransaction> optionalRecurrentTransaction = recurrentTransactionRepository.getByRecurrentTransactionId(recurrentTransactionId, merchantId);
             if (optionalRecurrentTransaction.isPresent())
                 return optionalRecurrentTransaction.get();

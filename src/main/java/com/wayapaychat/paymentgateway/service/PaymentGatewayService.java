@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.entity.SandboxPaymentGateway;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
@@ -73,6 +74,8 @@ public interface PaymentGatewayService {
     Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, Pageable pageable);
 
     void updateRecurrentTransaction(@NotNull PaymentGateway paymentGateway);
+
+    void updateSandboxRecurrentTransaction(@NotNull SandboxPaymentGateway paymentGateway);
 
     ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate);
 

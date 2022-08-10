@@ -1167,21 +1167,39 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
     }
 
+    // s-l done
     @Override
     public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests) {
+        // find in live
         PaymentGateway payment = paymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
-        if (payment == null)
-            return ResponseEntity.badRequest().body("Ooops! TRANSACTION DOES NOT EXIST... FAILED TO COMPLETE TRANSACTION.");
-        preprocessTransactionStatus(payment);
-        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
+        if (payment != null) {
+            preprocessTransactionStatus(payment);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
+        }
+        // find in sandbox
+        SandboxPaymentGateway sandboxPayment = sandboxPaymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
+        if (sandboxPayment != null) {
+            preprocessSandboxTransactionStatus(sandboxPayment);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
+        }
+
+        return ResponseEntity.badRequest().body("Ooops! TRANSACTION DOES NOT EXIST... FAILED TO COMPLETE TRANSACTION.");
     }
 
+    // s-l done
     @Override
     public ResponseEntity<?> updatePaymentStatus(String refNo) {
-        PaymentGateway payment = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
-        if (payment == null)
-            return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
-        preprocessTransactionStatus(payment);
+        if(refNo.startsWith("7263269")) {
+            SandboxPaymentGateway sandboxPayment = sandboxPaymentGatewayRepo.findByRefNo(refNo).orElse(null);
+            if (sandboxPayment == null)
+                return ResponseEntity.badRequest().body("UNKNOWN SANDBOX PAYMENT TRANSACTION STATUS");
+            preprocessSandboxTransactionStatus(sandboxPayment);
+        } else {
+            PaymentGateway payment = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
+            if (payment == null)
+                return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
+            preprocessTransactionStatus(payment);
+        }
         return ResponseEntity.ok().body("Transaction status updated successful");
     }
 
@@ -1210,6 +1228,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return result;
     }
 
+    // s-l done SANDBOX Counterpart: preprocessSandboxTransactionStatus()
     private void preprocessTransactionStatus(PaymentGateway payment) {
         try {
             WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
@@ -1240,6 +1259,38 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
     }
 
+    // s-l done
+    private void preprocessSandboxTransactionStatus(SandboxPaymentGateway payment) {
+        try {
+            WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
+            log.info("-----UNIFIED PAYMENT RESPONSE {}----------", response);
+            if (ObjectUtils.isNotEmpty(response)) {
+                if (ObjectUtils.isNotEmpty(response.getStatus()) && response.getStatus().toUpperCase().equals(TStatus.APPROVED.name())) {
+                    payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL);
+                    payment.setSuccessfailure(true);
+                    payment.setTranId(response.getOrderId());
+                    payment.setProcessingFee(new BigDecimal(response.getConvenienceFee()));
+                    if (payment.getIsFromRecurrentPayment()) {
+                        updateSandboxRecurrentTransaction(payment);
+                    }
+                } else {
+                    com.wayapaychat.paymentgateway.enumm.TransactionStatus transactionStatus = Arrays.stream(com.wayapaychat.paymentgateway.enumm.TransactionStatus.values()).map(Enum::name)
+                            .collect(Collectors.toList())
+                            .contains(response.getStatus().toUpperCase()) ? com.wayapaychat.paymentgateway.enumm.TransactionStatus.valueOf(response.getStatus().toUpperCase()) : com.wayapaychat.paymentgateway.enumm.TransactionStatus.FAILED;
+                    payment.setStatus(transactionStatus);
+                    payment.setSuccessfailure(false);
+                    payment.setTranId(response.getOrderId());
+                }
+                sandboxPaymentGatewayRepo.save(payment);
+            }
+        } catch (Exception e) {
+            log.error("------||||SYSTEM ERROR||||-------", e);
+            payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.FAILED);
+            sandboxPaymentGatewayRepo.save(payment);
+        }
+    }
+
+    // s-l done SANDBOX Counterpart: updateSandboxRecurrentTransaction()
     @Override
     public void updateRecurrentTransaction(@NotNull final PaymentGateway paymentGateway) {
         if (paymentGateway.getStatus() == com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL) {
@@ -1261,6 +1312,55 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
                         date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
                 recurrentTransactionRepository.save(foundRecurrentTransaction);
+
+                SubscriptionEventPayload subscriptionEventPayload = SubscriptionEventPayload.builder()
+                        .planId(foundRecurrentTransaction.getPlanId())
+                        .merchantId(foundRecurrentTransaction.getMerchantId())
+                        .customerSubscriptionId(foundRecurrentTransaction.getCustomerSubscriptionId())
+                        .paymentLinkId(foundRecurrentTransaction.getPaymentLinkId())
+                        .amountPaid(paymentGateway.getAmount())
+                        .currencyCode(paymentGateway.getCurrencyCode())
+                        .maxCount(foundRecurrentTransaction.getMaxChargeCount())
+                        .currentCount(foundRecurrentTransaction.getTotalChargeCount())
+                        .status(foundRecurrentTransaction.getStatus())
+                        .nextChargeDate(foundRecurrentTransaction.getNextChargeDate())
+                        .paymentDate(paymentGateway.getVendorDate())
+                        .unsubscribed(false)
+                        .paymentLinkType(foundRecurrentTransaction.getPaymentLinkType())
+                        .build();
+
+                ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
+                        .data(subscriptionEventPayload)
+                        .eventCategory(EventType.CUSTOMER_SUBSCRIPTION)
+                        .build();
+
+                messageQueueProducer.send("merchant", producerMessageDto);
+            }
+        }
+    }
+
+    // s-l done
+    @Override
+    public void updateSandboxRecurrentTransaction(@NotNull final SandboxPaymentGateway paymentGateway) {
+        if (paymentGateway.getStatus() == com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL) {
+            Optional<SandboxRecurrentTransaction> optionalRecurrentTransaction = sandboxRecurrentTransactionRepository.getByTransactionRef(paymentGateway.getRefNo());
+            if (optionalRecurrentTransaction.isPresent()) {
+                LocalDateTime date = LocalDateTime.now();
+                SandboxRecurrentTransaction foundRecurrentTransaction = optionalRecurrentTransaction.get();
+                LocalDateTime chargeDateAfterFirstPayment = foundRecurrentTransaction.getNextChargeDateAfterFirstPayment();
+                if (foundRecurrentTransaction.getTotalChargeCount() == 0)
+                    foundRecurrentTransaction.setFirstPaymentDate(date);
+                Integer totalChargeCount = foundRecurrentTransaction.getTotalChargeCount() + 1;
+                foundRecurrentTransaction.setModifiedBy(0L);
+                foundRecurrentTransaction.setDateModified(date);
+                foundRecurrentTransaction.setActive(true);
+                foundRecurrentTransaction.setStatus(RecurrentPaymentStatus.ACTIVE_RENEWING);
+                foundRecurrentTransaction.setLastChargeDate(date);
+                foundRecurrentTransaction.setUpSessionId(paymentGateway.getSessionId());
+                foundRecurrentTransaction.setTotalChargeCount(totalChargeCount);
+                foundRecurrentTransaction.setNextChargeDate(ObjectUtils.isEmpty(chargeDateAfterFirstPayment) ?
+                        date.plusDays(foundRecurrentTransaction.getInterval()) : chargeDateAfterFirstPayment);
+                sandboxRecurrentTransactionRepository.save(foundRecurrentTransaction);
 
                 SubscriptionEventPayload subscriptionEventPayload = SubscriptionEventPayload.builder()
                         .planId(foundRecurrentTransaction.getPlanId())

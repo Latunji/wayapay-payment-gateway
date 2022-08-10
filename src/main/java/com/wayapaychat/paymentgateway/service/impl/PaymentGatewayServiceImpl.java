@@ -9,10 +9,7 @@ import com.wayapaychat.paymentgateway.common.enums.RecurrentPaymentStatus;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAOImpl;
-import com.wayapaychat.paymentgateway.entity.PaymentGateway;
-import com.wayapaychat.paymentgateway.entity.PaymentWallet;
-import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
-import com.wayapaychat.paymentgateway.entity.SandboxPaymentGateway;
+import com.wayapaychat.paymentgateway.entity.*;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.*;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
@@ -35,10 +32,7 @@ import com.wayapaychat.paymentgateway.proxy.ISettlementProductPricingProxy;
 import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.proxy.pojo.MerchantProductPricingQuery;
-import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
-import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
-import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
-import com.wayapaychat.paymentgateway.repository.SandboxPaymentGatewayRepository;
+import com.wayapaychat.paymentgateway.repository.*;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -102,6 +96,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private PaymentWalletRepository paymentWalletRepo;
     @Autowired
     private RecurrentTransactionRepository recurrentTransactionRepository;
+    @Autowired
+    private SandboxRecurrentTransactionRepository sandboxRecurrentTransactionRepository;
     @Value("${service.name}")
     private String username;
     @Value("${service.pass}")
@@ -274,14 +270,25 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return response;
     }
 
+    // s-l done
     @Override
-    public void preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway) {
+    public void preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, Object paymentGatewayData, String mode) {
         //TODO: UP For pay attitude, These fields are not present to tell when the
         // The recurring payment should happen
         // frequency , OrderExpirationPeriod
         @NotNull final String ORDER_TYPE = "Purchase";
         @NotNull final String DATE_SEPARATOR = "/";
         @NotNull final String PAY_ATTITUDE = "PayAttitude";
+        String customerId;
+        PaymentGateway paymentGateway = new PaymentGateway();
+        SandboxPaymentGateway sandboxPaymentGateway = new SandboxPaymentGateway();
+        if (mode == MerchantTransactionMode.PRODUCTION.toString()){
+            modelMapper.map(paymentGatewayData, paymentGateway);
+            customerId = paymentGateway.getCustomerId();
+        } else {
+            modelMapper.map(paymentGatewayData, sandboxPaymentGateway);
+            customerId = sandboxPaymentGateway.getCustomerId();
+        }
         PaymentLinkResponse paymentLinkResponse = identManager.getPaymentLinkDetailsById(paymentGateWayCommonUtils.getDaemonAuthToken(), card.getPaymentLinkId()).getData();
         cardRequest.setRecurring(true);
 
@@ -291,8 +298,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             throw new ApplicationException(403, "01", "Payment link does not have interval type. " +
                     "Kindly provide one with recurrent interval to charge customer");
         } else if (paymentLinkResponse.getPaymentLinkType() == PaymentLinkType.CUSTOMER_SUBSCRIPTION_PAYMENT_LINK &&
-                !Objects.equals(paymentGateway.getCustomerId(), paymentLinkResponse.getBelongsToCustomerId())) {
-            throw new ApplicationException(403, "01", String.format("Payment link does not belong to this customer %s", paymentGateway.getCustomerId()) +
+                !Objects.equals(customerId, paymentLinkResponse.getBelongsToCustomerId())) {
+            throw new ApplicationException(403, "01", String.format("Payment link does not belong to this customer %s", customerId) +
                     "Kindly provide one with recurrent interval to charge customer");
         } else if (paymentLinkResponse.getLinkCanExpire() && ObjectUtils.isNotEmpty(paymentLinkResponse.getExpiryDate())) {
             if (paymentLinkResponse.getExpiryDate().isAfter(LocalDateTime.now())) {
@@ -300,50 +307,97 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
         }
 
-        Optional<RecurrentTransaction> optionalRecurrentPayment = recurrentTransactionRepository.getByTransactionRef(paymentGateway.getRefNo());
-        RecurrentTransaction recurrentTransaction = null;
-        if (optionalRecurrentPayment.isPresent()) {
-            recurrentTransaction = optionalRecurrentPayment.get();
-            if (recurrentTransaction.getActive())
-                throw new ApplicationException(403, "01", "Recurrent payment still active. Payment can't be processed");
-            if (ObjectUtils.isNotEmpty(recurrentTransaction.getNextChargeDate()) && recurrentTransaction.getNextChargeDate().isBefore(LocalDateTime.now()))
-                throw new ApplicationException(403, "01", "Recurrent payment has not yet expired.");
-            else {
-                recurrentTransaction.setCurrentTransactionRefNo(paymentGateway.getRefNo());
-                recurrentTransaction.setDateModified(LocalDateTime.now());
-                recurrentTransaction.setModifiedBy(0L);
-                preprocessCardRequest(paymentLinkResponse, cardRequest);
-                return;
+        if (mode == MerchantTransactionMode.PRODUCTION.toString()) {
+            Optional<RecurrentTransaction> optionalRecurrentPayment = recurrentTransactionRepository.getByTransactionRef(paymentGateway.getRefNo());
+            RecurrentTransaction recurrentTransaction = null;
+            if (optionalRecurrentPayment.isPresent()) {
+                recurrentTransaction = optionalRecurrentPayment.get();
+                if (recurrentTransaction.getActive())
+                    throw new ApplicationException(403, "01", "Recurrent payment still active. Payment can't be processed");
+                if (ObjectUtils.isNotEmpty(recurrentTransaction.getNextChargeDate()) && recurrentTransaction.getNextChargeDate().isBefore(LocalDateTime.now()))
+                    throw new ApplicationException(403, "01", "Recurrent payment has not yet expired.");
+                else {
+                    recurrentTransaction.setCurrentTransactionRefNo(paymentGateway.getRefNo());
+                    recurrentTransaction.setDateModified(LocalDateTime.now());
+                    recurrentTransaction.setModifiedBy(0L);
+                    preprocessCardRequest(paymentLinkResponse, cardRequest);
+                    return;
+                }
             }
-        }
 
-        recurrentTransaction = RecurrentTransaction.
-                builder()
-                .active(false)
-                .paymentLinkId(paymentLinkResponse.getPaymentLinkId())
-                .paymentLinkType(paymentLinkResponse.getPaymentLinkType())
-                .intervalType(paymentLinkResponse.getIntervalType())
-                .interval(paymentLinkResponse.getInterval())
-                .recurrentAmount(paymentLinkResponse.getPayableAmount())
-                .nextChargeDate(LocalDateTime.now().plusDays(paymentLinkResponse.getInterval()))
-                .customerId(paymentGateway.getCustomerId())
-                .customerSubscriptionId(paymentLinkResponse.getCustomerSubscriptionId())
-                .maxChargeCount(paymentLinkResponse.getTotalCount())
-                .merchantId(paymentGateway.getMerchantId())
-                .currentTransactionRefNo(paymentGateway.getRefNo())
-                .planId(paymentLinkResponse.getPlanId())
-                .nextChargeDateAfterFirstPayment(paymentLinkResponse.getStartDateAfterFirstPayment())
-                .build();
+            recurrentTransaction = RecurrentTransaction.
+                    builder()
+                    .active(false)
+                    .paymentLinkId(paymentLinkResponse.getPaymentLinkId())
+                    .paymentLinkType(paymentLinkResponse.getPaymentLinkType())
+                    .intervalType(paymentLinkResponse.getIntervalType())
+                    .interval(paymentLinkResponse.getInterval())
+                    .recurrentAmount(paymentLinkResponse.getPayableAmount())
+                    .nextChargeDate(LocalDateTime.now().plusDays(paymentLinkResponse.getInterval()))
+                    .customerId(paymentGateway.getCustomerId())
+                    .customerSubscriptionId(paymentLinkResponse.getCustomerSubscriptionId())
+                    .maxChargeCount(paymentLinkResponse.getTotalCount())
+                    .merchantId(paymentGateway.getMerchantId())
+                    .currentTransactionRefNo(paymentGateway.getRefNo())
+                    .planId(paymentLinkResponse.getPlanId())
+                    .nextChargeDateAfterFirstPayment(paymentLinkResponse.getStartDateAfterFirstPayment())
+                    .build();
 
-        if (card.getScheme().equals(PAY_ATTITUDE)) {
+            if (card.getScheme().equals(PAY_ATTITUDE)) {
 //            cardRequest.setCount(0);
 //            cardRequest.setOrderType(ORDER_TYPE);
+            }
+            preprocessCardRequest(paymentLinkResponse, cardRequest);
+            recurrentTransaction = recurrentTransactionRepository.save(recurrentTransaction);
+            paymentGateway.setRecurrentPaymentId(recurrentTransaction.getId());
+            paymentGateway.setPaymentLinkId(recurrentTransaction.getPaymentLinkId());
+            paymentGateway.setIsFromRecurrentPayment(true);
+        } else {
+            Optional<SandboxRecurrentTransaction> optionalSandboxRecurrentPayment = sandboxRecurrentTransactionRepository.getByTransactionRef(sandboxPaymentGateway.getRefNo());
+            SandboxRecurrentTransaction sandboxRecurrentTransaction = null;
+            if (optionalSandboxRecurrentPayment.isPresent()) {
+                sandboxRecurrentTransaction = optionalSandboxRecurrentPayment.get();
+                if (sandboxRecurrentTransaction.getActive())
+                    throw new ApplicationException(403, "01", "Recurrent payment still active. Payment can't be processed");
+                if (ObjectUtils.isNotEmpty(sandboxRecurrentTransaction.getNextChargeDate()) && sandboxRecurrentTransaction.getNextChargeDate().isBefore(LocalDateTime.now()))
+                    throw new ApplicationException(403, "01", "Recurrent payment has not yet expired.");
+                else {
+                    sandboxRecurrentTransaction.setCurrentTransactionRefNo(sandboxPaymentGateway.getRefNo());
+                    sandboxRecurrentTransaction.setDateModified(LocalDateTime.now());
+                    sandboxRecurrentTransaction.setModifiedBy(0L);
+                    preprocessCardRequest(paymentLinkResponse, cardRequest);
+                    return;
+                }
+            }
+
+            sandboxRecurrentTransaction = SandboxRecurrentTransaction.
+                    builder()
+                    .active(false)
+                    .paymentLinkId(paymentLinkResponse.getPaymentLinkId())
+                    .paymentLinkType(paymentLinkResponse.getPaymentLinkType())
+                    .intervalType(paymentLinkResponse.getIntervalType())
+                    .interval(paymentLinkResponse.getInterval())
+                    .recurrentAmount(paymentLinkResponse.getPayableAmount())
+                    .nextChargeDate(LocalDateTime.now().plusDays(paymentLinkResponse.getInterval()))
+                    .customerId(sandboxPaymentGateway.getCustomerId())
+                    .customerSubscriptionId(paymentLinkResponse.getCustomerSubscriptionId())
+                    .maxChargeCount(paymentLinkResponse.getTotalCount())
+                    .merchantId(sandboxPaymentGateway.getMerchantId())
+                    .currentTransactionRefNo(sandboxPaymentGateway.getRefNo())
+                    .planId(paymentLinkResponse.getPlanId())
+                    .nextChargeDateAfterFirstPayment(paymentLinkResponse.getStartDateAfterFirstPayment())
+                    .build();
+
+            if (card.getScheme().equals(PAY_ATTITUDE)) {
+//            cardRequest.setCount(0);
+//            cardRequest.setOrderType(ORDER_TYPE);
+            }
+            preprocessCardRequest(paymentLinkResponse, cardRequest);
+            sandboxRecurrentTransaction = sandboxRecurrentTransactionRepository.save(sandboxRecurrentTransaction);
+            sandboxPaymentGateway.setRecurrentPaymentId(sandboxRecurrentTransaction.getId());
+            sandboxPaymentGateway.setPaymentLinkId(sandboxRecurrentTransaction.getPaymentLinkId());
+            sandboxPaymentGateway.setIsFromRecurrentPayment(true);
         }
-        preprocessCardRequest(paymentLinkResponse, cardRequest);
-        recurrentTransaction = recurrentTransactionRepository.save(recurrentTransaction);
-        paymentGateway.setRecurrentPaymentId(recurrentTransaction.getId());
-        paymentGateway.setPaymentLinkId(recurrentTransaction.getPaymentLinkId());
-        paymentGateway.setIsFromRecurrentPayment(true);
     }
 
     private void preprocessCardRequest(PaymentLinkResponse paymentLinkResponse, UnifiedCardRequest cardRequest) {
@@ -368,31 +422,49 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) throws JsonProcessingException {
         UnifiedCardRequest upCardPaymentRequest = new UnifiedCardRequest();
-        String mode;
+        RecurrentTransaction recurrentTransaction;
+
         if (card.getTranId().startsWith("7263269")) {
             // process as test payment
-            mode = MerchantTransactionMode.TEST.toString();
+            Optional<SandboxPaymentGateway> optionalSandboxPaymentGateway = sandboxPaymentGatewayRepo.findByRefNo(card.getTranId());
+            if (optionalSandboxPaymentGateway.isEmpty())
+                return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
+
+            SandboxPaymentGateway sandboxPaymentGateway = optionalSandboxPaymentGateway.get();
+            if (sandboxPaymentGateway.getTransactionExpired()) {
+                if (!(sandboxPaymentGateway.getStatus() == TransactionStatus.ABANDONED)) {
+                    sandboxPaymentGateway.setStatus(TransactionStatus.ABANDONED);
+                    CompletableFuture.runAsync(() -> sandboxPaymentGatewayRepo.save(sandboxPaymentGateway));
+                }
+                throw new ApplicationException(400, "01", String.format("Oops! Transaction with transaction reference %s has expired!", sandboxPaymentGateway.getRefNo()));
+            } else if (card.isRecurrentPayment()) {
+                if (ObjectUtils.isEmpty(card.getPaymentLinkId()))
+                    throw new ApplicationException(400, "01", "Recurrent payment link Id is required");
+                preprocessRecurrentPayment(upCardPaymentRequest, card, sandboxPaymentGateway, MerchantTransactionMode.TEST.toString());
+            } else if (paymentGateway.getStatus() == com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL)
+                return new ResponseEntity<>(new ErrorResponse("Transaction already successful"), HttpStatus.FORBIDDEN);
+
         } else {
             // process as live payment
-            mode = MerchantTransactionMode.PRODUCTION.toString();
+            Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTranId());
+            if (optionalPaymentGateway.isEmpty())
+                return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
+
+            PaymentGateway paymentGateway = optionalPaymentGateway.get();
+            if (paymentGateway.getTransactionExpired()) {
+                if (!(paymentGateway.getStatus() == TransactionStatus.ABANDONED)) {
+                    paymentGateway.setStatus(TransactionStatus.ABANDONED);
+                    CompletableFuture.runAsync(() -> paymentGatewayRepo.save(paymentGateway));
+                }
+                throw new ApplicationException(400, "01", String.format("Oops! Transaction with transaction reference %s has expired!", paymentGateway.getRefNo()));
+            } else if (card.isRecurrentPayment()) {
+                if (ObjectUtils.isEmpty(card.getPaymentLinkId()))
+                    throw new ApplicationException(400, "01", "Recurrent payment link Id is required");
+                preprocessRecurrentPayment(upCardPaymentRequest, card, paymentGateway, MerchantTransactionMode.PRODUCTION.toString());
+            } else if (paymentGateway.getStatus() == com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL)
+                return new ResponseEntity<>(new ErrorResponse("Transaction already successful"), HttpStatus.FORBIDDEN);
         }
-        Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTranId());
-        RecurrentTransaction recurrentTransaction;
-        if (optionalPaymentGateway.isEmpty())
-            return new ResponseEntity<>(new ErrorResponse("Transaction does not exists"), HttpStatus.BAD_REQUEST);
-        PaymentGateway paymentGateway = optionalPaymentGateway.get();
-        if (paymentGateway.getTransactionExpired()) {
-            if (!(paymentGateway.getStatus() == TransactionStatus.ABANDONED)) {
-                paymentGateway.setStatus(TransactionStatus.ABANDONED);
-                CompletableFuture.runAsync(() -> paymentGatewayRepo.save(paymentGateway));
-            }
-            throw new ApplicationException(400, "01", String.format("Oops! Transaction with transaction reference %s has expired!", paymentGateway.getRefNo()));
-        } else if (card.isRecurrentPayment()) {
-            if (ObjectUtils.isEmpty(card.getPaymentLinkId()))
-                throw new ApplicationException(400, "01", "Recurrent payment link Id is required");
-            preprocessRecurrentPayment(upCardPaymentRequest, card, paymentGateway);
-        } else if (paymentGateway.getStatus() == com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL)
-            return new ResponseEntity<>(new ErrorResponse("Transaction already successful"), HttpStatus.FORBIDDEN);
+
         upCardPaymentRequest.setScheme(card.getScheme());
         upCardPaymentRequest.setExpiry(card.getExpiry());
         upCardPaymentRequest.setCardHolder(card.getCardholder());

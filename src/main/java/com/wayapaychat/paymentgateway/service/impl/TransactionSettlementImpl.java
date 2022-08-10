@@ -7,7 +7,10 @@ import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.SuccessResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementsResponse;
+import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.TransactionSettlementRepository;
 import com.wayapaychat.paymentgateway.service.TransactionSettlementService;
@@ -26,13 +29,19 @@ import org.springframework.stereotype.Service;
 public class TransactionSettlementImpl implements TransactionSettlementService {
     private TransactionSettlementRepository transactionSettlementRepository;
     private PaymentGatewayRepository paymentGatewayRepository;
+    private final IdentityManagementServiceProxy identityManagementServiceProxy;
+    private final PaymentGateWayCommonUtils paymentGateWayCommonUtils;
     private TransactionSettlementDAO transactionSettlementDAO;
     private WayaPaymentDAO wayaPaymentDAO;
 
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantSettlementStats(String merchantId) {
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,false);
-        TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse);
+        String token = paymentGateWayCommonUtils.getDaemonAuthToken();
+        MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantId);
+        MerchantData merchantData = merchantResponse.getData();
+        String mode = merchantData.getMerchantKeyMode();
+        TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse, mode);
         return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
     }
 

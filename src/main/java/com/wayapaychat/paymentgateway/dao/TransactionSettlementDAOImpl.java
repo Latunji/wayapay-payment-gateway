@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.dao;
 
 
+import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
 import com.wayapaychat.paymentgateway.mapper.SettlementWrapper;
@@ -29,13 +30,21 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
 
     @SuppressWarnings("unchecked")
     @Override
-    public TransactionSettlementsResponse merchantTransactionSettlementStats(String merchantId) {
+    public TransactionSettlementsResponse merchantTransactionSettlementStats(String merchantId, String mode) {
+        String pg_tbl, ts_tbl;
+        if (mode == MerchantTransactionMode.PRODUCTION.toString()){
+            pg_tbl = "m_payment_gateway";
+            ts_tbl = "m_transaction_settlement";
+        } else {
+            pg_tbl = "m_sandbox_payment_gateway";
+            ts_tbl = "m_sandbox_transaction_settlement";
+        }
         @NotNull String MER_Q = ObjectUtils.isEmpty(merchantId) ? " merchant_id IS NOT NULL " : String.format(" merchant_id = '%s' ", merchantId);
-        @NotNull final String MERCHANT_SETTLEMENT_STATS_Q = String.format("SELECT COUNT(settlement_status), settlement_status as status FROM m_payment_gateway WHERE %s GROUP BY settlement_status;", MER_Q);
+        @NotNull final String MERCHANT_SETTLEMENT_STATS_Q = String.format("SELECT COUNT(settlement_status), settlement_status as status FROM %s WHERE %s GROUP BY settlement_status;", pg_tbl, MER_Q);
         @NotNull final String LATEST_SETTLEMENT = getLatestSettlementQuery(merchantId);
         @NotNull final String NEXT_SETTLEMENT = getNextSettlementQuery(merchantId);
-        @NotNull final String NET_SETTLED_TRANSACTIONS = getNetSettledTransactionQuery(merchantId);
-        @NotNull final String FAILED_NET_SETTLEMENT_TRANSACTIONS = String.format("SELECT SUM(settlement_net_amount) as amount FROM m_transaction_settlement WHERE %s AND settlement_status='FAILED';", MER_Q);
+        @NotNull final String NET_SETTLED_TRANSACTIONS = getNetSettledTransactionQuery(merchantId, mode);
+        @NotNull final String FAILED_NET_SETTLEMENT_TRANSACTIONS = String.format("SELECT SUM(settlement_net_amount) as amount FROM %s WHERE %s AND settlement_status='FAILED';", ts_tbl, MER_Q);
         @NotNull final String FINAL_Q = MERCHANT_SETTLEMENT_STATS_Q + LATEST_SETTLEMENT + NEXT_SETTLEMENT + NET_SETTLED_TRANSACTIONS + FAILED_NET_SETTLEMENT_TRANSACTIONS;
         var csf = new CallableStatementCreatorFactory(FINAL_Q);
         var csc = csf.newCallableStatementCreator(new HashMap<>());
@@ -89,10 +98,15 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
         return transactionSettlementsResponse;
     }
 
-    private String getNetSettledTransactionQuery(String merchantId) {
+    private String getNetSettledTransactionQuery(String merchantId, String mode) {
+        String ts_tbl;
+        if (mode == MerchantTransactionMode.PRODUCTION.toString()){
+            ts_tbl = "m_transaction_settlement";
+        } else {
+            ts_tbl = "m_sandbox_transaction_settlement";
+        }
         @NotNull String MER_Q = ObjectUtils.isEmpty(merchantId) ? " merchant_id IS NOT NULL " : " merchant_id = '%s' ";
-        @NotNull final String LATEST_SETTLEMENT_Q = String.format(String.format("SELECT SUM(settlement_net_amount) as amount FROM m_transaction_settlement WHERE %s ", MER_Q) +
-                "AND settlement_status='SETTLED'; ", merchantId);
+        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT SUM(settlement_net_amount) as amount FROM %s WHERE %s AND settlement_status='SETTLED'; ", ts_tbl, MER_Q, merchantId);
         return LATEST_SETTLEMENT_Q;
     }
 

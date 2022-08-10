@@ -122,10 +122,13 @@ public class CronService {
         }
     }
 
+    // s-l done
     @Scheduled(cron = "* */30 * * * *")
     @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void expireTransactionAfterThirtyMinutes() {
-        wayaPaymentDAO.expireAllTransactionLessThan30Mins();
+        log.info("------||| expiring transactions that have stayed more than 30min NOW |||-------");
+        wayaPaymentDAO.expireAllTransactionMoreThan30Mins();
+        log.info("------||| transactions that have stayed more than 30min have all EXPIRED on live and sandbox |||-------");
     }
 
     @Scheduled(cron = "* */30 * * * *")

@@ -35,7 +35,8 @@ public interface WayaPaymentDAO {
     List<PaymentGateway> getAllTransactionsByRefNo(String delimiterRefNo);
 
     @SuppressWarnings(value = "unchecked")
-    Page<TransactionSettlementPojo> getAllTransactionSettlement(SettlementQueryPojo settlementQueryPojo,String merchantId, Pageable pageable);
+    Page<TransactionSettlementPojo> getAllTransactionSettlement(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable pageable);
 
-    void expireAllTransactionLessThan30Mins();
+    // s-l done
+    void expireAllTransactionMoreThan30Mins();
 }

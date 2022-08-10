@@ -21,7 +21,6 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-
 @EntityListeners(value = PaymemtGatewayEntityListener.class)
 @Builder
 @Entity
@@ -30,9 +29,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table(name = "m_payment_gateway")
+@Table(name = "m_sandbox_payment_gateway")
 @TypeDef(typeClass = JsonBinaryType.class, name = "JSONB")
-public class PaymentGateway {
+public class SandboxPaymentGateway {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(unique = true, nullable = false)

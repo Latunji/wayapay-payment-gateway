@@ -11,11 +11,13 @@ import org.springframework.http.ResponseEntity;
 public interface RecurrentTransactionService {
     ResponseEntity<PaymentGatewayResponse> filterSearchRecurrentTransaction(QueryRecurrentTransactionPojo queryRecurrentTransactionPojo, Pageable pageable);
 
+    // s-l done
     ResponseEntity<PaymentGatewayResponse> fetchCustomerTransaction(String customerId, Pageable pageable);
 
-    Page<RecurrentTransaction> getCustomerRecurrentTransactions(String merchantId, String customerId, Pageable pageable);
+    // s-l done
+    Page<?> getCustomerRecurrentTransactions(String merchantId, String customerId, Pageable pageable);
 
     ResponseEntity<PaymentGatewayResponse> getCustomerRecurrentTransaction(String merchantId, String customerId, Pageable pageable);
 
-    RecurrentTransaction getCustomerRecurrentTransactionById(String recurrentTransactionId, String merchantId);
+    Object getCustomerRecurrentTransactionById(String recurrentTransactionId, String merchantId);
 }

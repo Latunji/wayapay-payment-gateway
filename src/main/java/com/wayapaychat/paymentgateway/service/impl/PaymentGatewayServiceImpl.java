@@ -199,14 +199,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             CardResponse card = new CardResponse();
             String tranId = UUID.randomUUID() + "";
             if (!tranId.isBlank()) {
-                card.setTranId((sMerchant.getMerchantKeyMode() == MerchantTransactionMode.PRODUCTION.toString()) ? strLong : "7263269"+strLong);
+                card.setTranId(sMerchant.getMerchantKeyMode().equals(MerchantTransactionMode.PRODUCTION.toString()) ? strLong : "7263269"+strLong);
                 card.setName(profile.getData().getOtherDetails().getOrganisationName());
                 card.setCustomerId(merchantCustomer.getData().getCustomerId());
                 card.setCustomerAvoid(merchantCustomer.getData().isCustomerAvoided());
                 response = new PaymentGatewayResponse(true, "Success Transaction", card);
             }
 
-            if (sMerchant.getMerchantKeyMode() == MerchantTransactionMode.PRODUCTION.toString()) {
+            if (sMerchant.getMerchantKeyMode().equals(MerchantTransactionMode.PRODUCTION.toString())) {
+                log.error("============================= PRODUCTION PAYMENT =================================");
                 PaymentGateway payment = new PaymentGateway();
                 payment.setRefNo(strLong);
                 payment.setMerchantId(transactionRequestPojo.getMerchantId());
@@ -236,6 +237,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 paymentGatewayRepo.save(payment);
             }
             else {
+                log.error("============================= SANDBOX PAYMENT =================================");
                 SandboxPaymentGateway sandboxPayment = new SandboxPaymentGateway();
                 sandboxPayment.setRefNo("7263269"+strLong);
                 sandboxPayment.setMerchantId(transactionRequestPojo.getMerchantId());
@@ -1106,20 +1108,34 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
     }
 
+    // s-l done
     @Override
     public ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo) {
         PaymentGateway mPay = null;
+        SandboxPaymentGateway msPay = null;
+        TransactionStatusResponse response = null;
         try {
-            mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
+            if(refNo.startsWith("7263269")){ // sandbox payment
+                msPay = sandboxPaymentGatewayRepo.findByRefNo(refNo).orElse(null);
+                if (msPay == null)
+                    return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH SANDBOX TRANSACTION"), HttpStatus.BAD_REQUEST);
+                Customer customer = new Customer(msPay.getCustomerName(), msPay.getCustomerEmail(), msPay.getCustomerPhone(), msPay.getCustomerId());
+                response = new TransactionStatusResponse(msPay.getPreferenceNo(), msPay.getAmount(), msPay.getDescription(),
+                        msPay.getFee(), msPay.getCurrencyCode(), msPay.getStatus().name(), msPay.getChannel().name(),
+                        msPay.getMerchantName(), customer, msPay.getMerchantId(), msPay.getTranDate());
+            }
+            else { // live payment
+                mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
+                if (mPay == null)
+                    return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH LIVE TRANSACTION"), HttpStatus.BAD_REQUEST);
+                Customer customer = new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId());
+                response = new TransactionStatusResponse(mPay.getPreferenceNo(), mPay.getAmount(), mPay.getDescription(),
+                        mPay.getFee(), mPay.getCurrencyCode(), mPay.getStatus().name(), mPay.getChannel().name(),
+                        mPay.getMerchantName(), customer, mPay.getMerchantId(), mPay.getTranDate());
+            }
         } catch (Exception e) {
             log.info("---------||||ERROR||||---------", e);
         }
-        if (mPay == null)
-            return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        Customer customer = new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId());
-        TransactionStatusResponse response = new TransactionStatusResponse(mPay.getPreferenceNo(), mPay.getAmount(), mPay.getDescription(),
-                mPay.getFee(), mPay.getCurrencyCode(), mPay.getStatus().name(), mPay.getChannel().name(),
-                mPay.getMerchantName(), customer, mPay.getMerchantId(), mPay.getTranDate());
         return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
     }
 

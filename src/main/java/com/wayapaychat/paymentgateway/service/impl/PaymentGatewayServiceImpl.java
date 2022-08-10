@@ -169,7 +169,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
 
             // validate the provided merchant key
-            if (sMerchant.getMerchantKeyMode() == MerchantTransactionMode.TEST.toString()) {
+            log.info("Merchant KEY MODE: " + sMerchant.getMerchantKeyMode());
+            if (sMerchant.getMerchantKeyMode().equals(MerchantTransactionMode.TEST.toString())) {
                 if (!transactionRequestPojo.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
                     return new PaymentGatewayResponse(false, "Invalid merchant test key", null);
                 }

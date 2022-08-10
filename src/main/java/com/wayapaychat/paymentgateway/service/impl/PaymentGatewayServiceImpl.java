@@ -199,7 +199,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             CardResponse card = new CardResponse();
             String tranId = UUID.randomUUID() + "";
             if (!tranId.isBlank()) {
-                card.setTranId(strLong);
+                card.setTranId((sMerchant.getMerchantKeyMode() == MerchantTransactionMode.PRODUCTION.toString()) ? strLong : "7263269"+strLong);
                 card.setName(profile.getData().getOtherDetails().getOrganisationName());
                 card.setCustomerId(merchantCustomer.getData().getCustomerId());
                 card.setCustomerAvoid(merchantCustomer.getData().isCustomerAvoided());
@@ -234,7 +234,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setRcre_time(LocalDateTime.now());
                 payment.setVendorDate(LocalDateTime.now());
                 paymentGatewayRepo.save(payment);
-            } else {
+            }
+            else {
                 SandboxPaymentGateway sandboxPayment = new SandboxPaymentGateway();
                 sandboxPayment.setRefNo("7263269"+strLong);
                 sandboxPayment.setMerchantId(transactionRequestPojo.getMerchantId());

@@ -34,7 +34,7 @@ public interface PaymentGatewayService {
 
     PaymentGatewayResponse initiateCardTransaction(HttpServletRequest request, WayaPaymentRequest account, Device device) throws JsonProcessingException;
 
-    void preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, PaymentGateway paymentGateway);
+    void preprocessRecurrentPayment(UnifiedCardRequest cardRequest, WayaCardPayment card, Object paymentGatewayData, String mode);
 
     ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) throws JsonProcessingException;
 

@@ -15,7 +15,7 @@ public interface RecurrentTransactionService {
     ResponseEntity<PaymentGatewayResponse> fetchCustomerTransaction(String customerId, Pageable pageable);
 
     // s-l done
-    Page<RecurrentTransaction> getCustomerRecurrentTransactions(String merchantId, String customerId, Pageable pageable);
+    Page<?> getCustomerRecurrentTransactions(String merchantId, String customerId, Pageable pageable);
 
     ResponseEntity<PaymentGatewayResponse> getCustomerRecurrentTransaction(String merchantId, String customerId, Pageable pageable);
 

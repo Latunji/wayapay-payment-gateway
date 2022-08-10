@@ -106,7 +106,7 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
             ts_tbl = "m_sandbox_transaction_settlement";
         }
         @NotNull String MER_Q = ObjectUtils.isEmpty(merchantId) ? " merchant_id IS NOT NULL " : " merchant_id = '%s' ";
-        @NotNull final String LATEST_SETTLEMENT_Q = String.format(String.format("SELECT SUM(settlement_net_amount) as amount FROM %s WHERE %s AND settlement_status='SETTLED'; ", ts_tbl, MER_Q, merchantId);
+        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT SUM(settlement_net_amount) as amount FROM %s WHERE %s AND settlement_status='SETTLED'; ", ts_tbl, MER_Q, merchantId);
         return LATEST_SETTLEMENT_Q;
     }
 

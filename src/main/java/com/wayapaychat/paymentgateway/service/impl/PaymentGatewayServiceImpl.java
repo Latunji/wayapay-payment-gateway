@@ -171,10 +171,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             // validate the provided merchant key
             if (sMerchant.getMerchantKeyMode() == MerchantTransactionMode.TEST.toString()) {
                 if (!transactionRequestPojo.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
-                    return new PaymentGatewayResponse(false, "Invalid merchant key", null);
+                    return new PaymentGatewayResponse(false, "Invalid merchant test key", null);
                 }
             } else if (!transactionRequestPojo.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
-                return new PaymentGatewayResponse(false, "Invalid merchant key", null);
+                return new PaymentGatewayResponse(false, "Invalid merchant live key", null);
             }
 
             // Create customer record
@@ -719,6 +719,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return (new PaymentGatewayResponse(true, "Decrypted", vt));
     }
 
+    // s-l done
     @Override
     public ResponseEntity<?> walletAuthentication(HttpServletRequest request, WayaAuthenicationRequest account) {
         try {

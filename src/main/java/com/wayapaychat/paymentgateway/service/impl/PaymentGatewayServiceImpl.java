@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.common.enums.PaymentLinkType;
 import com.wayapaychat.paymentgateway.common.enums.ProductName;
 import com.wayapaychat.paymentgateway.common.enums.RecurrentPaymentStatus;
@@ -11,6 +12,7 @@ import com.wayapaychat.paymentgateway.dao.WayaPaymentDAOImpl;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
+import com.wayapaychat.paymentgateway.entity.SandboxPaymentGateway;
 import com.wayapaychat.paymentgateway.entity.listener.PaymemtGatewayEntityListener;
 import com.wayapaychat.paymentgateway.enumm.*;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
@@ -36,6 +38,7 @@ import com.wayapaychat.paymentgateway.proxy.pojo.MerchantProductPricingQuery;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
 import com.wayapaychat.paymentgateway.repository.RecurrentTransactionRepository;
+import com.wayapaychat.paymentgateway.repository.SandboxPaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -90,6 +93,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private PaymentGatewayRepository paymentGatewayRepo;
     @Autowired
+    private SandboxPaymentGatewayRepository sandboxPaymentGatewayRepo;
+    @Autowired
     private WalletProxy wallProxy;
     @Autowired
     private WayaPaymentDAO wayaPayment;
@@ -122,14 +127,24 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private IkafkaMessageProducer messageQueueProducer;
 
+    // s-l done
     @Override
     public PaymentGatewayResponse initiateCardTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "Unprocessed Transaction", null);
         try {
             MerchantResponse merchant = null;
             String token = paymentGateWayCommonUtils.getDaemonAuthToken();
+            // get merchant data
             try {
                 merchant = merchantProxy.getMerchantInfo(token, transactionRequestPojo.getMerchantId());
+                if (merchant == null) {
+                    return new PaymentGatewayResponse(false, "Profile doesn't exist", null);
+                }
+
+                if (!merchant.getCode().equals("00")) {
+                    return new PaymentGatewayResponse(false, "Merchant id doesn't exist", null);
+                }
+                log.info("#_#_#_#_#_#_#_#_#_#_#_#_# MERCHANT FOUND #_#_#_#_#_#_#_#_#_#_#_#_#");
             } catch (Exception ex) {
                 if (ex instanceof FeignException) {
                     String httpStatus = Integer.toString(((FeignException) ex).status());
@@ -138,23 +153,36 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 log.error("Higher Wahala {}", ex.getMessage());
                 log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
             }
-            if (merchant == null) {
-                return new PaymentGatewayResponse(false, "Profile doesn't exist", null);
-            }
-
-            if (!merchant.getCode().equals("00")) {
-                return new PaymentGatewayResponse(false, "Merchant id doesn't exist", null);
-            }
             log.info("Merchant: " + merchant);
             MerchantData sMerchant = merchant.getData();
-            if (sMerchant.getMerchantKeyMode().equals("TEST")) {
+
+            // get merchant Profile
+            ProfileResponse profile = null;
+            try {
+                profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
+                if (profile == null) {
+                    return new PaymentGatewayResponse(false, "Profile doesn't exist", null);
+                }
+            } catch (Exception ex) {
+                if (ex instanceof FeignException) {
+                    String httpStatus = Integer.toString(((FeignException) ex).status());
+                    log.error("Feign Exception Status {}", httpStatus);
+                }
+                log.error("Higher Wahala {}", ex.getMessage());
+                log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+            }
+
+            // validate the provided merchant key
+            if (sMerchant.getMerchantKeyMode() == MerchantTransactionMode.TEST.toString()) {
                 if (!transactionRequestPojo.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
                     return new PaymentGatewayResponse(false, "Invalid merchant key", null);
                 }
             } else if (!transactionRequestPojo.getWayaPublicKey().equals(sMerchant.getMerchantProductionPublicKey())) {
                 return new PaymentGatewayResponse(false, "Invalid merchant key", null);
             }
-            // To create customer records
+
+            // Create customer record
+            // IDM will determine the merchant key mode for creating the customer
             String[] customerName = transactionRequestPojo.getCustomer().getName().split("\\s+");
             CustomerRequest customer = new CustomerRequest();
             customer.setEmail(transactionRequestPojo.getCustomer().getEmail());
@@ -165,52 +193,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             MerchantCustomer merchantCustomer = identManager.postCustomerCreate(customer, token);
             log.info("CUSTOMER: " + merchantCustomer.toString());
 
-            // Fetch Profile
-            ProfileResponse profile = null;
-            try {
-                profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
-            } catch (Exception ex) {
-                if (ex instanceof FeignException) {
-                    String httpStatus = Integer.toString(((FeignException) ex).status());
-                    log.error("Feign Exception Status {}", httpStatus);
-                }
-                log.error("Higher Wahala {}", ex.getMessage());
-                log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
-            }
-            if (profile == null) {
-                return new PaymentGatewayResponse(false, "Profile doesn't exist", null);
-            }
-
-            PaymentGateway payment = new PaymentGateway();
             Date dte = new Date();
-            long milliSeconds = dte.getTime();
-            String strLong = Long.toString(milliSeconds);
-            strLong = strLong + rnd.nextInt(999999);
-            payment.setRefNo(strLong);
-            payment.setMerchantId(transactionRequestPojo.getMerchantId());
-            payment.setMerchantEmail(merchant.getData().getMerchantEmailAddress());
-            payment.setDescription(transactionRequestPojo.getDescription());
-            payment.setAmount(transactionRequestPojo.getAmount());
-            //TODO: update wayapay processing fee... update the region later
-            // get the IP region of where the transaction was initiated from
+            String strLong = Long.toString(dte.getTime()) + rnd.nextInt(999999);
             BigDecimal wayapayFee = calculateWayapayFee(
                     sMerchant.getMerchantId(), transactionRequestPojo.getAmount(),
                     ProductName.CARD, "LOCAL");
-            payment.setWayapayFee(wayapayFee);
-            payment.setCustomerIpAddress(PaymentGateWayCommonUtils.getClientRequestIP(request));
-            payment.setCurrencyCode(transactionRequestPojo.getCurrency());
-            payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
-            payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
-            payment.setCustomerName(transactionRequestPojo.getCustomer().getName());
-            payment.setCustomerEmail(transactionRequestPojo.getCustomer().getEmail());
-            payment.setCustomerPhone(transactionRequestPojo.getCustomer().getPhoneNumber());
-            payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.PENDING);
-            payment.setChannel(PaymentChannel.CARD);
-            payment.setCustomerId(merchantCustomer.getData().getCustomerId());
-            payment.setPreferenceNo(transactionRequestPojo.getPreferenceNo());
             String encryptedMerchantSecretKey = UnifiedPaymentProxy.getDataEncrypt(transactionRequestPojo.getWayaPublicKey(), encryptAllMerchantSecretKeyWith);
-            payment.setSecretKey(encryptedMerchantSecretKey);
-            payment.setPaymentLinkId(transactionRequestPojo.getPaymentLinkId());
             CardResponse card = new CardResponse();
             String tranId = UUID.randomUUID() + "";
             if (!tranId.isBlank()) {
@@ -219,11 +207,64 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 card.setCustomerId(merchantCustomer.getData().getCustomerId());
                 card.setCustomerAvoid(merchantCustomer.getData().isCustomerAvoided());
                 response = new PaymentGatewayResponse(true, "Success Transaction", card);
+            }
+
+            if (sMerchant.getMerchantKeyMode() == MerchantTransactionMode.PRODUCTION.toString()) {
+                PaymentGateway payment = new PaymentGateway();
+                payment.setRefNo(strLong);
+                payment.setMerchantId(transactionRequestPojo.getMerchantId());
+                payment.setMerchantEmail(merchant.getData().getMerchantEmailAddress());
+                payment.setDescription(transactionRequestPojo.getDescription());
+                payment.setAmount(transactionRequestPojo.getAmount());
+                //TODO: update wayapay processing fee... update the region later
+                // get the IP region of where the transaction was initiated from
+                payment.setWayapayFee(wayapayFee);
+                payment.setCustomerIpAddress(PaymentGateWayCommonUtils.getClientRequestIP(request));
+                payment.setCurrencyCode(transactionRequestPojo.getCurrency());
+                payment.setReturnUrl(sMerchant.getMerchantCallbackURL());
+                payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
+                payment.setCustomerName(transactionRequestPojo.getCustomer().getName());
+                payment.setCustomerEmail(transactionRequestPojo.getCustomer().getEmail());
+                payment.setCustomerPhone(transactionRequestPojo.getCustomer().getPhoneNumber());
+                payment.setStatus(TransactionStatus.PENDING);
+                payment.setChannel(PaymentChannel.CARD);
+                payment.setCustomerId(merchantCustomer.getData().getCustomerId());
+                payment.setPreferenceNo(transactionRequestPojo.getPreferenceNo());
+                payment.setSecretKey(encryptedMerchantSecretKey);
+                payment.setPaymentLinkId(transactionRequestPojo.getPaymentLinkId());
                 payment.setTranId(tranId);
                 payment.setTranDate(LocalDateTime.now());
                 payment.setRcre_time(LocalDateTime.now());
                 payment.setVendorDate(LocalDateTime.now());
                 paymentGatewayRepo.save(payment);
+            } else {
+                SandboxPaymentGateway sandboxPayment = new SandboxPaymentGateway();
+                sandboxPayment.setRefNo("7263269"+strLong);
+                sandboxPayment.setMerchantId(transactionRequestPojo.getMerchantId());
+                sandboxPayment.setMerchantEmail(merchant.getData().getMerchantEmailAddress());
+                sandboxPayment.setDescription(transactionRequestPojo.getDescription());
+                sandboxPayment.setAmount(transactionRequestPojo.getAmount());
+                //TODO: update wayapay processing fee... update the region later
+                // get the IP region of where the transaction was initiated from
+                sandboxPayment.setWayapayFee(wayapayFee);
+                sandboxPayment.setCustomerIpAddress(PaymentGateWayCommonUtils.getClientRequestIP(request));
+                sandboxPayment.setCurrencyCode(transactionRequestPojo.getCurrency());
+                sandboxPayment.setReturnUrl(sMerchant.getMerchantCallbackURL());
+                sandboxPayment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
+                sandboxPayment.setCustomerName(transactionRequestPojo.getCustomer().getName());
+                sandboxPayment.setCustomerEmail(transactionRequestPojo.getCustomer().getEmail());
+                sandboxPayment.setCustomerPhone(transactionRequestPojo.getCustomer().getPhoneNumber());
+                sandboxPayment.setStatus(TransactionStatus.PENDING);
+                sandboxPayment.setChannel(PaymentChannel.CARD);
+                sandboxPayment.setCustomerId(merchantCustomer.getData().getCustomerId());
+                sandboxPayment.setPreferenceNo(transactionRequestPojo.getPreferenceNo());
+                sandboxPayment.setSecretKey(encryptedMerchantSecretKey);
+                sandboxPayment.setPaymentLinkId(transactionRequestPojo.getPaymentLinkId());
+                sandboxPayment.setTranId(tranId);
+                sandboxPayment.setTranDate(LocalDateTime.now());
+                sandboxPayment.setRcre_time(LocalDateTime.now());
+                sandboxPayment.setVendorDate(LocalDateTime.now());
+                sandboxPaymentGatewayRepo.save(sandboxPayment);
             }
             return response;
         } catch (Exception ex) {
@@ -327,6 +368,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> processPaymentWithCard(HttpServletRequest request, WayaCardPayment card) throws JsonProcessingException {
         UnifiedCardRequest upCardPaymentRequest = new UnifiedCardRequest();
+        String mode;
+        if (card.getTranId().startsWith("7263269")) {
+            // process as test payment
+            mode = MerchantTransactionMode.TEST.toString();
+        } else {
+            // process as live payment
+            mode = MerchantTransactionMode.PRODUCTION.toString();
+        }
         Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTranId());
         RecurrentTransaction recurrentTransaction;
         if (optionalPaymentGateway.isEmpty())

@@ -70,7 +70,7 @@ public class PaymentGateway {
     @JsonIgnore
     private String encyptCard;
 
-    @Column(nullable = false)
+    @Column(name = "tran_date", columnDefinition = "TIMESTAMPTZ", nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)

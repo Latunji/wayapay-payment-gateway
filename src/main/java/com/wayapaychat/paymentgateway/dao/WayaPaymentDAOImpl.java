@@ -208,6 +208,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     @Override
     @SuppressWarnings(value = "unchecked")
     public TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(final String merchantId, String mode) {
+        log.info("-=====-=-=-=-=-=-=-=-=-=-=-=-======= Got into DAO =======-=-=-=-=-=-=-=-=-=-=-=-=====- ");
         @NotNull final String GROSS_REVENUE_Q = getGrossRevenueQuery(merchantId, mode);
         @NotNull final String NET_REVENUE_Q = getNetRevenueQuery(merchantId, mode);
         @NotNull final String FINAL_Q = GROSS_REVENUE_Q + NET_REVENUE_Q;
@@ -280,6 +281,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
     // s-l done
     private String getGrossRevenueQuery(String merchantId, String mode) {
+        log.info("-=====-=-=-=-=-=-=-=-=-=-=-=-======= Got into DAO first query =======-=-=-=-=-=-=-=-=-=-=-=-=====- ");
         String tbl;
         if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
             tbl = "m_payment_gateway";
@@ -292,6 +294,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
     // s-l done
     private String getNetRevenueQuery(String merchantId, String mode) {
+        log.info("-=====-=-=-=-=-=-=-=-=-=-=-=-======= Got into DAO second query =======-=-=-=-=-=-=-=-=-=-=-=-=====- ");
         String tbl;
         if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
             tbl = "m_payment_gateway";

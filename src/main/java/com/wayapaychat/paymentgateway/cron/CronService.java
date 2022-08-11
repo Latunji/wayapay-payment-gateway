@@ -58,7 +58,8 @@ public class CronService {
     @SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void updateTransactionStatusEveryDay() {
         log.info("----------------------------- Starting SCHEDULE -----------------------------");
-        updateTransactionStatus();
+//        updateTransactionStatus();
+        return void
     }
 
     @Scheduled(cron = "0 0 0 * * *")

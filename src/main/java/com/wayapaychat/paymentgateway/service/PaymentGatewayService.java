@@ -45,7 +45,7 @@ public interface PaymentGatewayService {
 
     ResponseEntity<?> getTransactionStatus(HttpServletRequest req, String tranId);
 
-    ResponseEntity<?> fetchAllMerchantTransactions(String merchantId);
+    ResponseEntity<?> fetchAllMerchantTransactions(String merchantId, String token);
 
     ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo);
 
@@ -61,7 +61,7 @@ public interface PaymentGatewayService {
 
     ResponseEntity<?> abandonTransaction(HttpServletRequest request, final String refNo, WayaPaymentStatus pay);
 
-    ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId);
+    ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId, String token);
 
     ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req);
 
@@ -77,11 +77,11 @@ public interface PaymentGatewayService {
 
     void updateSandboxRecurrentTransaction(@NotNull SandboxPaymentGateway paymentGateway);
 
-    ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate);
+    ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate, String token);
 
-    ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(@NotNull final String merchantId);
+    ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(@NotNull final String merchantId, String token);
 
-    ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId);
+    ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId, String token);
 
-    ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String merchantId, String paymentLinkId, Pageable pageable);
+    ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String merchantId, String paymentLinkId, String token, Pageable pageable);
 }

@@ -18,15 +18,15 @@ public interface WayaPaymentDAO {
 
     List<TransactionReportStats> getTransactionReportStats();
 
-    TransactionReportStats getTransactionReportStats(String merchantId);
+    TransactionReportStats getTransactionReportStats(String merchantId, String mode);
 
-    TransactionOverviewResponse getTransactionReport(String merchantId);
-
-    @SuppressWarnings(value = "unchecked")
-    List<TransactionYearMonthStats> getMerchantTransactionStatsByYearAndMonth(String merchantId, Long year, Date startDate, Date endDate);
+    TransactionOverviewResponse getTransactionReport(String merchantId, String mode);
 
     @SuppressWarnings(value = "unchecked")
-    TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(String merchantId);
+    List<TransactionYearMonthStats> getMerchantTransactionStatsByYearAndMonth(String merchantId, Long year, Date startDate, Date endDate, String mode);
+
+    @SuppressWarnings(value = "unchecked")
+    TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(String merchantId, String mode);
 
     @SuppressWarnings(value = "unchecked")
     List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessTransactions(String merchantId);

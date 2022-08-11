@@ -28,9 +28,9 @@ public class PaymentLinkTransactionController {
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Filter Search transaction for a payment link", notes = "Get all transactions made using payment link", tags = {"PAYMENT-LINK-TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(
-            @PathVariable String paymentLinkId, @RequestParam(required = false) String merchantId, PaginationPojo paginationPojo) {
+            @PathVariable String paymentLinkId, @RequestParam(required = false) String merchantId, @RequestHeader("Authorization") String token, PaginationPojo paginationPojo) {
         return paymentGatewayService.fetchPaymentLinkTransactions(
-                merchantId, paymentLinkId, PageableResponseUtil.createPageRequest(paginationPojo.getPage(),
+                merchantId, paymentLinkId, token, PageableResponseUtil.createPageRequest(paginationPojo.getPage(),
                         paginationPojo.getSize(), paginationPojo.getOrder(),
                         paginationPojo.getSortBy(), true, "tran_date"
                 ));

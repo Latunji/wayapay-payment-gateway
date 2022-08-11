@@ -1200,6 +1200,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
 
+    // s-l done
     @Override
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
         if (!PaymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
@@ -1429,10 +1430,28 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
     }
 
+    // s-l done
     @Override
-    public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate) {
+    public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(String merchantId, Long year, Date startDate, Date endDate, String token) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
-        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year, startDate, endDate);
+
+        MerchantResponse merchant = null;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+
+        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year, startDate, endDate, merchant.getData().getMerchantKeyMode());
         BigDecimal totalRevenueForSelectedDateRange = transactionYearMonthStats.stream()
                 .map(TransactionYearMonthStats::getTotalRevenue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -1441,13 +1460,32 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, result), HttpStatus.OK);
     }
 
+    // s-l done
     @Override
-    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(String merchantId) {
+    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(String merchantId, String token) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
-        TransactionOverviewResponse transactionOverviewResponse = wayaPaymentDAO.getTransactionReport(merchantIdToUse);
+
+        MerchantResponse merchant = null;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+
+        TransactionOverviewResponse transactionOverviewResponse = wayaPaymentDAO.getTransactionReport(merchantIdToUse, merchant.getData().getMerchantKeyMode());
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionOverviewResponse), HttpStatus.OK);
     }
 
+    // s-l done
     @Override
     public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId, String token) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
@@ -1472,13 +1510,37 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
     }
 
+    // s-l done
     @Override
-    public ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String merchantId, String paymentLinkId, Pageable pageable) {
+    public ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String merchantId, String paymentLinkId, String token, Pageable pageable) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
-        Page<PaymentGateway> result;
-        if (ObjectUtils.isEmpty(merchantIdToUse))
-            result = paymentGatewayRepo.getAllByPaymentLinkId(paymentLinkId, pageable);
-        else result = paymentGatewayRepo.getAllByPaymentLinkId(merchantIdToUse, paymentLinkId, pageable);
+
+        MerchantResponse merchant = null;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+
+        Page<?> result = null;
+        if (merchant.getData().getMerchantKeyMode() == MerchantTransactionMode.PRODUCTION.toString()) {
+            if (ObjectUtils.isEmpty(merchantIdToUse))
+                result = paymentGatewayRepo.getAllByPaymentLinkId(paymentLinkId, pageable);
+            else result = paymentGatewayRepo.getAllByPaymentLinkId(merchantIdToUse, paymentLinkId, pageable);
+        } else {
+            if (ObjectUtils.isEmpty(merchantIdToUse))
+                result = sandboxPaymentGatewayRepo.getAllByPaymentLinkId(paymentLinkId, pageable);
+            else result = sandboxPaymentGatewayRepo.getAllByPaymentLinkId(merchantIdToUse, paymentLinkId, pageable);
+        }
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, result), HttpStatus.OK);
     }
 

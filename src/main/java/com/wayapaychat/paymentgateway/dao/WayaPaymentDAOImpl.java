@@ -34,7 +34,6 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     @Autowired
     private TransactionSettlementDAO transactionSettlementDAO;
 
-    // s-l done
     @Override
     public List<TransactionReportStats> getTransactionReportStats() {
         List<TransactionReportStats> product;
@@ -58,7 +57,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     public TransactionReportStats getTransactionReportStats(String merchantId, String mode) {
         String tbl;
         TransactionReportStats product;
-        if(mode == MerchantTransactionMode.PRODUCTION.toString()){
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
             tbl = "m_payment_gateway";
         } else {
             tbl = "m_sandbox_payment_gateway";
@@ -71,7 +70,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         query.append("SUM(CASE WHEN a.status = 'REFUNDED'   THEN 1 ELSE 0 END) as TOTALREFUNDED,");
         query.append("SUM(CASE WHEN a.status = 'PENDING'    THEN 1 ELSE 0 END) as TOTALPENDING,");
         query.append("SUM(CASE WHEN settlement_status =  'SETTLED'    THEN 1 ELSE 0 END) as TOTALSETTLED ");
-        query.append(String.format("FROM %s a WHERE merchant_id = '%s' ", tbl, merchantId));
+        query.append(String.format(" FROM %s a WHERE merchant_id = '%s' ", tbl, merchantId));
         String sql = query.toString();
         WalletRevenueMapper rowMapper = new WalletRevenueMapper();
         product = jdbcTemplate.queryForObject(sql, rowMapper);
@@ -84,7 +83,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     public TransactionOverviewResponse getTransactionReport(String merchantId, String mode) {
 //        merchantId = null;
         String tbl;
-        if(mode == MerchantTransactionMode.PRODUCTION.toString()){
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
             tbl = "m_payment_gateway";
         } else {
             tbl = "m_sandbox_payment_gateway";
@@ -189,7 +188,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     @SuppressWarnings(value = "unchecked")
     public List<TransactionYearMonthStats> getMerchantTransactionStatsByYearAndMonth(final String merchantId, final Long year, final Date startDate, final Date endDate, String mode) {
         String tbl;
-        if(mode == MerchantTransactionMode.PRODUCTION.toString()){
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
             tbl = "m_payment_gateway";
         } else {
             tbl = "m_sandbox_payment_gateway";
@@ -245,7 +244,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     // s-l done
     private String buildYearMonthQuery(String merchantId, Long year, Date startDate, Date endDate, String mode) {
         String tbl;
-        if(mode == MerchantTransactionMode.PRODUCTION.toString()){
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
             tbl = "m_payment_gateway";
         } else {
             tbl = "m_sandbox_payment_gateway";
@@ -282,7 +281,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     // s-l done
     private String getGrossRevenueQuery(String merchantId, String mode) {
         String tbl;
-        if(mode == MerchantTransactionMode.PRODUCTION.toString()){
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
             tbl = "m_payment_gateway";
         } else {
             tbl = "m_sandbox_payment_gateway";
@@ -294,7 +293,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     // s-l done
     private String getNetRevenueQuery(String merchantId, String mode) {
         String tbl;
-        if(mode == MerchantTransactionMode.PRODUCTION.toString()){
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
             tbl = "m_payment_gateway";
         } else {
             tbl = "m_sandbox_payment_gateway";

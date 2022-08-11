@@ -71,7 +71,7 @@ public class TransactionController {
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Get merchant transaction net and gross revenue report", notes = "Transaction net and gross revenue report", tags = {"TRANSACTIONS"})
     public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(
-            @RequestParam(value = "merchantId", required = false) final String merchantId) {
-        return paymentGatewayService.getMerchantTransactionGrossAndNetRevenue(merchantId);
+            @RequestParam(value = "merchantId", required = false) final String merchantId, @RequestHeader("Authorization") String token) {
+        return paymentGatewayService.getMerchantTransactionGrossAndNetRevenue(merchantId, token);
     }
 }

@@ -1175,10 +1175,28 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse("Updated", "Success Updated"), HttpStatus.OK);
     }
 
+    // s-l done
     @Override
-    public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId) {
+    public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId, String token) {
         @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, true);
-        TransactionReportStats revenue = wayaPayment.getTransactionReportStats(merchantIdToUse);
+
+        MerchantResponse merchant = null;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+
+        TransactionReportStats revenue = wayaPayment.getTransactionReportStats(merchantIdToUse, merchant.getData().getMerchantKeyMode());
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
 
@@ -1431,9 +1449,26 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     @Override
-    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId) {
+    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId, String token) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
-        TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse);
+
+        MerchantResponse merchant = null;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+
+        TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse, merchant.getData().getMerchantKeyMode());
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
     }
 

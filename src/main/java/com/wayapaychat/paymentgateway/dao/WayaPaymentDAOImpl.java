@@ -1,5 +1,6 @@
 package com.wayapaychat.paymentgateway.dao;
 
+import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
 import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
@@ -52,8 +53,14 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     }
 
     @Override
-    public TransactionReportStats getTransactionReportStats(String merchantId) {
+    public TransactionReportStats getTransactionReportStats(String merchantId, String mode) {
+        String tbl;
         TransactionReportStats product;
+        if(mode == MerchantTransactionMode.PRODUCTION.toString()){
+            tbl = "m_payment_gateway";
+        } else {
+            tbl = "m_sandbox_payment_gateway";
+        }
         StringBuilder query = new StringBuilder();
         query.append("SELECT COUNT(a.TRAN_ID) AS TOTALTRAN,");
         query.append("SUM(CASE WHEN a.status = 'SUCCESSFUL' THEN 1 ELSE 0 END) as TOTALSUCCESS,");
@@ -62,7 +69,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         query.append("SUM(CASE WHEN a.status = 'REFUNDED'   THEN 1 ELSE 0 END) as TOTALREFUNDED,");
         query.append("SUM(CASE WHEN a.status = 'PENDING'    THEN 1 ELSE 0 END) as TOTALPENDING,");
         query.append("SUM(CASE WHEN settlement_status =  'SETTLED'    THEN 1 ELSE 0 END) as TOTALSETTLED ");
-        query.append(String.format("FROM m_payment_gateway a WHERE merchant_id = '%s' ", merchantId));
+        query.append(String.format("FROM %s a WHERE merchant_id = '%s' ", tbl, merchantId));
         String sql = query.toString();
         WalletRevenueMapper rowMapper = new WalletRevenueMapper();
         product = jdbcTemplate.queryForObject(sql, rowMapper);
@@ -189,7 +196,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
     @Override
     @SuppressWarnings(value = "unchecked")
-    public TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(final String merchantId) {
+    public TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(final String merchantId, String mode) {
         @NotNull final String GROSS_REVENUE_Q = getGrossRevenueQuery(merchantId);
         @NotNull final String NET_REVENUE_Q = getNetRevenueQuery(merchantId);
         @NotNull final String FINAL_Q = GROSS_REVENUE_Q + NET_REVENUE_Q;

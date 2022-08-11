@@ -217,14 +217,14 @@ public class PaymentGatewayController {
 
     @ApiOperation(value = "Get all merchant transactions", notes = "This endpoint get all merchant transactions", tags = {"PAYMENT-GATEWAY"})
     @GetMapping("/report/query/{merchantId}")
-    public ResponseEntity<?> getAllMerchantTransactionsByMerchantId(@PathVariable final String merchantId) {
-        return paymentGatewayService.fetchAllMerchantTransactions(merchantId);
+    public ResponseEntity<?> getAllMerchantTransactionsByMerchantId(@PathVariable final String merchantId, @RequestHeader("Authorization") String token) {
+        return paymentGatewayService.fetchAllMerchantTransactions(merchantId, token);
     }
 
     @ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
     @GetMapping("/revenue/query/{merchantId}")
-    public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest request, @PathVariable("merchantId") final String merchantId) {
-        return paymentGatewayService.getMerchantTransactionRevenue(request, merchantId);
+    public ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest request, @PathVariable("merchantId") final String merchantId, @RequestHeader("Authorization") String token) {
+        return paymentGatewayService.getMerchantTransactionRevenue(request, merchantId, token);
     }
 
     @ApiOperation(value = "Get All Revenue", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})

@@ -45,7 +45,7 @@ public interface PaymentGatewayService {
 
     ResponseEntity<?> getTransactionStatus(HttpServletRequest req, String tranId);
 
-    ResponseEntity<?> fetchAllMerchantTransactions(String merchantId);
+    ResponseEntity<?> fetchAllMerchantTransactions(String merchantId, String token);
 
     ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo);
 
@@ -61,7 +61,7 @@ public interface PaymentGatewayService {
 
     ResponseEntity<?> abandonTransaction(HttpServletRequest request, final String refNo, WayaPaymentStatus pay);
 
-    ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId);
+    ResponseEntity<?> getMerchantTransactionRevenue(HttpServletRequest req, String merchantId, String token);
 
     ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req);
 

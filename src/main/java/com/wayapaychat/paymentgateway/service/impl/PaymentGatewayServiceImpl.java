@@ -169,7 +169,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
 
             // validate the provided merchant key
-            log.info("Merchant KEY MODE: " + sMerchant.getMerchantKeyMode());
             if (sMerchant.getMerchantKeyMode().equals(MerchantTransactionMode.TEST.toString())) {
                 if (!transactionRequestPojo.getWayaPublicKey().equals(sMerchant.getMerchantPublicTestKey())) {
                     return new PaymentGatewayResponse(false, "Invalid merchant test key", null);
@@ -188,7 +187,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             customer.setFirstName(ObjectUtils.isEmpty(customerName[0]) ? " " : customerName[0]);
             customer.setLastName(ObjectUtils.isEmpty(customerName[1]) ? " " : customerName[1]);
             MerchantCustomer merchantCustomer = identManager.postCustomerCreate(customer, token);
-            log.info("CUSTOMER: " + merchantCustomer.toString());
 
             Date dte = new Date();
             String strLong = Long.toString(dte.getTime()) + rnd.nextInt(999999);
@@ -1098,14 +1096,39 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
     }
 
+    // s-l done
     @Override
-    public ResponseEntity<?> fetchAllMerchantTransactions(String merchantId) {
-        @NotNull List<PaymentGateway> paymentGatewayList;
-        paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment(merchantId);
-        if (ObjectUtils.isEmpty(paymentGatewayList))
-            return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        final List<ReportPayment> sPay = mapList(paymentGatewayList, ReportPayment.class);
-        return new ResponseEntity<>(new SuccessResponse("List Payment", sPay), HttpStatus.OK);
+    public ResponseEntity<?> fetchAllMerchantTransactions(String merchantId, String token) {
+        MerchantResponse merchant = null;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+        if (merchant.getData().getMerchantKeyMode().equals(MerchantTransactionMode.PRODUCTION.toString())) {
+            @NotNull List<PaymentGateway> paymentGatewayList;
+            paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment(merchantId);
+            if (ObjectUtils.isEmpty(paymentGatewayList))
+                return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH LIVE PAYMENTS"), HttpStatus.BAD_REQUEST);
+            final List<ReportPayment> sPay = mapList(paymentGatewayList, ReportPayment.class);
+            return new ResponseEntity<>(new SuccessResponse("Payment List", sPay), HttpStatus.OK);
+        } else {
+            @NotNull List<SandboxPaymentGateway> paymentGatewayList;
+            paymentGatewayList = this.sandboxPaymentGatewayRepo.findByMerchantPayment(merchantId);
+            if (ObjectUtils.isEmpty(paymentGatewayList))
+                return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH SANDBOX PAYMENTS"), HttpStatus.BAD_REQUEST);
+            final List<ReportPayment> sPay = mapList(paymentGatewayList, ReportPayment.class);
+            return new ResponseEntity<>(new SuccessResponse("Sandbox Payment List", sPay), HttpStatus.OK);
+        }
     }
 
     // s-l done

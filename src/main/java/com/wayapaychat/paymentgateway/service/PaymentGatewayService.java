@@ -71,7 +71,7 @@ public interface PaymentGatewayService {
 
     ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryCustomerTransactionPojo, Pageable pageable);
 
-    Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, Pageable pageable);
+    Page<?> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, String mode, Pageable pageable);
 
     void updateRecurrentTransaction(@NotNull PaymentGateway paymentGateway);
 

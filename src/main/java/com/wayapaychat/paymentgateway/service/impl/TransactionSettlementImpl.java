@@ -38,7 +38,7 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
     public ResponseEntity<PaymentGatewayResponse> getMerchantSettlementStats(String merchantId) {
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,false);
         String token = paymentGateWayCommonUtils.getDaemonAuthToken();
-        MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantId);
+        MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantIdToUse);
         MerchantData merchantData = merchantResponse.getData();
         String mode = merchantData.getMerchantKeyMode();
         TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse, mode);

@@ -107,9 +107,9 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
 
         @NotNull final String YEAR_MONTH_STATS_Q = buildYearMonthQuery(merchantId, null, null, null, mode);
 
-        @NotNull final String LATEST_SETTLEMENT_Q = transactionSettlementDAO.getLatestSettlementQuery(merchantId);
+        @NotNull final String LATEST_SETTLEMENT_Q = transactionSettlementDAO.getLatestSettlementQuery(merchantId, mode);
 
-        @NotNull final String NEXT_SETTLEMENT_Q = transactionSettlementDAO.getNextSettlementQuery(merchantId);
+        @NotNull final String NEXT_SETTLEMENT_Q = transactionSettlementDAO.getNextSettlementQuery(merchantId, mode);
 
         @NotNull final String SUCCESS_ERROR_STATS_Q = String.format("SELECT COUNT(status), status " +
                         " FROM m_payment_gateway WHERE status IN ('SUCCESSFUL','ERROR','FAILED') %s GROUP BY status; ",

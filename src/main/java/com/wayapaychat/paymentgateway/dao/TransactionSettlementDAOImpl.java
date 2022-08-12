@@ -41,8 +41,8 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
         }
         @NotNull String MER_Q = ObjectUtils.isEmpty(merchantId) ? " merchant_id IS NOT NULL " : String.format(" merchant_id = '%s' ", merchantId);
         @NotNull final String MERCHANT_SETTLEMENT_STATS_Q = String.format("SELECT COUNT(settlement_status), settlement_status as status FROM %s WHERE %s GROUP BY settlement_status;", pg_tbl, MER_Q);
-        @NotNull final String LATEST_SETTLEMENT = getLatestSettlementQuery(merchantId);
-        @NotNull final String NEXT_SETTLEMENT = getNextSettlementQuery(merchantId);
+        @NotNull final String LATEST_SETTLEMENT = getLatestSettlementQuery(merchantId, mode);
+        @NotNull final String NEXT_SETTLEMENT = getNextSettlementQuery(merchantId, mode);
         @NotNull final String NET_SETTLED_TRANSACTIONS = getNetSettledTransactionQuery(merchantId, mode);
         @NotNull final String FAILED_NET_SETTLEMENT_TRANSACTIONS = String.format("SELECT SUM(settlement_net_amount) as amount FROM %s WHERE %s AND settlement_status='FAILED';", ts_tbl, MER_Q);
         @NotNull final String FINAL_Q = MERCHANT_SETTLEMENT_STATS_Q + LATEST_SETTLEMENT + NEXT_SETTLEMENT + NET_SETTLED_TRANSACTIONS + FAILED_NET_SETTLEMENT_TRANSACTIONS;
@@ -100,7 +100,7 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
 
     private String getNetSettledTransactionQuery(String merchantId, String mode) {
         String ts_tbl;
-        if (mode == MerchantTransactionMode.PRODUCTION.toString()){
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
             ts_tbl = "m_transaction_settlement";
         } else {
             ts_tbl = "m_sandbox_transaction_settlement";
@@ -111,19 +111,29 @@ public class TransactionSettlementDAOImpl implements TransactionSettlementDAO {
     }
 
     @Override
-    public String getLatestSettlementQuery(String merchantId) {
+    public String getLatestSettlementQuery(String merchantId, String mode) {
+        String tbl;
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
+            tbl = "m_transaction_settlement";
+        } else {
+            tbl = "m_sandbox_transaction_settlement";
+        }
         @NotNull String SUB = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND merchant_id='%s' ", merchantId);
-        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount,date_settled as settlement_date  FROM m_transaction_settlement WHERE settlement_status='SETTLED' " +
-                " %s ORDER BY date_settled DESC LIMIT 1 ;", SUB);
+        @NotNull final String LATEST_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount,date_settled as settlement_date FROM %s WHERE settlement_status='SETTLED' %s ORDER BY date_settled DESC LIMIT 1 ;", tbl, SUB);
         return LATEST_SETTLEMENT_Q;
     }
 
     @Override
-    public String getNextSettlementQuery(String merchantId) {
+    public String getNextSettlementQuery(String merchantId, String mode) {
+        String tbl;
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
+            tbl = "m_transaction_settlement";
+        } else {
+            tbl = "m_sandbox_transaction_settlement";
+        }
         @NotNull String SUB = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND merchant_id='%s' ", merchantId);
         @NotNull final String NEXT_SETTLEMENT_Q = String.format("SELECT settlement_net_amount as amount,merchant_configured_settlement_date settlement_date " +
-                " FROM m_transaction_settlement WHERE settlement_status='PENDING' " +
-                " %s ORDER BY merchant_configured_settlement_date DESC LIMIT 1 ;", SUB);
+                " FROM %s WHERE settlement_status='PENDING' %s ORDER BY merchant_configured_settlement_date DESC LIMIT 1 ;", tbl, SUB);
         return NEXT_SETTLEMENT_Q;
     }
 }

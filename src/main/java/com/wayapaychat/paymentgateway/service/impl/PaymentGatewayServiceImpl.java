@@ -1491,7 +1491,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
 
         MerchantResponse merchant = null;
-        log.info("current merchantId is "+merchantId+" merchant to use is "+merchantIdToUse+" token: "+token)
+        log.info("current merchantId is "+merchantId+" merchant to use is "+merchantIdToUse+" token: "+token);
         // get merchant data
         try {
             log.info("TRYING=================================================");

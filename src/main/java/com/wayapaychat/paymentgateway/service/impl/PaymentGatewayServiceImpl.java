@@ -1495,7 +1495,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         // get merchant data
         try {
             log.info("TRYING=================================================");
-            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
             }

@@ -44,6 +44,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         query.append("SUM(CASE WHEN a.status = 'ABANDONED'  THEN 1 ELSE 0 END) as TOTALABANDONED,");
         query.append("SUM(CASE WHEN a.status = 'REFUNDED'   THEN 1 ELSE 0 END) as TOTALREFUNDED,");
         query.append("SUM(CASE WHEN a.status = 'PENDING'    THEN 1 ELSE 0 END) as TOTALPENDING,");
+        query.append("SUM(CASE WHEN a.status = 'DECLINED'   THEN 1 ELSE 0 END) as TOTALDECLINED,");
         query.append("SUM(CASE WHEN settlement_status =  'SETTLED'    THEN 1 ELSE 0 END) as TOTALSETTLED ");
         query.append("FROM m_payment_gateway a ");
         String sql = query.toString();
@@ -69,6 +70,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         query.append("SUM(CASE WHEN a.status = 'ABANDONED'  THEN 1 ELSE 0 END) as TOTALABANDONED,");
         query.append("SUM(CASE WHEN a.status = 'REFUNDED'   THEN 1 ELSE 0 END) as TOTALREFUNDED,");
         query.append("SUM(CASE WHEN a.status = 'PENDING'    THEN 1 ELSE 0 END) as TOTALPENDING,");
+        query.append("SUM(CASE WHEN a.status = 'DECLINED'   THEN 1 ELSE 0 END) as TOTALDECLINED,");
         query.append("SUM(CASE WHEN settlement_status =  'SETTLED'    THEN 1 ELSE 0 END) as TOTALSETTLED ");
         query.append(String.format(" FROM %s a WHERE merchant_id = '%s' ", tbl, merchantId));
         String sql = query.toString();

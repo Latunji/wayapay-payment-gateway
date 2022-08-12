@@ -1463,7 +1463,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         MerchantResponse merchant = null;
         // get merchant data
         try {
-            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
             }
@@ -1543,7 +1543,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         MerchantResponse merchant = null;
         // get merchant data
         try {
-            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
             }

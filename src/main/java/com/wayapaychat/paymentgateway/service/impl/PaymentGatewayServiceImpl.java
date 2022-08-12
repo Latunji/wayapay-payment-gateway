@@ -1491,10 +1491,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
 
         MerchantResponse merchant = null;
-        log.info("current merchantId is "+merchantId+" merchant to use is "+merchantIdToUse+" token: "+token);
         // get merchant data
         try {
-            log.info("TRYING=================================================");
             merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
@@ -1504,7 +1502,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 String httpStatus = Integer.toString(((FeignException) ex).status());
                 log.error("Feign Exception Status {}", httpStatus);
             }
-            log.error("Higher Wahala dey oooo {}", ex.getMessage());
+            log.error("Higher Wahala {}", ex.getMessage());
             log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
 

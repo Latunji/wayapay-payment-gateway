@@ -1245,28 +1245,42 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return ResponseEntity.ok().body("Transaction status updated successful");
     }
 
+    // s-l done
     @Override
     public ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryPojo, Pageable pageable) {
         AuthenticatedUser authenticatedUser = PaymentGateWayCommonUtils.getAuthenticatedUser();
         MerchantData merchantResponse = merchantProxy.getMerchantInfo(paymentGateWayCommonUtils.getDaemonAuthToken(), authenticatedUser.getMerchantId()).getData();
         queryPojo.setMerchantId(merchantResponse.getMerchantId());
         return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
-                getCustomerTransaction(queryPojo, pageable)), HttpStatus.OK);
+                getCustomerTransaction(queryPojo, merchantResponse.getMerchantKeyMode(),  pageable)), HttpStatus.OK);
     }
 
+    // s-l done
     @Override
-    public Page<PaymentGateway> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, Pageable pageable) {
-        Page<PaymentGateway> result;
+    public Page<?> getCustomerTransaction(QueryCustomerTransactionPojo queryPojo, String mode, Pageable pageable) {
+        Page<?> result;
         String merchantId = queryPojo.getMerchantId();
-        if (ObjectUtils.isNotEmpty(queryPojo.getStatus()) && ObjectUtils.isNotEmpty(queryPojo.getChannel()))
-            result = paymentGatewayRepo.findByCustomerIdChannelStatus(
-                    queryPojo.getCustomerId(), merchantId,
-                    queryPojo.getStatus().name(), queryPojo.getChannel().name(), pageable);
-        else if (ObjectUtils.isNotEmpty(queryPojo.getChannel()))
-            result = paymentGatewayRepo.findByCustomerIdChannel(queryPojo.getCustomerId(), merchantId, queryPojo.getChannel().name(), pageable);
-        else if (ObjectUtils.isNotEmpty(queryPojo.getStatus()))
-            result = paymentGatewayRepo.findByStatus(queryPojo.getCustomerId(), merchantId, queryPojo.getStatus().name(), pageable);
-        else result = paymentGatewayRepo.findByCustomerId(queryPojo.getCustomerId(), merchantId, pageable);
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())) {
+            if (ObjectUtils.isNotEmpty(queryPojo.getStatus()) && ObjectUtils.isNotEmpty(queryPojo.getChannel()))
+                result = paymentGatewayRepo.findByCustomerIdChannelStatus(
+                        queryPojo.getCustomerId(), merchantId,
+                        queryPojo.getStatus().name(), queryPojo.getChannel().name(), pageable);
+            else if (ObjectUtils.isNotEmpty(queryPojo.getChannel()))
+                result = paymentGatewayRepo.findByCustomerIdChannel(queryPojo.getCustomerId(), merchantId, queryPojo.getChannel().name(), pageable);
+            else if (ObjectUtils.isNotEmpty(queryPojo.getStatus()))
+                result = paymentGatewayRepo.findByStatus(queryPojo.getCustomerId(), merchantId, queryPojo.getStatus().name(), pageable);
+            else result = paymentGatewayRepo.findByCustomerId(queryPojo.getCustomerId(), merchantId, pageable);
+        } else {
+            if (ObjectUtils.isNotEmpty(queryPojo.getStatus()) && ObjectUtils.isNotEmpty(queryPojo.getChannel()))
+                result = sandboxPaymentGatewayRepo.findByCustomerIdChannelStatus(
+                        queryPojo.getCustomerId(), merchantId,
+                        queryPojo.getStatus().name(), queryPojo.getChannel().name(), pageable);
+            else if (ObjectUtils.isNotEmpty(queryPojo.getChannel()))
+                result = sandboxPaymentGatewayRepo.findByCustomerIdChannel(queryPojo.getCustomerId(), merchantId, queryPojo.getChannel().name(), pageable);
+            else if (ObjectUtils.isNotEmpty(queryPojo.getStatus()))
+                result = sandboxPaymentGatewayRepo.findByStatus(queryPojo.getCustomerId(), merchantId, queryPojo.getStatus().name(), pageable);
+            else result = sandboxPaymentGatewayRepo.findByCustomerId(queryPojo.getCustomerId(), merchantId, pageable);
+        }
         return result;
     }
 

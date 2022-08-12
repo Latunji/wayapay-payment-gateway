@@ -38,5 +38,5 @@ public interface WayaPaymentDAO {
     Page<TransactionSettlementPojo> getAllTransactionSettlement(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable pageable);
 
     // s-l done
-    void expireAllTransactionMoreThan30Mins();
+    Boolean expireAllTransactionMoreThan30Mins();
 }

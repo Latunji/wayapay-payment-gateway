@@ -123,7 +123,7 @@ public class CronService {
     }
 
     // s-l done
-    @Scheduled(cron = "* */30 * * * *")
+    @Scheduled(cron = "*/20 * * * * *")
     @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void expireTransactionAfterThirtyMinutes() {
         log.info("------||| expiring transactions that have stayed more than 30min NOW |||-------");

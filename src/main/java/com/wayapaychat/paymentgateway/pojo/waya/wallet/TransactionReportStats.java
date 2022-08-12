@@ -19,4 +19,5 @@ public class TransactionReportStats {
 	private long totalPending;
 	private long totalSettled;
 	private long totalRefunded;
+	private long totalDeclined;
 }

@@ -59,7 +59,6 @@ public class CronService {
     public void updateTransactionStatusEveryDay() {
         log.info("----------------------------- Starting SCHEDULE -----------------------------");
 //        updateTransactionStatus();
-        return void
     }
 
     @Scheduled(cron = "0 0 0 * * *")

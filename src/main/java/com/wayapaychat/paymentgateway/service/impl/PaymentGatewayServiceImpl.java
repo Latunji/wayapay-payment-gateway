@@ -1162,15 +1162,26 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         return new ResponseEntity<>(new SuccessResponse("Transaction Query", response), HttpStatus.OK);
     }
 
+    // s-l done
     //TODO: Protect this method to check is user has access to operate Payment gateway
     @Override
     public ResponseEntity<?> abandonTransaction(HttpServletRequest request, String refNo, WayaPaymentStatus pay) {
-        PaymentGateway mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
-        if (mPay == null)
-            return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
-        if (mPay.getStatus() != TransactionStatus.SUCCESSFUL) {
-            mPay.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.ABANDONED);
-            paymentGatewayRepo.save(mPay);
+        if(refNo.startsWith("7263269")) { // sandbox payment
+            SandboxPaymentGateway msPay = sandboxPaymentGatewayRepo.findByRefNo(refNo).orElse(null);
+            if (msPay == null)
+                return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+            if (msPay.getStatus() != TransactionStatus.SUCCESSFUL) {
+                msPay.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.ABANDONED);
+                sandboxPaymentGatewayRepo.save(msPay);
+            }
+        } else {
+            PaymentGateway mPay = paymentGatewayRepo.findByRefNo(refNo).orElse(null);
+            if (mPay == null)
+                return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+            if (mPay.getStatus() != TransactionStatus.SUCCESSFUL) {
+                mPay.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.ABANDONED);
+                paymentGatewayRepo.save(mPay);
+            }
         }
         return new ResponseEntity<>(new SuccessResponse("Updated", "Success Updated"), HttpStatus.OK);
     }
@@ -1482,7 +1493,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         MerchantResponse merchant = null;
         // get merchant data
         try {
-            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
             }

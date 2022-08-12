@@ -5,7 +5,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementsResp
 public interface TransactionSettlementDAO {
     TransactionSettlementsResponse merchantTransactionSettlementStats(String merchantId, String mode);
 
-    String getLatestSettlementQuery(String merchantId);
+    String getLatestSettlementQuery(String merchantId, String mode);
 
-    String getNextSettlementQuery(String merchantId);
+    String getNextSettlementQuery(String merchantId, String mode);
 }

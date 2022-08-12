@@ -359,17 +359,21 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     // s-l done
     @Override
     public void expireAllTransactionMoreThan30Mins() {
+        log.info("got into expiring================running live");
         @NotNull final String UPDATE_QUERY = " UPDATE m_payment_gateway SET transaction_expired=true WHERE transaction_expired = false " +
                 " AND EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - tran_date ))/60 >= 30.0000 ";
         int updatedRows = jdbcTemplate.update(UPDATE_QUERY);
         if (!(updatedRows >= 0))
             throw new ApplicationException(400, "01", "Failed to update live transaction expiry");
 
+        log.info("================running sandbox");
         @NotNull final String UPDATE_SANDBOX_QUERY = " UPDATE m_sandbox_payment_gateway SET transaction_expired=true WHERE transaction_expired = false " +
                 " AND EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - tran_date ))/60 >= 30.0000 ";
         int updatedSandboxRows = jdbcTemplate.update(UPDATE_SANDBOX_QUERY);
         if (!(updatedSandboxRows >= 0))
             throw new ApplicationException(400, "01", "Failed to update sandbox transaction expiry");
+
+        log.info("================COMPLETED=================");
     }
 
 

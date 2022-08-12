@@ -1192,12 +1192,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, true);
 
         MerchantResponse merchant = null;
+        String mode = null;
         // get merchant data
         try {
             merchant = merchantProxy.getMerchantInfo(token, merchantId);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
             }
+            mode = merchant.getData().getMerchantKeyMode();
         } catch (Exception ex) {
             if (ex instanceof FeignException) {
                 String httpStatus = Integer.toString(((FeignException) ex).status());
@@ -1207,7 +1209,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
 
-        TransactionReportStats revenue = wayaPayment.getTransactionReportStats(merchantIdToUse, merchant.getData().getMerchantKeyMode());
+        TransactionReportStats revenue = wayaPayment.getTransactionReportStats(merchantIdToUse, mode);
         return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
     }
 
@@ -1461,12 +1463,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
 
         MerchantResponse merchant = null;
+        String mode = null;
         // get merchant data
         try {
             merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
             }
+            mode = merchant.getData().getMerchantKeyMode();
         } catch (Exception ex) {
             if (ex instanceof FeignException) {
                 String httpStatus = Integer.toString(((FeignException) ex).status());
@@ -1476,7 +1480,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
 
-        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year, startDate, endDate, merchant.getData().getMerchantKeyMode());
+        List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getMerchantTransactionStatsByYearAndMonth(merchantIdToUse, year, startDate, endDate, mode);
         BigDecimal totalRevenueForSelectedDateRange = transactionYearMonthStats.stream()
                 .map(TransactionYearMonthStats::getTotalRevenue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -1491,12 +1495,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
 
         MerchantResponse merchant = null;
+        String mode = null;
         // get merchant data
         try {
             merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
             }
+            mode =  merchant.getData().getMerchantKeyMode();
         } catch (Exception ex) {
             if (ex instanceof FeignException) {
                 String httpStatus = Integer.toString(((FeignException) ex).status());
@@ -1506,7 +1512,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
 
-        TransactionOverviewResponse transactionOverviewResponse = wayaPaymentDAO.getTransactionReport(merchantIdToUse, merchant.getData().getMerchantKeyMode());
+        TransactionOverviewResponse transactionOverviewResponse = wayaPaymentDAO.getTransactionReport(merchantIdToUse, mode);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionOverviewResponse), HttpStatus.OK);
     }
 
@@ -1516,12 +1522,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
 
         MerchantResponse merchant = null;
+        String mode = null;
         // get merchant data
         try {
             merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
             }
+            mode = merchant.getData().getMerchantKeyMode();
         } catch (Exception ex) {
             if (ex instanceof FeignException) {
                 String httpStatus = Integer.toString(((FeignException) ex).status());
@@ -1531,7 +1539,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
 
-        TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse, merchant.getData().getMerchantKeyMode());
+        TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getMerchantTransactionGrossAndNetRevenue(merchantIdToUse, mode);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionRevenueStats), HttpStatus.OK);
     }
 

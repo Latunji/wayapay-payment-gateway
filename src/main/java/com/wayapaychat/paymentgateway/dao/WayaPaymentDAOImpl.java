@@ -58,10 +58,10 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     public TransactionReportStats getTransactionReportStats(String merchantId, String mode) {
         String tbl;
         TransactionReportStats product;
-        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
-            tbl = "m_payment_gateway";
-        } else {
+        if(mode.equals(MerchantTransactionMode.TEST.toString())){
             tbl = "m_sandbox_payment_gateway";
+        } else {
+            tbl = "m_payment_gateway";
         }
         StringBuilder query = new StringBuilder();
         query.append("SELECT COUNT(a.TRAN_ID) AS TOTALTRAN,");
@@ -83,12 +83,11 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     @Override
     @SuppressWarnings(value = "unchecked")
     public TransactionOverviewResponse getTransactionReport(String merchantId, String mode) {
-//        merchantId = null;
         String tbl;
-        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
-            tbl = "m_payment_gateway";
-        } else {
+        if(mode.equals(MerchantTransactionMode.TEST.toString())){
             tbl = "m_sandbox_payment_gateway";
+        } else {
+            tbl = "m_payment_gateway";
         }
         @NotNull final String SUCCESS_RATE_TOTAL_SUB = String.format(" SELECT COUNT(*.status) total FROM %s WHERE UPPER(status) IN ('SUCCESSFUL','ERROR','FAILED') ", tbl);
         @NotNull final String REFUSAL_RATE_TOTAL_SUB = String.format(" SELECT COUNT(*.status) total FROM %s WHERE UPPER(status) IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') ", tbl);
@@ -112,16 +111,13 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         @NotNull final String NEXT_SETTLEMENT_Q = transactionSettlementDAO.getNextSettlementQuery(merchantId, mode);
 
         @NotNull final String SUCCESS_ERROR_STATS_Q = String.format("SELECT COUNT(status), status " +
-                        " FROM m_payment_gateway WHERE status IN ('SUCCESSFUL','ERROR','FAILED') %s GROUP BY status; ",
-                ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
+                        " FROM %s WHERE status IN ('SUCCESSFUL','ERROR','FAILED') %s GROUP BY status; ", tbl, ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
 
         @NotNull final String REFUSAL_ERROR_Q = String.format("SELECT  COUNT(status), status " +
-                        " FROM m_payment_gateway WHERE status IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') %s GROUP BY status; ",
-                ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
+                        " FROM %s WHERE status IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') %s GROUP BY status; ", tbl, ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
 
         @NotNull final String PAYMENT_CHANNEL_STATS_Q = String.format("SELECT COUNT(channel), channel " +
-                        " FROM m_payment_gateway WHERE channel IN ('CARD','USSD','PAYATTITUDE', 'QR','BANK') %s GROUP BY channel ; ",
-                ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
+                        " FROM %s WHERE channel IN ('CARD','USSD','PAYATTITUDE', 'QR','BANK') %s GROUP BY channel ; ", tbl, ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
 
         @NotNull final String TRANSACTION_REPORT_Q = TRANSACTION_STATUS_STATS_Q + GROSS_REVENUE_Q + NET_REVENUE_Q + YEAR_MONTH_STATS_Q + LATEST_SETTLEMENT_Q +
                 NEXT_SETTLEMENT_Q + SUCCESS_ERROR_STATS_Q + REFUSAL_ERROR_Q + PAYMENT_CHANNEL_STATS_Q;
@@ -190,10 +186,10 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     @SuppressWarnings(value = "unchecked")
     public List<TransactionYearMonthStats> getMerchantTransactionStatsByYearAndMonth(final String merchantId, final Long year, final Date startDate, final Date endDate, String mode) {
         String tbl;
-        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
-            tbl = "m_payment_gateway";
-        } else {
+        if(mode.equals(MerchantTransactionMode.TEST.toString())){
             tbl = "m_sandbox_payment_gateway";
+        } else {
+            tbl = "m_payment_gateway";
         }
         @NotNull final String FINAL_Q = buildYearMonthQuery(merchantId, year, startDate, endDate, mode);
         var cscFactory = new CallableStatementCreatorFactory(FINAL_Q);
@@ -246,10 +242,10 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     // s-l done
     private String buildYearMonthQuery(String merchantId, Long year, Date startDate, Date endDate, String mode) {
         String tbl;
-        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
-            tbl = "m_payment_gateway";
-        } else {
+        if(mode.equals(MerchantTransactionMode.TEST.toString())){
             tbl = "m_sandbox_payment_gateway";
+        } else {
+            tbl = "m_payment_gateway";
         }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyy-MM-dd");
         final Long currentYear = ObjectUtils.isEmpty(year) ? Calendar.getInstance().get(Calendar.YEAR) : year;
@@ -283,10 +279,10 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     // s-l done
     private String getGrossRevenueQuery(String merchantId, String mode) {
         String tbl;
-        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
-            tbl = "m_payment_gateway";
-        } else {
+        if(mode.equals(MerchantTransactionMode.TEST.toString())){
             tbl = "m_sandbox_payment_gateway";
+        } else {
+            tbl = "m_payment_gateway";
         }
         @NotNull final String SUB_Q_MER_AND = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND merchant_id = '%s' ", merchantId);
         return String.format("SELECT SUM(amount) amount FROM %s WHERE status='SUCCESSFUL' %s ;", tbl, SUB_Q_MER_AND);
@@ -295,10 +291,10 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     // s-l done
     private String getNetRevenueQuery(String merchantId, String mode) {
         String tbl;
-        if(mode.equals(MerchantTransactionMode.PRODUCTION.toString())){
-            tbl = "m_payment_gateway";
-        } else {
+        if(mode.equals(MerchantTransactionMode.TEST.toString())){
             tbl = "m_sandbox_payment_gateway";
+        } else {
+            tbl = "m_payment_gateway";
         }
         @NotNull final String SUB_Q_MER_AND = ObjectUtils.isEmpty(merchantId) ? " " : String.format(" AND merchant_id = '%s' ", merchantId);
         return String.format("SELECT ( SUM(amount) - SUM(fee) ) amount FROM %s WHERE status='SUCCESSFUL' %s ;", tbl, SUB_Q_MER_AND);

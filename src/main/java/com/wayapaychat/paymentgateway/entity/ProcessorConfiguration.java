@@ -1,10 +1,9 @@
 package com.wayapaychat.paymentgateway.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Getter
@@ -14,6 +13,12 @@ import javax.persistence.Table;
 @ToString
 @Table(name = "m_processor_configuration")
 public class ProcessorConfiguration {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(unique = true, nullable = false)
+    @JsonIgnore
+    private Long id;
+
     @Column(name = "card_acquiring")
     private String cardAcquiring;
 

@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProcessorConfigurationRepository extends JpaRepository<ProcessorConfiguration, Long>{
-    @Query("SELECT * FROM m_processor_configuration LIMIT 1")
+    @Query(value = "SELECT * FROM m_processor_configuration LIMIT 1", nativeQuery = true)
     ProcessorConfiguration getProcessorConfigurations();
 }

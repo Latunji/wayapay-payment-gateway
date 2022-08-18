@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 @Repository
 public interface PaymentProcessorRepository extends JpaRepository<PaymentProcessor, Long>{
-    @Query("SELECT * FROM m_payment_processor WHERE UPPER(name)=UPPER(:name)")
+    @Query(value = "SELECT * FROM m_payment_processor WHERE UPPER(name)=UPPER(:name)", nativeQuery = true)
     Optional<PaymentProcessor> findByName(String name);
 
     Optional<PaymentProcessor> findByCode(String code);

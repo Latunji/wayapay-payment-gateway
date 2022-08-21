@@ -14,17 +14,16 @@ public class FeignClientInterceptor implements RequestInterceptor {
 
     public static String getBearerTokenHeader() {
         RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
-        if (attrs instanceof ServletRequestAttributes) {
+        if (attrs instanceof ServletRequestAttributes)
             return ((ServletRequestAttributes) attrs).getRequest().getHeader("Authorization");
-        }
         return null;
     }
 
     @Override
     public void apply(RequestTemplate requestTemplate) {
-        String token = getBearerTokenHeader();
-        if (token != null && !token.isBlank()) {
-            requestTemplate.header(AUTHORIZATION_HEADER, token);
-        }
+//        String token = getBearerTokenHeader();
+//        if (token != null && !token.isBlank()) {
+//            requestTemplate.header(AUTHORIZATION_HEADER, token);
+//        }
     }
 }

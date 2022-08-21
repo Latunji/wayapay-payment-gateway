@@ -1,6 +1,6 @@
 package com.wayapaychat.paymentgateway;
 
-import com.wayapaychat.paymentgateway.utils.Crypto;
+import com.wayapaychat.paymentgateway.common.utils.Crypto;
 
 public class Test {
 	

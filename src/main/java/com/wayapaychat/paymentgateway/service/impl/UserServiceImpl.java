@@ -1,7 +1,9 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
 
-import com.wayapaychat.paymentgateway.pojo.*;
+import com.wayapaychat.paymentgateway.pojo.waya.ApiResponseBody;
+import com.wayapaychat.paymentgateway.pojo.waya.AuthenticatedUser;
+import com.wayapaychat.paymentgateway.pojo.waya.LogRequest;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.LoggingProxy;
 import com.wayapaychat.paymentgateway.service.UserService;
@@ -17,7 +19,7 @@ public class UserServiceImpl implements UserService {
 	private static AuthApiClient authApiClient;
 	private final LoggingProxy loggingProxy;
 	
-	public ApiResponseBody<MyUserData> getUserDataByEmail(String email) {
+	public ApiResponseBody<AuthenticatedUser> getUserDataByEmail(String email) {
 		try{
 			return authApiClient.getUserByEmail(email);
 		}catch(Exception e){
@@ -26,7 +28,7 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 	
-	public ApiResponseBody<MyUserData> getUserDataById(Long id) {
+	public ApiResponseBody<AuthenticatedUser> getUserDataById(Long id) {
 		try{
 			return authApiClient.getUserById(id);
 		}catch(Exception e){
@@ -35,7 +37,7 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 	
-	public ApiResponseBody<MyUserData> getUserDataByPhoneNumber(String phonenumber) {
+	public ApiResponseBody<AuthenticatedUser> getUserDataByPhoneNumber(String phonenumber) {
 		try{
 			return authApiClient.getUserByPhoneNumber(phonenumber);
 		}catch(Exception e){

@@ -6,13 +6,12 @@ import lombok.Data;
 public class WayaEncypt {
 	
 	private String encryptString;
-	
-	private String merchantSecretKey;
+	private String merchantPublicKey;
 
-	public WayaEncypt(String encryptString, String merchantSecretKey) {
+	public WayaEncypt(String encryptString, String merchantPublicKey) {
 		super();
 		this.encryptString = encryptString;
-		this.merchantSecretKey = merchantSecretKey;
+		this.merchantPublicKey = merchantPublicKey;
 	}
 
 	public WayaEncypt() {

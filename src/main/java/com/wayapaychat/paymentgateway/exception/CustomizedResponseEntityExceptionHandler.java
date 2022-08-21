@@ -1,6 +1,6 @@
 package com.wayapaychat.paymentgateway.exception;
 
-import com.wayapaychat.paymentgateway.pojo.CustomErrorResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.CustomErrorResponse;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.service.spi.ServiceException;
@@ -70,7 +70,11 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
             httpStatus = HttpStatus.UNAUTHORIZED;
             details.add(message);
         } else if (localizedMessage.contains("[404] during [GET]")) {
-            message = "Oops! seems one or more resources provided to process this request does not exists";
+            message = "Resource(s) provided to process this request does not exists";
+            httpStatus = HttpStatus.NOT_FOUND;
+            details.add(message);
+        }  else if (localizedMessage.contains("[404] during [GET]") && localizedMessage.contains("payment-link")) {
+            message = "Payment link does not exists with the provided credential";
             httpStatus = HttpStatus.NOT_FOUND;
             details.add(message);
         }  else if (localizedMessage.contains("[401] during [GET]")) {
@@ -94,7 +98,7 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
             message = "Oops! Date time format provided is invalid";
             details.add(message);
         } else {
-            message = "Oops! server error occurred please contact support or try again later";
+            message = "Oops! Our system failed to process this request!";
             details.add(message);
         }
         log.error("ERROR: ", ex);

@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import com.wayapaychat.paymentgateway.pojo.Customer;
+import com.wayapaychat.paymentgateway.pojo.waya.Customer;
 
 import lombok.Data;
 
@@ -45,6 +45,8 @@ public class WayaPaymentRequest {
 	private Customer customer;
 	
 	private String preferenceNo;
+	private String paymentLinkId;
+	private boolean recurrentPayment;
 
 	public WayaPaymentRequest(String merchantId, String description, BigDecimal amount,
 			BigDecimal fee, String currency, String wayaPublicKey, Customer customer, 

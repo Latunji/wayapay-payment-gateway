@@ -78,7 +78,7 @@ public class UnifiedPaymentProxy {
     private String merchantUrl;
 
     private void setVars(String mode) {
-        if (mode == MerchantTransactionMode.TEST.name()) {
+        if (mode.equals(MerchantTransactionMode.TEST.name())) {
             this.merchantId = liveMerchantId;
             this.merchantSecret = liveMerchantSecret;
             this.merchantUrl = liveMerchantUrl;

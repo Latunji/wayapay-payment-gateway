@@ -47,10 +47,11 @@ public class WayaPaymentRequest {
 	private String preferenceNo;
 	private String paymentLinkId;
 	private boolean recurrentPayment;
+	private String mode;
 
 	public WayaPaymentRequest(String merchantId, String description, BigDecimal amount,
 			BigDecimal fee, String currency, String wayaPublicKey, Customer customer, 
-			String preferenceNo) {
+			String preferenceNo, String mode) {
 		super();
 		this.merchantId = merchantId;
 		this.description = description;
@@ -60,6 +61,7 @@ public class WayaPaymentRequest {
 		this.wayaPublicKey = wayaPublicKey;
 		this.customer = customer;
 		this.preferenceNo = preferenceNo;
+		this.mode = mode;
 	}
 
 	public WayaPaymentRequest() {

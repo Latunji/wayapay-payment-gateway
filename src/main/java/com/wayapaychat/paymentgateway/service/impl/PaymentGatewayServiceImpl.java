@@ -429,8 +429,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         RecurrentTransaction recurrentTransaction;
         SandboxPaymentGateway sandboxPaymentGateway = new SandboxPaymentGateway();
         PaymentGateway paymentGateway = new PaymentGateway();
+        String mode = "";
 
         if (card.getTranId().startsWith("7263269")) {
+            mode = MerchantTransactionMode.TEST.name();
             // process as test payment
             Optional<SandboxPaymentGateway> optionalSandboxPaymentGateway = sandboxPaymentGatewayRepo.findByRefNo(card.getTranId());
             if (optionalSandboxPaymentGateway.isEmpty())
@@ -451,6 +453,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             } else if (sandboxPaymentGateway.getStatus() == TransactionStatus.SUCCESSFUL)
                 return new ResponseEntity<>(new ErrorResponse("Sandbox Transaction already successful"), HttpStatus.FORBIDDEN);
         } else {
+            mode = MerchantTransactionMode.PRODUCTION.name();
             // process as live payment
             Optional<PaymentGateway> optionalPaymentGateway = paymentGatewayRepo.findByRefNo(card.getTranId());
             if (optionalPaymentGateway.isEmpty())
@@ -544,7 +547,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
         response = new PaymentGatewayResponse(false, "Encrypt Card fail", null);
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
-        String encryptData = uniPaymentProxy.encryptPaymentDataAccess(upCardPaymentRequest);
+        String encryptData = uniPaymentProxy.encryptPaymentDataAccess(upCardPaymentRequest, mode);
         if (!encryptData.isBlank()) {
             response = new PaymentGatewayResponse(true, "Success Encrypt", encryptData);
             httpStatus = HttpStatus.OK;
@@ -569,8 +572,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             response, WayaPaymentCallback pay) {
         PaymentGatewayResponse mResponse = new PaymentGatewayResponse(false, "Callback fail", null);
         String tranId = null;
+        String mode = "";
         try {
             if (pay.getTranId().startsWith("7263269")) { // merchant transacts in test mode
+                mode = MerchantTransactionMode.TEST.name();
                 SandboxPaymentGateway msPay = sandboxPaymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
                 if (msPay != null) {
                     msPay.setEncyptCard(pay.getCardEncrypt());
@@ -578,7 +583,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     WayaPaymentRequest mAccount = new WayaPaymentRequest(msPay.getMerchantId(), msPay.getDescription(),
                             msPay.getAmount(), msPay.getFee(), msPay.getCurrencyCode(), msPay.getSecretKey(),
                             new Customer(msPay.getCustomerName(), msPay.getCustomerEmail(), msPay.getCustomerPhone(), msPay.getCustomerId()),
-                            msPay.getPreferenceNo());
+                            msPay.getPreferenceNo(), MerchantTransactionMode.TEST.name());
                     tranId = uniPaymentProxy.postUnified(mAccount);
                     if (ObjectUtils.isEmpty(tranId))
                         return new PaymentGatewayResponse(false, "Failed to initiate post tranId for 3D Authentication.", null);
@@ -586,6 +591,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     sandboxPaymentGatewayRepo.save(msPay);
                 }
             } else { // merchant transacts in live mode
+                mode = MerchantTransactionMode.PRODUCTION.name();
                 PaymentGateway mPay = paymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
                 if (mPay != null) {
                     mPay.setEncyptCard(pay.getCardEncrypt());
@@ -593,7 +599,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     WayaPaymentRequest mAccount = new WayaPaymentRequest(mPay.getMerchantId(), mPay.getDescription(),
                             mPay.getAmount(), mPay.getFee(), mPay.getCurrencyCode(), mPay.getSecretKey(),
                             new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId()),
-                            mPay.getPreferenceNo());
+                            mPay.getPreferenceNo(), MerchantTransactionMode.PRODUCTION.name());
                     tranId = uniPaymentProxy.postUnified(mAccount);
                     if (ObjectUtils.isEmpty(tranId))
                         return new PaymentGatewayResponse(false, "Failed to initiate post tranId for 3D Authentication.", null);
@@ -601,7 +607,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     paymentGatewayRepo.save(mPay);
                 }
             }
-            String callReq = uniPaymentProxy.buildUnifiedPaymentURLWithPayload(tranId, pay.getCardEncrypt(), false);
+            String callReq = uniPaymentProxy.buildUnifiedPaymentURLWithPayload(tranId, pay.getCardEncrypt(), false, mode);
             if (!callReq.isBlank()) {
                 URLConnection urlConnection_ = new URL(callReq).openConnection();
                 urlConnection_.connect();
@@ -626,8 +632,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         PaymentGatewayResponse response = new PaymentGatewayResponse(false, "PayAttitude Callback fail", null);
         String tranId = null;
         WayaPayattitude attitude = null;
+        String mode = "";
 
         if (pay.getTranId().startsWith("7263269")) { // merchant transacts in test mode
+            mode = MerchantTransactionMode.TEST.name();
             SandboxPaymentGateway msPay = sandboxPaymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
             if (msPay != null) {
                 msPay.setEncyptCard(pay.getCardEncrypt());
@@ -636,7 +644,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 WayaPaymentRequest mAccount = new WayaPaymentRequest(msPay.getMerchantId(), msPay.getDescription(),
                         msPay.getAmount(), msPay.getFee(), msPay.getCurrencyCode(), msPay.getSecretKey(),
                         new Customer(msPay.getCustomerName(), msPay.getCustomerEmail(), msPay.getCustomerPhone(), msPay.getCustomerId()),
-                        msPay.getPreferenceNo());
+                        msPay.getPreferenceNo(), MerchantTransactionMode.TEST.name());
                 tranId = uniPaymentProxy.postUnified(mAccount);
                 if (ObjectUtils.isEmpty(tranId)) {
                     return new PaymentGatewayResponse(false, "Failed to process transaction authentication. Please try again later!", null);
@@ -647,6 +655,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 attitude = new WayaPayattitude(tranId, pay.getCardEncrypt());
             }
         } else { // merchant transacts in live mode
+            mode = MerchantTransactionMode.PRODUCTION.name();
             PaymentGateway mPay = paymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
             if (mPay != null) {
                 mPay.setEncyptCard(pay.getCardEncrypt());
@@ -655,7 +664,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 WayaPaymentRequest mAccount = new WayaPaymentRequest(mPay.getMerchantId(), mPay.getDescription(),
                         mPay.getAmount(), mPay.getFee(), mPay.getCurrencyCode(), mPay.getSecretKey(),
                         new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId()),
-                        mPay.getPreferenceNo());
+                        mPay.getPreferenceNo(), MerchantTransactionMode.PRODUCTION.name());
                 tranId = uniPaymentProxy.postUnified(mAccount);
                 if (ObjectUtils.isEmpty(tranId)) {
                     return new PaymentGatewayResponse(false, "Failed to process transaction authentication. Please try again later!", null);
@@ -668,7 +677,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
 
         if (attitude != null) {
-            WayaTransactionQuery callReq = uniPaymentProxy.postPayAttitude(attitude);
+            WayaTransactionQuery callReq = uniPaymentProxy.postPayAttitude(attitude, mode);
             if (callReq != null) {
                 response = new PaymentGatewayResponse(true, "Success Encrypt", callReq);
             }
@@ -680,8 +689,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> getTransactionStatus(HttpServletRequest req, String tranId) {
         WayaTransactionQuery response = null;
+        String mode = "";
         try {
-            response = uniPaymentProxy.transactionQuery(tranId);
+            if (tranId.startsWith("7263269")){
+                mode = MerchantTransactionMode.TEST.name();
+            } else {
+                mode = MerchantTransactionMode.PRODUCTION.name();
+            }
+            response = uniPaymentProxy.transactionQuery(tranId, mode);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -693,8 +708,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public WayaTransactionQuery getTransactionStatus(String tranId) {
         WayaTransactionQuery response = null;
+        String mode = "";
         try {
-            response = uniPaymentProxy.transactionQuery(tranId);
+            if (tranId.startsWith("7263269")){
+                mode = MerchantTransactionMode.TEST.name();
+            } else {
+                mode = MerchantTransactionMode.PRODUCTION.name();
+            }
+            response = uniPaymentProxy.transactionQuery(tranId, mode);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1300,7 +1321,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // s-l done SANDBOX Counterpart: preprocessSandboxTransactionStatus()
     private void preprocessTransactionStatus(PaymentGateway payment) {
         try {
-            WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
+            WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId(), MerchantTransactionMode.PRODUCTION.name());
             log.info("-----UNIFIED PAYMENT RESPONSE {}----------", response);
             if (ObjectUtils.isNotEmpty(response)) {
                 if (ObjectUtils.isNotEmpty(response.getStatus()) && response.getStatus().toUpperCase().equals(TStatus.APPROVED.name())) {
@@ -1331,7 +1352,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // s-l done
     private void preprocessSandboxTransactionStatus(SandboxPaymentGateway payment) {
         try {
-            WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId());
+            WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId(), MerchantTransactionMode.TEST.name());
             log.info("-----UNIFIED PAYMENT RESPONSE {}----------", response);
             if (ObjectUtils.isNotEmpty(response)) {
                 if (ObjectUtils.isNotEmpty(response.getStatus()) && response.getStatus().toUpperCase().equals(TStatus.APPROVED.name())) {

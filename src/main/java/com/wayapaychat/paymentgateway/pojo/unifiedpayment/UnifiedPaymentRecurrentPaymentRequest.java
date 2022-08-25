@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UnifiedPaymentRecurrentPaymentRequest {
-    @Value("${waya.unified-payment.secret}")
+//    @Value("${waya.unified-payment.secret}")
     private String SecretKey;
     private String Scheme;
     private BigDecimal Amount;

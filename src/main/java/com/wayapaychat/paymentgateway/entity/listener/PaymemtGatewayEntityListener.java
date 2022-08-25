@@ -107,7 +107,7 @@ public class PaymemtGatewayEntityListener {
                         .merchantName(paymentGateway.getMerchantName())
                         .transactionDate(paymentGateway.getVendorDate())
                         .transactionAmount(paymentGateway.getAmount())
-                        .transactionMode(variableUtil.getMode())
+                        .transactionMode(paymentGateway.getMode().toString())
                         .customerEmailAddress(paymentGateway.getCustomerEmail())
                         .customerName(paymentGateway.getCustomerName())
                         .merchantName(paymentGateway.getMerchantName())

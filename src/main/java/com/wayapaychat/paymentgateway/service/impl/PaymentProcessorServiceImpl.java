@@ -80,7 +80,7 @@ public class PaymentProcessorServiceImpl implements PaymentProcessorService {
 
         if (cardProcessor != null) {
             configurations.setCardAcquiring(cardProcessor.getName());
-            msg = msg+"Card Acquiring Set, ";
+            msg = msg+"Card Acquiring Set. ";
         }
 
         if (ussdProcessor != null) {

@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "${waya.unified-payment.name}", url = "${waya.unified-payment.baseurl}", configuration = PaymentGatewayClientConfiguration.class)
+//@FeignClient(name = "${waya.unified-payment.name}", url = "${waya.unified-payment.baseurl}", configuration = PaymentGatewayClientConfiguration.class)
 public interface UnifiedPaymentApiClient {
 
     @PostMapping()

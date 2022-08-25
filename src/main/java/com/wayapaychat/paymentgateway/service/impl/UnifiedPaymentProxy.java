@@ -55,8 +55,8 @@ public class UnifiedPaymentProxy {
     QRCodeProxy qrCodeProxy;
     @Autowired
     PaymentWalletRepository paymentWalletRepo;
-    @Autowired
-    UnifiedPaymentApiClient unifiedClient;
+//    @Autowired
+//    UnifiedPaymentApiClient unifiedClient;
     @Value("${waya.unified-payment.liveMerchant}")
     private String liveMerchantId;
     @Value("${waya.unified-payment.liveSecret}")

@@ -57,40 +57,35 @@ public class UnifiedPaymentProxy {
     PaymentWalletRepository paymentWalletRepo;
 //    @Autowired
 //    UnifiedPaymentApiClient unifiedClient;
+    @Value("${waya.callback.baseurl}")
+    private String callbackUrl;
     @Value("${waya.unified-payment.liveMerchant}")
     private String liveMerchantId;
     @Value("${waya.unified-payment.liveSecret}")
     private String liveMerchantSecret;
     @Value("${waya.unified-payment.liveBaseurl}")
     private String liveMerchantUrl;
-    @Value("${waya.callback.liveBaseurl}")
-    private String liveCallbackUrl;
     @Value("${waya.unified-payment.testMerchant}")
     private String testMerchantId;
     @Value("${waya.unified-payment.testSecret}")
     private String testMerchantSecret;
     @Value("${waya.unified-payment.testBaseurl}")
     private String testMerchantUrl;
-    @Value("${waya.callback.testBaseurl}")
-    private String testCallbackUrl;
 
 
     private String merchantId;
     private String merchantSecret;
     private String merchantUrl;
-    private String callbackUrl;
 
     private void setVars(String mode) {
         if (mode == MerchantTransactionMode.TEST.name()) {
             this.merchantId = liveMerchantId;
             this.merchantSecret = liveMerchantSecret;
             this.merchantUrl = liveMerchantUrl;
-            this.callbackUrl = liveCallbackUrl;
         } else {
             this.merchantId = testMerchantId;
             this.merchantSecret = testMerchantSecret;
             this.merchantUrl = testMerchantUrl;
-            this.callbackUrl = testCallbackUrl;
         }
     }
 

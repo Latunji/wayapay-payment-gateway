@@ -60,9 +60,12 @@
 #    baseurl: https://services.staging.wayabank.ng/qrcode-service/api/v1
 #  unified-payment:
 #    name: unified-payment
-#    baseurl: https://test.payarena.com
-#    merchant: FAVE
-#    secret: 82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D
+#    testBaseurl: https://test.payarena.com
+#    liveBaseurl: https://test.payarena.com
+#    testMerchant: FAVE
+#    liveMerchant: WAYA
+#    testSecret: 82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D
+#    liveSecret: 82A60EE5FBB2B5309166A0ADF60B5FE1E445AB9A2EB35C0D
 #  callback:
 #    baseurl: https://services.staging.wayabank.ng/payment-gateway/api/v1/wayaCallBack
 #  formcallback:

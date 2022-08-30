@@ -83,7 +83,7 @@ public class ProcessorConfiguration {
             createdBy = 0L;
     }
 
-    @PrePersist
+    @PreUpdate
     void onUpdate() {
         if (ObjectUtils.isEmpty(dateModified))
             this.dateModified = LocalDateTime.now();

@@ -8,8 +8,12 @@ import lombok.*;
 @AllArgsConstructor
 @ToString
 public class ProcessorConfigurationRequest {
-    private String cardAcquiring;
-    private String ussdAcquiring;
-    private String accountAcquiring;
-    private String payattitudeAcquiring;
+    private String name;
+    private String description;
+    private String testBaseUrl;
+    private String liveBaseUrl;
+    private Boolean cardAcquiring;
+    private Boolean ussdAcquiring;
+    private Boolean accountAcquiring;
+    private Boolean payattitudeAcquiring;
 }

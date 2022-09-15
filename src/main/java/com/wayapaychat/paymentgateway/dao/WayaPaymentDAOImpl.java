@@ -184,7 +184,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     // s-l done
     @Override
     @SuppressWarnings(value = "unchecked")
-    public List<TransactionYearMonthStats> getMerchantTransactionStatsByYearAndMonth(final String merchantId, final Long year, final Date startDate, final Date endDate, String mode) {
+    public List<TransactionYearMonthStats> getTransactionStatsByYearAndMonth(final String merchantId, final Long year, final Date startDate, final Date endDate, String mode) {
         String tbl;
         if(mode.equals(MerchantTransactionMode.TEST.toString())){
             tbl = "m_sandbox_payment_gateway";
@@ -261,7 +261,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         @NotNull final String FINAL_Q = String.format(" SELECT %s as year , SUM(amount) AS total_revenue, TO_CHAR(tran_date, 'Mon') AS month FROM %s t WHERE %s AND %s AND status='SUCCESSFUL' GROUP BY month,year ;", EXTRACT_Q, tbl, DATE_SUB_QUERY, SUB_Q_MER);
         return FINAL_Q;
     }
-    
+
     //TODO: Get the transaction graph by start date and end date
     @Deprecated
     private String buildYearMonthQueryWithDateRange(Date startDate, Date endDate, String merchantId) {

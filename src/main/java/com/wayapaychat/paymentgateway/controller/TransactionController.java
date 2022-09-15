@@ -48,8 +48,8 @@ public class TransactionController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/year-month-stats")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant transaction year statistics stats", notes = "Transaction Year-Month statistics", tags = {"TRANSACTIONS"})
-    public ResponseEntity<PaymentGatewayResponse> getMerchantYearMonthTransactionStats(
+    @ApiOperation(value = "Get transaction statistics by date-range", notes = "Transaction Year-Month statistics", tags = {"TRANSACTIONS"})
+    public ResponseEntity<PaymentGatewayResponse> getYearMonthTransactionStats(
             @RequestParam(value = "merchantId", required = false) final String merchantId,
             @RequestHeader("Authorization") String token,
             @RequestParam(value = "year", required = false) final Long year,
@@ -58,7 +58,7 @@ public class TransactionController {
             @RequestParam(value = "endDate", required = false)
             @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate
     ) {
-        return paymentGatewayService.getMerchantYearMonthTransactionStats(merchantId, year, startDate, endDate, token);
+        return paymentGatewayService.getYearMonthTransactionStats(merchantId, year, startDate, endDate, token);
     }
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/overview")

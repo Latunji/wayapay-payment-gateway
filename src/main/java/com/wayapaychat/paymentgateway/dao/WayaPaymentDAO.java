@@ -23,7 +23,7 @@ public interface WayaPaymentDAO {
     TransactionOverviewResponse getTransactionReport(String merchantId, String mode);
 
     @SuppressWarnings(value = "unchecked")
-    List<TransactionYearMonthStats> getMerchantTransactionStatsByYearAndMonth(String merchantId, Long year, Date startDate, Date endDate, String mode);
+    List<TransactionYearMonthStats> getTransactionStatsByYearAndMonth(String merchantId, Long year, Date startDate, Date endDate, String mode);
 
     @SuppressWarnings(value = "unchecked")
     TransactionRevenueStats getTransactionGrossAndNetRevenue(String merchantId, String mode);

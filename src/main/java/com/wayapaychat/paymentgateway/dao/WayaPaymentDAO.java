@@ -26,7 +26,7 @@ public interface WayaPaymentDAO {
     List<TransactionYearMonthStats> getMerchantTransactionStatsByYearAndMonth(String merchantId, Long year, Date startDate, Date endDate, String mode);
 
     @SuppressWarnings(value = "unchecked")
-    TransactionRevenueStats getMerchantTransactionGrossAndNetRevenue(String merchantId, String mode);
+    TransactionRevenueStats getTransactionGrossAndNetRevenue(String merchantId, String mode);
 
     @SuppressWarnings(value = "unchecked")
     List<MerchantUnsettledSuccessfulTransaction> merchantUnsettledSuccessTransactions(String merchantId);

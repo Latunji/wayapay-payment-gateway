@@ -227,7 +227,7 @@ public class PaymentGatewayController {
         return paymentGatewayService.getMerchantTransactionRevenue(request, merchantId, token);
     }
 
-    @ApiOperation(value = "Get All Revenue", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Get All Revenue {ADMIN ONLY}", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
     @GetMapping("/revenue/query")
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest request) {
         return paymentGatewayService.getAllTransactionRevenue(request);

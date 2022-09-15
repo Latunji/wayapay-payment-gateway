@@ -16,7 +16,7 @@ import java.util.List;
 
 public interface WayaPaymentDAO {
 
-    List<TransactionReportStats> getTransactionReportStats();
+    List<TransactionReportStats> getTransactionRevenueStats();
 
     TransactionReportStats getTransactionReportStats(String merchantId, String mode);
 

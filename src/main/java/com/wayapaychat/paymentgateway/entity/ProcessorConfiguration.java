@@ -25,7 +25,6 @@ public class ProcessorConfiguration {
     @Column(unique = true, nullable = false)
     @JsonIgnore
     private Long id;
-    
 
     @Column(name = "code", unique = true, nullable = false)
     private String code;

@@ -25,7 +25,7 @@ public class PaymentProcessorController {
 
     @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, value = "")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Create new processor", notes = "Create a new processor (ADMIN)")
+    @ApiOperation(value = "Configure new processor", notes = "Configure a new processor (ADMIN)")
     public ResponseEntity<?> configureNewProcessor(@RequestBody ProcessorConfigurationRequest config, @RequestHeader("Authorization") String token) {
         return paymentProcessorService.configureNewProcessor(config, token);
     }
@@ -39,14 +39,14 @@ public class PaymentProcessorController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{nameOrProcessorCode}")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Fetch all transaction configurations", notes = "Returns a list of configuration setup for each transaction type (ADMIN)")
+    @ApiOperation(value = "Fetch processor's configuration by its name or code", notes = "Fetch processor's configuration by its name or code (ADMIN)")
     public ResponseEntity<?> fetchProcessorConfigurations(@RequestHeader("Authorization") String token, @PathVariable("nameOrProcessorCode") final String nameOrProcessorCode) {
         return paymentProcessorService.fetchProcessorByNameOrCode(token, nameOrProcessorCode);
     }
 
     @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{processorCode}")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Set transaction configurations", notes = "Configuration setup for each transaction type (ADMIN)")
+    @ApiOperation(value = "Update a processor's configuration", notes = "Update a processor's configuration (ADMIN)")
     public ResponseEntity<?> updateProcessorConfigurations(@RequestBody ProcessorConfigurationRequest request, @RequestHeader("Authorization") String token, @PathVariable("processorCode") final String processorCode) {
         return paymentProcessorService.updateProcessorConfigurations(request, processorCode, token);
     }

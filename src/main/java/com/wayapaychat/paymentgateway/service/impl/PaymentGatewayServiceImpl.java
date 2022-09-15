@@ -584,9 +584,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                             msPay.getAmount(), msPay.getFee(), msPay.getCurrencyCode(), msPay.getSecretKey(),
                             new Customer(msPay.getCustomerName(), msPay.getCustomerEmail(), msPay.getCustomerPhone(), msPay.getCustomerId()),
                             msPay.getPreferenceNo(), MerchantTransactionMode.TEST.name());
+                    // step 1 - send to unified payment for initialization. this will return a string id
                     tranId = uniPaymentProxy.postUnified(mAccount);
-                    if (ObjectUtils.isEmpty(tranId))
+                    if (ObjectUtils.isEmpty(tranId)) {
+//                        msPay.setStatus(TransactionStatus.FAILED);
+//                        sandboxPaymentGatewayRepo.save(msPay);
                         return new PaymentGatewayResponse(false, "Failed to initiate post tranId for 3D Authentication.", null);
+                    }
                     msPay.setTranId(tranId);
                     sandboxPaymentGatewayRepo.save(msPay);
                 }
@@ -600,9 +604,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                             mPay.getAmount(), mPay.getFee(), mPay.getCurrencyCode(), mPay.getSecretKey(),
                             new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId()),
                             mPay.getPreferenceNo(), MerchantTransactionMode.PRODUCTION.name());
+                    // step 1 - send to unified payment for initialization. this will return a string id
                     tranId = uniPaymentProxy.postUnified(mAccount);
-                    if (ObjectUtils.isEmpty(tranId))
+                    if (ObjectUtils.isEmpty(tranId)) {
+//                        mPay.setStatus(TransactionStatus.FAILED);
+//                        paymentGatewayRepo.save(mPay);
                         return new PaymentGatewayResponse(false, "Failed to initiate post tranId for 3D Authentication.", null);
+                    }
                     mPay.setTranId(tranId);
                     paymentGatewayRepo.save(mPay);
                 }
@@ -1239,7 +1247,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req) {
         if (!PaymentGateWayCommonUtils.getAuthenticatedUser().getAdmin())
             throw new ApplicationException(403, "01", "Oops! Operation not allowed.");
-        List<TransactionReportStats> revenue = wayaPayment.getTransactionReportStats();
+        List<TransactionReportStats> revenue = wayaPayment.getTransactionRevenueStats();
         return new ResponseEntity<>(new SuccessResponse("LIST REVENUE", revenue), HttpStatus.OK);
     }
 
@@ -1512,26 +1520,29 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     // s-l done
     @Override
-    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionOverviewStats(String merchantId, String token) {
+    public ResponseEntity<PaymentGatewayResponse> getTransactionOverviewStats(String merchantId, String token) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
+        String mode = MerchantTransactionMode.PRODUCTION.name();
 
         MerchantResponse merchant = null;
-        String mode = null;
-        // get merchant data
-        try {
-            merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
-            if (!merchant.getCode().equals("00") || (merchant == null)) {
-                return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
+        if (ObjectUtils.isNotEmpty(merchantIdToUse)) {
+            // get merchant data
+            try {
+                merchant = merchantProxy.getMerchantInfo(token, merchantIdToUse);
+                if (!merchant.getCode().equals("00") || (merchant == null)) {
+                    return new ResponseEntity<>(new SuccessResponse("Profile doesn't exist", null), HttpStatus.NOT_FOUND);
+                }
+                mode = merchant.getData().getMerchantKeyMode();
+            } catch (Exception ex) {
+                if (ex instanceof FeignException) {
+                    String httpStatus = Integer.toString(((FeignException) ex).status());
+                    log.error("Feign Exception Status {}", httpStatus);
+                }
+                log.error("Higher Wahala {}", ex.getMessage());
+                log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage().toString());
             }
-            mode =  merchant.getData().getMerchantKeyMode();
-        } catch (Exception ex) {
-            if (ex instanceof FeignException) {
-                String httpStatus = Integer.toString(((FeignException) ex).status());
-                log.error("Feign Exception Status {}", httpStatus);
-            }
-            log.error("Higher Wahala {}", ex.getMessage());
-            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
+        log.info("merchant to use is "+merchantIdToUse);
 
         TransactionOverviewResponse transactionOverviewResponse = wayaPaymentDAO.getTransactionReport(merchantIdToUse, mode);
         return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionOverviewResponse), HttpStatus.OK);
@@ -1539,7 +1550,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     // s-l done
     @Override
-    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(String merchantId, String token) {
+    public ResponseEntity<PaymentGatewayResponse> getTransactionGrossAndNetRevenue(String merchantId, String token) {
         String merchantIdToUse = getMerchantIdToUse(merchantId, false);
 
         MerchantResponse merchant = null;

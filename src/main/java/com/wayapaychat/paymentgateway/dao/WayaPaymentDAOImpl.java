@@ -35,7 +35,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     private TransactionSettlementDAO transactionSettlementDAO;
 
     @Override
-    public List<TransactionReportStats> getTransactionReportStats() {
+    public List<TransactionReportStats> getTransactionRevenueStats() {
         List<TransactionReportStats> product;
         StringBuilder query = new StringBuilder();
         query.append("SELECT COUNT(a.TRAN_ID) AS TOTALTRAN,");
@@ -92,9 +92,9 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         @NotNull final String SUCCESS_RATE_TOTAL_SUB = String.format(" SELECT COUNT(*.status) total FROM %s WHERE UPPER(status) IN ('SUCCESSFUL','ERROR','FAILED') ", tbl);
         @NotNull final String REFUSAL_RATE_TOTAL_SUB = String.format(" SELECT COUNT(*.status) total FROM %s WHERE UPPER(status) IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') ", tbl);
         @NotNull final String TOTAL_PAYMENT_CHANNEL_SUB = String.format(" SELECT COUNT(*.channel) FROM %s WHERE UPPER(channel) IN ('CARD','USSD','PAYATTITUDE', 'QR','BANK') ", tbl);
-        @NotNull final String MER = String.format(" merchant_id = '%s' ", merchantId);
-        @NotNull final String SUB_Q_MER = String.format(" WHERE %s ", MER);
-        @NotNull final String SUB_Q_MER_AND = String.format(" AND %s ", MER);
+        @NotNull final String MER = ObjectUtils.isEmpty(merchantId) ? "" : String.format(" merchant_id = '%s' ", merchantId);
+        @NotNull final String SUB_Q_MER = ObjectUtils.isEmpty(merchantId) ? "" : String.format(" WHERE %s ", MER);
+        @NotNull final String SUB_Q_MER_AND = ObjectUtils.isEmpty(merchantId) ? "" : String.format(" AND %s ", MER);
         @NotNull final String SUB_Q_MER_GROUP = " GROUP BY merchant_id ";
         @NotNull final String TOTAL_TRANSACTION_SUB_Q_MER = String.format(" %s %s ", SUCCESS_RATE_TOTAL_SUB, SUB_Q_MER_AND);
 
@@ -117,7 +117,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
                         " FROM %s WHERE status IN ('SYSTEM_ERROR','BANK_ERROR','CUSTOMER_ERROR', 'FRAUD_ERROR', 'FAILED') %s GROUP BY status; ", tbl, ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
 
         @NotNull final String PAYMENT_CHANNEL_STATS_Q = String.format("SELECT COUNT(channel), channel " +
-                        " FROM %s WHERE channel IN ('CARD','USSD','PAYATTITUDE', 'QR','BANK') %s GROUP BY channel ; ", tbl, ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
+                        " FROM %s WHERE channel IN ('CARD','USSD','PAYATTITUDE','QR','BANK') %s GROUP BY channel ; ", tbl, ObjectUtils.isEmpty(merchantId) ? " " : SUB_Q_MER_AND);
 
         @NotNull final String TRANSACTION_REPORT_Q = TRANSACTION_STATUS_STATS_Q + GROSS_REVENUE_Q + NET_REVENUE_Q + YEAR_MONTH_STATS_Q + LATEST_SETTLEMENT_Q +
                 NEXT_SETTLEMENT_Q + SUCCESS_ERROR_STATS_Q + REFUSAL_ERROR_Q + PAYMENT_CHANNEL_STATS_Q;

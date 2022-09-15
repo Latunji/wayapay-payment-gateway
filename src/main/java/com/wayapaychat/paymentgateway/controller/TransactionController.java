@@ -63,16 +63,16 @@ public class TransactionController {
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/overview")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant transaction report dashboard overview statistics", notes = "Transaction report dashboard overview Stats", tags = {"TRANSACTIONS"})
-    public ResponseEntity<PaymentGatewayResponse> getMerchantDashboardOverviewStats(@RequestParam(value = "merchantId", required = false) final String merchantId, @RequestHeader("Authorization") String token) {
-        return paymentGatewayService.getMerchantTransactionOverviewStats(merchantId, token);
+    @ApiOperation(value = "Get transaction report overview statistics for admin or merchant", notes = "Transaction report overview Stats for admin or merchant", tags = {"TRANSACTIONS"})
+    public ResponseEntity<PaymentGatewayResponse> getDashboardOverviewStats(@RequestParam(value = "merchantId", required = false) final String merchantId, @RequestHeader("Authorization") String token) {
+        return paymentGatewayService.getTransactionOverviewStats(merchantId, token);
     }
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/revenue-stats")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Get merchant transaction net and gross revenue report", notes = "Transaction net and gross revenue report", tags = {"TRANSACTIONS"})
-    public ResponseEntity<PaymentGatewayResponse> getMerchantTransactionGrossAndNetRevenue(
+    @ApiOperation(value = "Get transaction net and gross revenue report for admin or merchant", notes = "Transaction net and gross revenue report", tags = {"TRANSACTIONS"})
+    public ResponseEntity<PaymentGatewayResponse> getTransactionGrossAndNetRevenue(
             @RequestParam(value = "merchantId", required = false) final String merchantId, @RequestHeader("Authorization") String token) {
-        return paymentGatewayService.getMerchantTransactionGrossAndNetRevenue(merchantId, token);
+        return paymentGatewayService.getTransactionGrossAndNetRevenue(merchantId, token);
     }
 }

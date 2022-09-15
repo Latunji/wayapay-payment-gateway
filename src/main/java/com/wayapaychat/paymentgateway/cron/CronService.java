@@ -131,25 +131,29 @@ public class CronService {
         log.info("------||| transactions that have stayed more than 30min have all EXPIRED on live and sandbox |||-------");
     }
 
-    @Scheduled(cron = "* */30 * * * *")
+    @Scheduled(cron = "*/10 * * * * *")
     @SchedulerLock(name = "TaskScheduler_settleEveryFiveSeconds", lockAtLeastFor = "10s", lockAtMostFor = "15s")
     public void settleEveryFiveSeconds() {
+        log.info("------|--|--| FIVE SECOND SETTLEMENT HAPPENING |--|--|-------");
         prorcessThirdPartyPaymentProcessed();
+        log.info("------|--|--| FIVE SECOND SETTLEMENT ENDED |--|--|-------");
     }
 
     public void prorcessThirdPartyPaymentProcessed() {
         new Thread(() -> {
-            List<PaymentGateway> payment = paymentGatewayRepo.findAllNotFlaggedAndSuccessful();
+            List<PaymentGateway> paymentList = paymentGatewayRepo.findAllNotFlaggedAndSuccessful();
             String token = paymentGateWayCommonUtils.getDaemonAuthToken();
-            for (PaymentGateway mPayment : payment) {
+            for (PaymentGateway payment : paymentList) {
                 try {
-                    PaymentGateway sPayment = paymentGatewayRepo.findByRefNo(mPayment.getRefNo()).orElse(null);
-                    if (ObjectUtils.isEmpty(sPayment))
-                        continue;
-                    FundEventResponse response = uniPayProxy.postTransactionPosition(token, mPayment);
+                    // this check is not necessary, its distorts efficiency
+//                    PaymentGateway sPayment = paymentGatewayRepo.findByRefNo(payment.getRefNo()).orElse(null);
+//                    if (ObjectUtils.isEmpty(sPayment))
+//                        continue;
+                    FundEventResponse response = uniPayProxy.postTransactionPosition(token, payment);
                     if (response.getPostedFlg() && (!response.getTranId().isBlank())) {
-                        sPayment.setTranflg(true);
-                        paymentGatewayRepo.save(sPayment);
+                        payment.setTranflg(true);
+                        paymentGatewayRepo.save(payment);
+                        log.error("TRANSACTION FLAGED FOR: " + payment.getRefNo());
                     }
                 } catch (Exception ex) {
                     log.error("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage());

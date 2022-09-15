@@ -1,5 +1,6 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
+import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.TransactionSettlementDAO;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
@@ -35,12 +36,16 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
     private WayaPaymentDAO wayaPaymentDAO;
 
     @Override
-    public ResponseEntity<PaymentGatewayResponse> getMerchantSettlementStats(String merchantId) {
+    public ResponseEntity<PaymentGatewayResponse> getSettlementStats(String merchantId) {
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,false);
-        String token = paymentGateWayCommonUtils.getDaemonAuthToken();
-        MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantIdToUse);
-        MerchantData merchantData = merchantResponse.getData();
-        String mode = merchantData.getMerchantKeyMode();
+        String mode = MerchantTransactionMode.PRODUCTION.name();
+        if (ObjectUtils.isNotEmpty(merchantIdToUse)) {
+            String token = paymentGateWayCommonUtils.getDaemonAuthToken();
+            MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantIdToUse);
+            MerchantData merchantData = merchantResponse.getData();
+            mode = merchantData.getMerchantKeyMode();
+        }
+        
         TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse, mode);
         return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
     }

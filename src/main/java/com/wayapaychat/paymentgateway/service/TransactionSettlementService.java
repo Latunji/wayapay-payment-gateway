@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 public interface TransactionSettlementService {
     // s-l done
-    ResponseEntity<PaymentGatewayResponse> getMerchantSettlementStats(String merchantId);
+    ResponseEntity<PaymentGatewayResponse> getSettlementStats(String merchantId);
 
     ResponseEntity<PaymentGatewayResponse> getCumulativeTransactionSettlement(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable dateSettled);
 

@@ -1349,6 +1349,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     payment.setTranId(response.getOrderId());
                 }
                 paymentGatewayRepo.save(payment);
+                // send email and in-app notification (will only be sent if successful)
+                paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(payment);
             }
         } catch (Exception e) {
             log.error("------||||SYSTEM ERROR||||-------", e);

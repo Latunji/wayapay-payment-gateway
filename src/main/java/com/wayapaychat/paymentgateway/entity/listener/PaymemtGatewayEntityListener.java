@@ -1,26 +1,29 @@
 package com.wayapaychat.paymentgateway.entity.listener;
 
 
+import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.common.utils.VariableUtil;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.enumm.*;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.model.LitePaymentGateway;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.model.ProducerMessageDto;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.producer.IkafkaMessageProducer;
-import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
-import com.wayapaychat.paymentgateway.pojo.notification.NotificationReceiver;
-import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceResponse;
-import com.wayapaychat.paymentgateway.pojo.notification.NotificationStreamData;
+import com.wayapaychat.paymentgateway.pojo.notification.*;
 import com.wayapaychat.paymentgateway.pojo.waya.LoginRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.NotificationPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
+import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
@@ -40,6 +43,11 @@ public class PaymemtGatewayEntityListener {
     private static IkafkaMessageProducer ikafkaMessageProducer;
     private static ModelMapper modelMapper;
     private static PaymentGatewayRepository paymentGatewayRepository;
+    private static IdentityManagementServiceProxy identityManagementServiceProxy;
+    private static PaymentGateWayCommonUtils paymentGateWayCommonUtils;
+
+    @Value("${service.token}")
+    public String daemonToken;
 
     private static String getDaemonAuthToken() throws Exception {
         TokenAuthResponse authToken = authApiClient.authenticateUser(
@@ -119,6 +127,16 @@ public class PaymemtGatewayEntityListener {
                         .build();
                 try {
                     processEmailAlert(notificationPojo);
+                    // notify the merchant via in-app
+                    String token = getDaemonAuthToken();
+                    MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, paymentGateway.getMerchantId());
+                    MerchantData merchantData = merchantResponse.getData();
+                    processInAppNotification("TRANSACTION",
+                            merchantData.getUserId(),
+                            String.format("You received payment of %s from %s", paymentGateway.getAmount(), paymentGateway.getCustomerName()),
+                            "1",
+                            token
+                    );
                 } catch (Exception e) {
                     log.error("{0}", e);
                 }
@@ -165,6 +183,25 @@ public class PaymemtGatewayEntityListener {
         NotificationServiceResponse notificationServiceResponse1 = notificationServiceProxy.sendEmailNotificationTransaction(emailStreamData, getDaemonAuthToken());
         log.info("------||||NOTIFICATION HAS BEEN SENT TO MERCHANT EMAIL ADDRESS {}||||--------", notificationPojo.getMerchantEmailAddress());
         log.info("------||||NOTIFICATION SERVICE RESPONSE {}||||--------", notificationServiceResponse1);
+    }
+
+    private void processInAppNotification(String type, final Long receiverUserId, String message, String senderUserId, String demonToken) throws Exception {
+        CompletableFuture.runAsync(() -> {
+            InAppNotificationEvent inAppNotificationEvent = InAppNotificationEvent.builder()
+                    .data(InAppPayload.builder()
+                            .type(type)
+                            .users(List.of(InAppRecipient.builder()
+                                    .userId(receiverUserId.toString())
+                                    .build()))
+                            .message(message)
+                            .build())
+                    .token(demonToken)
+                    .eventType(EventType.IN_APP)
+                    .build();
+            inAppNotificationEvent.setInitiator(senderUserId);
+            ResponseEntity<?> response = notificationServiceProxy.sendInAppNotification(inAppNotificationEvent, demonToken);
+            log.info("--------||||IN APP NOTIFICATION RESPONSE||||---------\n{}", response);
+        });
     }
 
     private String getCurrencyName(String currencyCode) {

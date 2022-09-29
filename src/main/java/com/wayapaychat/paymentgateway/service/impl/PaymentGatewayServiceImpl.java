@@ -792,92 +792,186 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> processWalletPayment(HttpServletRequest request, WayaWalletPayment account, String token) {
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocessed Transaction Request"),
                 HttpStatus.BAD_REQUEST);
-        PaymentGateway payment;
-        try {
-            payment = paymentGatewayRepo.findByRefNo(account.getRefNo()).orElse(null);
-            if (payment == null) {
-                return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"),
-                        HttpStatus.BAD_REQUEST);
-            }
-            payment.setChannel(PaymentChannel.WALLET);
-            paymentGatewayRepo.save(payment);
-
-            if (payment.isSuccessfailure() && payment.getStatus().name().equals("SUCCESSFUL")) {
-                return new ResponseEntity<>(
-                        new ErrorResponse("TRANSACTION ALREADY COMPLETED FOR REFERENCE NUMBER :" + payment.getRefNo()),
-                        HttpStatus.BAD_REQUEST);
-            }
-
-            MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
-            if (!merchant.getCode().equals("00")) {
-                return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
-            }
-            log.info("Merchant: " + merchant);
-            MerchantData sMerchant = merchant.getData();
-            log.info("Merchant ID: " + sMerchant.getMerchantId());
-
-            TokenCheckResponse auth = getUserDataService.getUserData(token);
-            if (!auth.isStatus()) {
-                return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
-            }
-            AuthenticatedUser mAuth = auth.getData();
-
+        if(account.getRefNo().startsWith("7263269")) {
+            SandboxPaymentGateway sandboxPayment;
             try {
-                PinResponse pin = authProxy.validatePin(mAuth.getId(), Long.valueOf(account.getPin()),
-                        token);
-                log.info("PIN RESPONSE: " + pin.toString());
-                if (!pin.isStatus()) {
-                    return new ResponseEntity<>(new ErrorResponse("INVALID PIN"), HttpStatus.BAD_REQUEST);
+                sandboxPayment = sandboxPaymentGatewayRepo.findByRefNo(account.getRefNo()).orElse(null);
+                if (sandboxPayment == null) {
+                    return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"),
+                            HttpStatus.BAD_REQUEST);
                 }
-            } catch (Exception ex) {
-                log.info("PIN ERROR: " + ex.getLocalizedMessage());
-                return new ResponseEntity<>(new ErrorResponse("TRANSACTION PIN NOT SETUP OR INVALID PIN"),
-                        HttpStatus.OK);
-            }
-            PaymentWallet wallet = new PaymentWallet();
-            FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, payment);
-            if (tran != null) {
-                response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()),
-                        HttpStatus.CREATED);
-                payment.setTranId(tran.getTranId());
-                payment.setTranDate(LocalDateTime.now());
-                payment.setRcre_time(LocalDateTime.now());
-                payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL);
-                payment.setChannel(PaymentChannel.WALLET);
-                //TODO: update wayapay processing fee... update the region later
-                // get the IP region of where the transaction was initiated from
-                BigDecimal wayapayFee = calculateWayapayFee(sMerchant.getMerchantId(), payment.getAmount(),
-                        ProductName.WALLET, "LOCAL");
-                payment.setWayapayFee(wayapayFee);
+                sandboxPayment.setChannel(PaymentChannel.WALLET);
+                sandboxPaymentGatewayRepo.save(sandboxPayment);
 
-                payment.setPaymentMetaData(account.getDeviceInformation());
-                payment.setSuccessfailure(true);
+                if (sandboxPayment.isSuccessfailure() && sandboxPayment.getStatus().name().equals("SUCCESSFUL")) {
+                    return new ResponseEntity<>(
+                            new ErrorResponse("TRANSACTION ALREADY COMPLETED FOR REFERENCE NUMBER :" + sandboxPayment.getRefNo()),
+                            HttpStatus.BAD_REQUEST);
+                }
+
+                MerchantResponse merchant = merchantProxy.getMerchantInfo(token, sandboxPayment.getMerchantId());
+                if (!merchant.getCode().equals("00")) {
+                    return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
+                }
+                log.info("Merchant: " + merchant);
+                MerchantData sMerchant = merchant.getData();
+                log.info("Merchant ID: " + sMerchant.getMerchantId());
+
+                TokenCheckResponse auth = getUserDataService.getUserData(token);
+                if (!auth.isStatus()) {
+                    return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+                }
+                AuthenticatedUser mAuth = auth.getData();
+
+                try {
+                    PinResponse pin = authProxy.validatePin(mAuth.getId(), Long.valueOf(account.getPin()),
+                            token);
+                    log.info("PIN RESPONSE: " + pin.toString());
+                    if (!pin.isStatus()) {
+                        return new ResponseEntity<>(new ErrorResponse("INVALID PIN"), HttpStatus.BAD_REQUEST);
+                    }
+                } catch (Exception ex) {
+                    log.info("PIN ERROR: " + ex.getLocalizedMessage());
+                    return new ResponseEntity<>(new ErrorResponse("TRANSACTION PIN NOT SETUP OR INVALID PIN"),
+                            HttpStatus.OK);
+                }
+
+//                PaymentWallet wallet = new PaymentWallet();
+//                FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, sandboxPayment);
+//                if (tran != null) {
+                    Date dte = new Date();
+                    String strLong = "7263269" + Long.toString(dte.getTime()) + rnd.nextInt(999999);
+                    response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", strLong),
+                            HttpStatus.CREATED);
+                    sandboxPayment.setTranId(strLong);
+//                    sandboxPayment.setTranId(tran.getTranId());
+                    sandboxPayment.setTranDate(LocalDateTime.now());
+                    sandboxPayment.setRcre_time(LocalDateTime.now());
+                    sandboxPayment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL);
+                    sandboxPayment.setChannel(PaymentChannel.WALLET);
+                    //TODO: update wayapay processing fee... update the region later
+                    // get the IP region of where the transaction was initiated from
+                    BigDecimal wayapayFee = calculateWayapayFee(sMerchant.getMerchantId(), sandboxPayment.getAmount(),
+                            ProductName.WALLET, "LOCAL");
+                    sandboxPayment.setWayapayFee(wayapayFee);
+
+                    sandboxPayment.setPaymentMetaData(account.getDeviceInformation());
+                    sandboxPayment.setSuccessfailure(true);
+                    sandboxPaymentGatewayRepo.save(sandboxPayment);
+
+//                    wallet.setPaymentDescription(tran.getTranNarrate());
+//                    wallet.setPaymentReference(tran.getPaymentReference());
+//                    wallet.setTranAmount(tran.getTranAmount());
+//                    wallet.setTranDate(tran.getTranDate());
+//                    wallet.setTranId(tran.getTranId());
+//                    wallet.setRefNo(payment.getRefNo());
+//                    wallet.setSettled(TransactionSettled.NOT_SETTLED);
+//                    wallet.setStatus(TStatus.APPROVED);
+//                    if (sandboxPayment.getStatus() == com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL && !sandboxPayment.getTransactionReceiptSent())
+//                        CompletableFuture.runAsync(() -> {
+//                            paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(sandboxPayment);
+//                            sandboxPayment.setTransactionReceiptSent(true);
+//                        });
+//                    paymentWalletRepo.save(wallet);
+//                } else {
+//                    wallet.setPaymentDescription(payment.getDescription());
+//                    wallet.setPaymentReference(payment.getPreferenceNo());
+//                    wallet.setTranAmount(payment.getAmount());
+//                    wallet.setStatus(TStatus.REJECTED);
+//                    paymentWalletRepo.save(wallet);
+//                }
+            } catch (Exception ex) {
+                log.error("Error occurred - GET SANDBOX WALLET TRANSACTION :{}", ex.getMessage());
+                return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            PaymentGateway payment;
+            try {
+                payment = paymentGatewayRepo.findByRefNo(account.getRefNo()).orElse(null);
+                if (payment == null) {
+                    return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"),
+                            HttpStatus.BAD_REQUEST);
+                }
+                payment.setChannel(PaymentChannel.WALLET);
                 paymentGatewayRepo.save(payment);
 
-                wallet.setPaymentDescription(tran.getTranNarrate());
-                wallet.setPaymentReference(tran.getPaymentReference());
-                wallet.setTranAmount(tran.getTranAmount());
-                wallet.setTranDate(tran.getTranDate());
-                wallet.setTranId(tran.getTranId());
-                wallet.setRefNo(payment.getRefNo());
-                wallet.setSettled(TransactionSettled.NOT_SETTLED);
-                wallet.setStatus(TStatus.APPROVED);
-                if (payment.getStatus() == com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL && !payment.getTransactionReceiptSent())
-                    CompletableFuture.runAsync(() -> {
-                        paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(payment);
-                        payment.setTransactionReceiptSent(true);
-                    });
-                paymentWalletRepo.save(wallet);
-            } else {
-                wallet.setPaymentDescription(payment.getDescription());
-                wallet.setPaymentReference(payment.getPreferenceNo());
-                wallet.setTranAmount(payment.getAmount());
-                wallet.setStatus(TStatus.REJECTED);
-                paymentWalletRepo.save(wallet);
+                if (payment.isSuccessfailure() && payment.getStatus().name().equals("SUCCESSFUL")) {
+                    return new ResponseEntity<>(
+                            new ErrorResponse("TRANSACTION ALREADY COMPLETED FOR REFERENCE NUMBER :" + payment.getRefNo()),
+                            HttpStatus.BAD_REQUEST);
+                }
+
+                MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
+                if (!merchant.getCode().equals("00")) {
+                    return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
+                }
+                log.info("Merchant: " + merchant);
+                MerchantData sMerchant = merchant.getData();
+                log.info("Merchant ID: " + sMerchant.getMerchantId());
+
+                TokenCheckResponse auth = getUserDataService.getUserData(token);
+                if (!auth.isStatus()) {
+                    return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+                }
+                AuthenticatedUser mAuth = auth.getData();
+
+                try {
+                    PinResponse pin = authProxy.validatePin(mAuth.getId(), Long.valueOf(account.getPin()),
+                            token);
+                    log.info("PIN RESPONSE: " + pin.toString());
+                    if (!pin.isStatus()) {
+                        return new ResponseEntity<>(new ErrorResponse("INVALID PIN"), HttpStatus.BAD_REQUEST);
+                    }
+                } catch (Exception ex) {
+                    log.info("PIN ERROR: " + ex.getLocalizedMessage());
+                    return new ResponseEntity<>(new ErrorResponse("TRANSACTION PIN NOT SETUP OR INVALID PIN"),
+                            HttpStatus.OK);
+                }
+                PaymentWallet wallet = new PaymentWallet();
+                FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, payment);
+                if (tran != null) {
+                    response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()),
+                            HttpStatus.CREATED);
+                    payment.setTranId(tran.getTranId());
+                    payment.setTranDate(LocalDateTime.now());
+                    payment.setRcre_time(LocalDateTime.now());
+                    payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL);
+                    payment.setChannel(PaymentChannel.WALLET);
+                    //TODO: update wayapay processing fee... update the region later
+                    // get the IP region of where the transaction was initiated from
+                    BigDecimal wayapayFee = calculateWayapayFee(sMerchant.getMerchantId(), payment.getAmount(),
+                            ProductName.WALLET, "LOCAL");
+                    payment.setWayapayFee(wayapayFee);
+
+                    payment.setPaymentMetaData(account.getDeviceInformation());
+                    payment.setSuccessfailure(true);
+                    paymentGatewayRepo.save(payment);
+
+                    wallet.setPaymentDescription(tran.getTranNarrate());
+                    wallet.setPaymentReference(tran.getPaymentReference());
+                    wallet.setTranAmount(tran.getTranAmount());
+                    wallet.setTranDate(tran.getTranDate());
+                    wallet.setTranId(tran.getTranId());
+                    wallet.setRefNo(payment.getRefNo());
+                    wallet.setSettled(TransactionSettled.NOT_SETTLED);
+                    wallet.setStatus(TStatus.APPROVED);
+                    if (payment.getStatus() == com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL && !payment.getTransactionReceiptSent())
+                        CompletableFuture.runAsync(() -> {
+                            paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(payment);
+                            payment.setTransactionReceiptSent(true);
+                        });
+                    paymentWalletRepo.save(wallet);
+                } else {
+                    wallet.setPaymentDescription(payment.getDescription());
+                    wallet.setPaymentReference(payment.getPreferenceNo());
+                    wallet.setTranAmount(payment.getAmount());
+                    wallet.setStatus(TStatus.REJECTED);
+                    paymentWalletRepo.save(wallet);
+                }
+            } catch (Exception ex) {
+                log.error("Error occurred - GET WALLET TRANSACTION :{}", ex.getMessage());
+                return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
             }
-        } catch (Exception ex) {
-            log.error("Error occurred - GET WALLET TRANSACTION :{}", ex.getMessage());
-            return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
         return response;
     }

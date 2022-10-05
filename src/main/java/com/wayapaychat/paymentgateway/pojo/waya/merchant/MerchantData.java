@@ -1,5 +1,6 @@
 package com.wayapaychat.paymentgateway.pojo.waya.merchant;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,10 +12,12 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class MerchantData {
 	
 	private String merchantId;
 	private String refNo;
+	private String merchantSecretKey;
 	private String merchantSecretTestKey;
 	private String merchantPublicTestKey;
 	private String merchantProductionSecretKey;

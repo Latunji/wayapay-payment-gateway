@@ -14,5 +14,4 @@ public class CardAuthorizationRequest {
 
     private String transactionId;
     private String otp;
-    private String mode;
 }

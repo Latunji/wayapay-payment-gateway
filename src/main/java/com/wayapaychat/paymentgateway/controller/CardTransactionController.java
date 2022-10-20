@@ -8,7 +8,6 @@ import com.wayapaychat.paymentgateway.cardservice.Response;
 import com.wayapaychat.paymentgateway.cardservice.cardacquiring.CardAcqService;
 import com.wayapaychat.paymentgateway.cardservice.cardacquiring.CardAuthorizationRequest;
 import com.wayapaychat.paymentgateway.cardservice.cardacquiring.PinRequest;
-import com.wayapaychat.paymentgateway.utility.Constants;
 import com.wayapaychat.paymentgateway.utility.CustomResponseCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,11 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 @RestController
-@RequestMapping(Constants.APP_CONTENT +"card")
+@RequestMapping("/api/v1/card")
 public class CardTransactionController {
 
     @Autowired
@@ -47,7 +45,7 @@ public class CardTransactionController {
 
 
     @PostMapping("/pin")
-    public ResponseEntity<Response> cardpin(@Validated @RequestBody PinRequest request) throws IOException {
+    public ResponseEntity<Response> cardPin(@Validated @RequestBody PinRequest request) throws IOException {
         HttpStatus httpCode ;
         Response resp = new Response();
         CardTransactionResponse response = cardAcqService.pinRequest(request);

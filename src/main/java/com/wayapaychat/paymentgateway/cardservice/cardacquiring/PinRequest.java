@@ -7,5 +7,4 @@ import lombok.Data;
 public class PinRequest {
     private String transactionId;
     private String pin;
-    private String mode;
 }

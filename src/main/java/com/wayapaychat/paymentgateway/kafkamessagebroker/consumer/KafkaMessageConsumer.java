@@ -29,16 +29,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class KafkaMessageConsumer implements IKafkaMessageConsumer {
     private static final String TOPIC = "payment.gateway";
-    private static final String GROUP = "waya";
+    private static final String WAYAQUICK_GROUP = "wayaquick";
     private final ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
     private final PaymentGatewayRepository paymentGatewayRepository;
     private final WayaPaymentDAO wayaPaymentDAO;
 
-    @KafkaListener(topics = {TOPIC}, groupId = GROUP)
+    @KafkaListener(topics = {TOPIC}, groupId = WAYAQUICK_GROUP)
     public void customerSubscriptionTopicListener(String message) throws JsonProcessingException {
+        log.info("--------|||| RECEIVED MESSAGE FROM KAFKA -==== TOPIC: payment.gateway||||-----------{}", message);
         processQueue(message);
-        log.info("--------||||RECEIVED MESSAGE FROM KAFKA||||-----------{}", message);
     }
 
     private void processQueue(String event) throws JsonProcessingException {
@@ -50,22 +50,26 @@ public class KafkaMessageConsumer implements IKafkaMessageConsumer {
     @Override
     public void processMessage(ProducerMessageDto event) {
         EventType eventType = event.getEventCategory();
-        System.out.println(eventType);
+        log.info("--------|||| NOW PROCESSING MESSAGE -==== EVENT-TYPE: {} ||||-----------", eventType.toString());
         switch (eventType) {
             case TRANSACTION_SETTLED:
+                log.info("--------|||| SETTLING TRANSACTIONS  ||||-----------");
                 List<LitePaymentGateway> paymentGateways = objectMapper.convertValue(event.getData(), new TypeReference<>() {});
                 Map<String, List<LitePaymentGateway>> grouped = paymentGateways.stream().sequential().collect(Collectors.groupingBy(LitePaymentGateway::getRefNo));
                 String delimitedRefNo = paymentGateways.stream().map(litePaymentGateway -> "'" + litePaymentGateway.getRefNo() + "'").collect(Collectors.joining(","));
                 List<PaymentGateway> results = wayaPaymentDAO.getAllTransactionsByRefNo(delimitedRefNo);
                 results.forEach(paymentGateway -> {
+                    log.info("--------|||| L.O.O.P.I.N.G  ||||-----------");
                     if (ObjectUtils.isNotEmpty(grouped.get(paymentGateway.getRefNo()))) {
                         LitePaymentGateway litePaymentGateway = grouped.get(paymentGateway.getRefNo()).get(0);
                         paymentGateway.setSettlementReferenceId(litePaymentGateway.getSettlementReferenceId());
                         paymentGateway.setSettlementDate(litePaymentGateway.getSettlementDate());
                         paymentGateway.setSettlementStatus(SettlementStatus.SETTLED);
+                        log.info("--------|||| ADDED {} ||||-----------", litePaymentGateway.getSettlementReferenceId());
                     }
                 });
                 paymentGatewayRepository.saveAllAndFlush(results);
+                log.info("--------|||| ALL SETTLED TRANSACTIONS HAVE BEEN UPDATED ||||-----------");
         }
     }
 }

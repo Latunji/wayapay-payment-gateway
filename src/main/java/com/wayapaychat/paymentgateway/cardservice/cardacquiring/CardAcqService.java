@@ -21,7 +21,7 @@ public class CardAcqService {
     @Autowired
     private API api;
 
-    @Value("${card.acquiring.service}")
+    @Value("${waya.card-acquiring-service.baseurl}")
     private String baseUrl;
 
 
@@ -40,20 +40,20 @@ public class CardAcqService {
                 .transactionId(cardPaymentRequest.getTransactionId())
                 .build();
             Map<String,String> map = new HashMap();
-        CardTransactionResponse response = api.post(baseUrl+"cardpayment", request, CardTransactionResponse.class, map);
+        CardTransactionResponse response = api.post(baseUrl+"/card/payment", request, CardTransactionResponse.class, map);
         return response;
     }
 
 
     public CardTransactionResponse pinRequest (PinRequest request){
         Map<String,String> map = new HashMap();
-        CardTransactionResponse response = api.post(baseUrl+"cardpin", request, CardTransactionResponse.class, map);
+        CardTransactionResponse response = api.post(baseUrl+"/card/pin", request, CardTransactionResponse.class, map);
         return response;
     }
 
     public CardTransactionResponse authorisation (CardAuthorizationRequest request){
         Map<String,String> map = new HashMap();
-        CardTransactionResponse response = api.post(baseUrl+"cardauthorisation", request, CardTransactionResponse.class, map);
+        CardTransactionResponse response = api.post(baseUrl+"/card/authorisation", request, CardTransactionResponse.class, map);
         return response;
     }
 }

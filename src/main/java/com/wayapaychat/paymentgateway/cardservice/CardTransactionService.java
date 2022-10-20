@@ -51,10 +51,9 @@ public class CardTransactionService {
 
         CardTransactionRequest result = new CardTransactionRequest();
         String encryptedString = request.getData();
-        String decrypt = AES.decrypt(encryptedString, merchant.getData().getMerchantSecretKey());
-        String response = decrypt;
+        String decryptData = AES.decrypt(encryptedString, merchant.getData().getActiveSecretKey());
         ObjectMapper objectMapper = new ObjectMapper();
-        result = objectMapper.readValue(response, CardTransactionRequest.class);
+        result = objectMapper.readValue(decryptData, CardTransactionRequest.class);
 
         CardPaymentRequest cardPaymentRequest = new CardPaymentRequest();
         cardPaymentRequest.setMerchantId(request.getMerchantId());
@@ -67,10 +66,15 @@ public class CardTransactionService {
         cardPaymentRequest.setSecurityCode(result.getSecurityCode());
         cardPaymentRequest.setCustomerId(result.getEmail());
         cardPaymentRequest.setTransactionId(Utility.transactionId());
-        cardPaymentRequest.setMode(request.getMode());
+        cardPaymentRequest.setMode(merchant.getData().getMerchantKeyMode());
 
-        CardTransactionResponse response1 = cardAcqService.cardPayment(cardPaymentRequest);
-        return response1;
+        // send to card acquiring service.
+        // this will create a transaction on transactions table.
+        // This transactions table is NOT supposed to be created on payment gateway DB.
+        // TODO: move transactions table to card acquiring service DB
+        CardTransactionResponse response = cardAcqService.cardPayment(cardPaymentRequest);
+        // TODO: use this response to create an entry on pagwate_gateway table
+        return response;
     }
 
 

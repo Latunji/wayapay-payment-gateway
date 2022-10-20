@@ -14,6 +14,5 @@ public class EncryptedCardRequest {
     private String lastName;
     private String redirectUrl;
     private String customerUrl;
-    private String mode;
 
 }

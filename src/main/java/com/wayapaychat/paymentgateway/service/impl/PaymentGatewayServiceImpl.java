@@ -809,13 +809,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                             HttpStatus.BAD_REQUEST);
                 }
 
-                MerchantResponse merchant = merchantProxy.getMerchantInfo(token, sandboxPayment.getMerchantId());
-                if (!merchant.getCode().equals("00")) {
-                    return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
-                }
-                log.info("Merchant: " + merchant);
-                MerchantData sMerchant = merchant.getData();
-                log.info("Merchant ID: " + sMerchant.getMerchantId());
+                // validate that the merchant exists -- uncomment this code when role and access is ready
+                // currently it have been commented because the endpoints does not permit merchant to view other merchants
+                // info
+//                MerchantResponse merchant = merchantProxy.getMerchantInfo(token, sandboxPayment.getMerchantId());
+//                if (!merchant.getCode().equals("00")) {
+//                    return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
+//                }
+//                log.info("Merchant: " + merchant);
+//                MerchantData sMerchant = merchant.getData();
+//                log.info("Merchant ID: " + sMerchant.getMerchantId());
 
                 TokenCheckResponse auth = getUserDataService.getUserData(token);
                 if (!auth.isStatus()) {
@@ -851,7 +854,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     sandboxPayment.setChannel(PaymentChannel.WALLET);
                     //TODO: update wayapay processing fee... update the region later
                     // get the IP region of where the transaction was initiated from
-                    BigDecimal wayapayFee = calculateWayapayFee(sMerchant.getMerchantId(), sandboxPayment.getAmount(),
+                    // Change sandboxPayment.getMerchantId() to sMerchant.getMerchantId()
+                    BigDecimal wayapayFee = calculateWayapayFee(sandboxPayment.getMerchantId(), sandboxPayment.getAmount(),
                             ProductName.WALLET, "LOCAL");
                     sandboxPayment.setWayapayFee(wayapayFee);
 
@@ -901,13 +905,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                             HttpStatus.BAD_REQUEST);
                 }
 
-                MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
-                if (!merchant.getCode().equals("00")) {
-                    return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
-                }
-                log.info("Merchant: " + merchant);
-                MerchantData sMerchant = merchant.getData();
-                log.info("Merchant ID: " + sMerchant.getMerchantId());
+                // validate that the merchant exists -- uncomment this code when role and access is ready
+                // currently it have been commented because the endpoints does not permit merchant to view other merchants
+                // info
+//                MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
+//                if (!merchant.getCode().equals("00")) {
+//                    return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
+//                }
+//                log.info("Merchant: " + merchant);
+//                MerchantData sMerchant = merchant.getData();
+//                log.info("Merchant ID: " + sMerchant.getMerchantId());
 
                 TokenCheckResponse auth = getUserDataService.getUserData(token);
                 if (!auth.isStatus()) {
@@ -938,8 +945,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL);
                     payment.setChannel(PaymentChannel.WALLET);
                     //TODO: update wayapay processing fee... update the region later
-                    // get the IP region of where the transaction was initiated from
-                    BigDecimal wayapayFee = calculateWayapayFee(sMerchant.getMerchantId(), payment.getAmount(),
+                    // get the IP region of where the transaction was initiated from.
+                    // Change payment.getMerchantId() to sMerchant.getMerchantId()
+                    BigDecimal wayapayFee = calculateWayapayFee(payment.getMerchantId(), payment.getAmount(),
                             ProductName.WALLET, "LOCAL");
                     payment.setWayapayFee(wayapayFee);
 

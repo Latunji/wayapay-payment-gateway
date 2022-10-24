@@ -123,21 +123,21 @@ public class CronService {
     }
 
     // s-l done
-    @Scheduled(cron = "*/59 * * * * *")
-//    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "5s", lockAtMostFor = "10s")
+    @Scheduled(cron = "* */30 * * * *")
+    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "5s", lockAtMostFor = "10s")
     public void expireTransactionAfterThirtyMinutes() {
         log.info("------||| expiring transactions that have stayed more than 30min NOW |||-------");
-        Boolean execute = wayaPaymentDAO.expireAllTransactionMoreThan30Mins();
+        wayaPaymentDAO.expireAllTransactionMoreThan30Mins();
         log.info("------||| transactions that have stayed more than 30min have all EXPIRED on live and sandbox |||-------");
     }
 
-    @Scheduled(cron = "*/10 * * * * *")
-    @SchedulerLock(name = "TaskScheduler_settleEveryFiveSeconds", lockAtLeastFor = "10s", lockAtMostFor = "15s")
-    public void settleEveryFiveSeconds() {
-        log.info("------|--|--| FIVE SECOND SETTLEMENT HAPPENING |--|--|-------");
-        // prorcessThirdPartyPaymentProcessed(); just commented this
-        log.info("------|--|--| FIVE SECOND SETTLEMENT ENDED |--|--|-------");
-    }
+//    @Scheduled(cron = "*/10 * * * * *")
+//    @SchedulerLock(name = "TaskScheduler_settleEveryFiveSeconds", lockAtLeastFor = "10s", lockAtMostFor = "15s")
+//    public void settleEveryFiveSeconds() {
+//        log.info("------|--|--| FIVE SECOND SETTLEMENT HAPPENING |--|--|-------");
+//        // prorcessThirdPartyPaymentProcessed(); just commented this
+//        log.info("------|--|--| FIVE SECOND SETTLEMENT ENDED |--|--|-------");
+//    }
 
     public void prorcessThirdPartyPaymentProcessed() {
         new Thread(() -> {

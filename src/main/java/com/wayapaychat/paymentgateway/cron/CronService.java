@@ -68,6 +68,7 @@ public class CronService {
             log.info("------ TRANSACTIONS: "+ product.toString());
             product.parallelStream().forEach(mPay -> {
                 log.info("----------######------- LOOPING TRANSACTION UPDATES ----------######-------");
+                log.info("----------######------- this tranx status: "+mPay.getStatus().toString()+" ----------######-------");
 //                if (mPay.getStatus() != TransactionStatus.SUCCESSFUL && mPay.getStatus() != TransactionStatus.FAILED) {
                 if (mPay.getStatus() == TransactionStatus.PENDING) {
                     log.info("----------######------- tranx pending ----------######-------");

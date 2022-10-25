@@ -68,17 +68,28 @@ public class CronService {
             log.info("------ TRANSACTIONS: "+ product.toString());
             product.parallelStream().forEach(mPay -> {
                 log.info("----------######------- LOOPING TRANSACTION UPDATES ----------######-------");
-                if (mPay.getStatus() != TransactionStatus.SUCCESSFUL && mPay.getStatus() != TransactionStatus.FAILED) {
-                    log.info("----------######------- tranx not successful and not failed ----------######-------");
+//                if (mPay.getStatus() != TransactionStatus.SUCCESSFUL && mPay.getStatus() != TransactionStatus.FAILED) {
+                if (mPay.getStatus() == TransactionStatus.PENDING) {
+                    log.info("----------######------- tranx pending ----------######-------");
                     if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+                        log.info("----------######------- NSNF Tranx not blank --- now processing ----------######-------");
                         WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
-                        preprocessSuccessfulTransaction(mPay, query);
+                        preprocessTransactionStatus(mPay, query);
+                    }
+                    else {
+                        killSuspectedTransactions(mPay);
+                        log.info("----------######------- pending tranx KILLED ----------######-------");
                     }
                 } else if (mPay.getStatus() == TransactionStatus.FAILED) {
                     log.info("----------######------- tranx failed ----------######-------");
                     if (!mPay.getTranId().isBlank() && StringUtils.isNumeric(mPay.getTranId())) {
+                        log.info("----------######------- F Tranx not blank --- now processing ----------######-------");
                         WayaTransactionQuery query = paymentService.getTransactionStatus(mPay.getTranId());
-                        preprocessSuccessfulTransaction(mPay, query);
+                        preprocessTransactionStatus(mPay, query);
+                    }
+                    else {
+                        killSuspectedTransactions(mPay);
+                        log.info("----------######------- failed tranx KILLED ----------######-------");
                     }
                 }
             });
@@ -87,11 +98,10 @@ public class CronService {
 
     //TODO: Process if transaction was successful before and then was not successful again,
     // reverse the transaction and then debit the merchant if the merchant has been credited before
-    private void preprocessSuccessfulTransaction(PaymentGateway mPay, WayaTransactionQuery query) {
-        log.info("----------######------- processing tranx ----------######-------");
-        log.info("----------######------- tranx ext status on: "+query.getStatus()+" ----------######-------");
+    private void preprocessTransactionStatus(PaymentGateway mPay, WayaTransactionQuery query) {
+        log.info("----------######------- processing tranx [UNI status = "+query.getStatus()+"] ----------######-------");
         try {
-            log.info("----------######------- trying to apply update ----------######-------");
+            log.info("----------######------- now trying to apply update ----------######-------");
             if (query.getStatus().contains("APPROVED") && !mPay.getStatus().equals(TransactionStatus.SUCCESSFUL)) {
                 mPay.setStatus(TransactionStatus.SUCCESSFUL);
                 mPay.setSuccessfailure(true);
@@ -103,10 +113,10 @@ public class CronService {
                 log.info("------||| transaction "+mPay.getTranId()+" set to successful |||-------");
                 paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(mPay);
             } else if (query.getStatus().contains("REJECT")) {
-                mPay.setStatus(TransactionStatus.FAILED);
+                mPay.setStatus(TransactionStatus.REJECTED);
                 mPay.setSuccessfailure(false);
                 paymentGatewayRepo.save(mPay);
-                log.info("------||| transaction "+mPay.getTranId()+" set to FAILED |||-------");
+                log.info("------||| transaction "+mPay.getTranId()+" set to REJECTED |||-------");
             }
         } catch (Exception e) {
             log.error("------||||SYSTEM ERROR ON PROCESSING TRANSACTION FROM CRON||||-------", e);
@@ -117,10 +127,18 @@ public class CronService {
         }
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
-    public void runEveryDay() {
-//        processNextRecurrentTransaction();
+    private void killSuspectedTransactions(PaymentGateway mPay) {
+        log.info("----------######------- tranx KILLER: "+ mPay.getTranId() +" ----------######-------");
+        mPay.setStatus(TransactionStatus.SYSTEM_ERROR);
+        mPay.setSuccessfailure(false);
+        paymentGatewayRepo.save(mPay);
+        log.info("------||| transaction "+mPay.getTranId()+" K.I.L.L.E.D |||-------");
     }
+
+//    @Scheduled(cron = "0 0 0 * * *")
+//    public void runEveryDay() {
+////        processNextRecurrentTransaction();
+//    }
 
     // s-l done
     @Scheduled(cron = "* */30 * * * *")

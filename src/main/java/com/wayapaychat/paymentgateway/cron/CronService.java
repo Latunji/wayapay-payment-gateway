@@ -145,7 +145,7 @@ public class CronService {
 //    }
 
     // s-l done
-    @Scheduled(cron = "* 30 * * * *")
+    @Scheduled(cron = "* 3 * * * *")
     @Async
     @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes")
     public void expireTransactionAfterThirtyMinutes() {

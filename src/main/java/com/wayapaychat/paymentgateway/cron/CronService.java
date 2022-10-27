@@ -19,6 +19,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
+@EnableAsync
 @Slf4j
 public class CronService {
 
@@ -143,7 +146,8 @@ public class CronService {
 
     // s-l done
     @Scheduled(cron = "* */30 * * * *")
-    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    @Async
+    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes")
     public void expireTransactionAfterThirtyMinutes() {
         log.info("------||| expiring transactions that have stayed more than 30min NOW |||-------");
         wayaPaymentDAO.expireAllTransactionMoreThan30Mins();

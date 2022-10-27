@@ -84,3 +84,4 @@ service:
     unified-payment:
       callback:
         accepted-origins: https://acce
+  encrypt-secrete: W4Y4QU!CK#4M3

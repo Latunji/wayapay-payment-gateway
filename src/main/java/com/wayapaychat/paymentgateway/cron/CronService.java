@@ -57,7 +57,7 @@ public class CronService {
 
 
 //    @Scheduled(cron = "*/30 * * * * *") // 30sec for dev env
-    @Scheduled(cron = "* */20 * * * *") // 20min for staging and prod
+    @Scheduled(cron = "* 20 * * * *") // 20min for staging and prod
     @SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void updateTransactionStatusEveryDay() {
         log.info("----------------------------- Starting SCHEDULE -----------------------------");
@@ -141,11 +141,11 @@ public class CronService {
 
 //    @Scheduled(cron = "0 0 0 * * *")
 //    public void runEveryDay() {
-////        processNextRecurrentTransaction();
+//        processNextRecurrentTransaction();
 //    }
 
     // s-l done
-    @Scheduled(cron = "* */30 * * * *")
+    @Scheduled(cron = "* 30 * * * *")
     @Async
     @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes")
     public void expireTransactionAfterThirtyMinutes() {

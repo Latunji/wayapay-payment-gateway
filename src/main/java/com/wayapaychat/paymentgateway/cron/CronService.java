@@ -57,12 +57,12 @@ public class CronService {
 
 
 //    @Scheduled(cron = "*/30 * * * * *") // 30sec for dev env
-//    @Scheduled(cron = "* 20 * * * *") // 20min for staging and prod
-//    @SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
-//    public void updateTransactionStatusEveryDay() {
-//        log.info("----------------------------- Starting SCHEDULE -----------------------------");
-//        updateTransactionStatus();
-//    }
+    @Scheduled(cron = "* 20 * * * *") // 20min for staging and prod
+    @SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    public void updateTransactionStatusEveryDay() {
+        log.info("----------------------------- Starting SCHEDULE -----------------------------");
+        updateTransactionStatus();
+    }
 
     private void updateTransactionStatus() {
         log.info("------ ------ ------ ----------- Starting Tranx Updates -----------------------------");
@@ -145,9 +145,9 @@ public class CronService {
 //    }
 
     // s-l done
-    @Scheduled(cron = "* */3 * * * *")
+    @Scheduled(cron = "* */30 * * * *")
     @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
-    public void killTransCreated30MinsAgo() {
+    public void expireAllTransactionOver30Mins() {
         log.info("------||| expiring transactions that have stayed more than 30min NOW |||-------");
         wayaPaymentDAO.expireAllTransactionMoreThan30Mins();
         log.info("------||| transactions that have stayed more than 30min have all EXPIRED on live and sandbox |||-------");

@@ -19,7 +19,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -146,9 +145,8 @@ public class CronService {
 
     // s-l done
     @Scheduled(cron = "* */3 * * * *")
-    @Async
-    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes")
-    public void expireTransactionAfterThirtyMinutes() {
+    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    public void killTransCreated30MinsAgo() {
         log.info("------||| expiring transactions that have stayed more than 30min NOW |||-------");
         wayaPaymentDAO.expireAllTransactionMoreThan30Mins();
         log.info("------||| transactions that have stayed more than 30min have all EXPIRED on live and sandbox |||-------");

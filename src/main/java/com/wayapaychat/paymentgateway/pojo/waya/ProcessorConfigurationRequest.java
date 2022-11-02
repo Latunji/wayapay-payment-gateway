@@ -10,8 +10,8 @@ import lombok.*;
 public class ProcessorConfigurationRequest {
     private String name;
     private String description;
-    private String testBaseUrl;
-    private String liveBaseUrl;
+//    private String testBaseUrl;
+//    private String liveBaseUrl;
     private Boolean cardAcquiring;
     private Boolean ussdAcquiring;
     private Boolean accountAcquiring;

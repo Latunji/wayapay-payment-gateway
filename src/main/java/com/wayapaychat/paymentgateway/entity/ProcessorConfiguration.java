@@ -35,11 +35,11 @@ public class ProcessorConfiguration {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "test_base_url")
-    private String testBaseUrl;
+//    @Column(name = "test_base_url")
+//    private String testBaseUrl;
 
-    @Column(name = "live_base_url")
-    private String liveBaseUrl;
+//    @Column(name = "live_base_url")
+//    private String liveBaseUrl;
 
     @Column(name = "card_acquiring")
     private Boolean cardAcquiring;

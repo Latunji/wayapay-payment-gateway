@@ -1,10 +1,14 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
+import com.wayapaychat.paymentgateway.common.enums.Constant;
 import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.entity.SandboxRecurrentTransaction;
+import com.wayapaychat.paymentgateway.enumm.MerchantPermissions;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
+import com.wayapaychat.paymentgateway.pojo.RolePermissionResponsePayload;
+import com.wayapaychat.paymentgateway.pojo.RoleResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
@@ -14,6 +18,7 @@ import com.wayapaychat.paymentgateway.repository.SandboxRecurrentTransactionRepo
 import com.wayapaychat.paymentgateway.service.RecurrentTransactionService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -32,6 +37,9 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
     private final IdentityManagementServiceProxy identityManagementServiceProxy;
     private final PaymentGateWayCommonUtils paymentGateWayCommonUtils;
 
+    @Autowired
+    private RoleProxy roleProxy;
+
     @Override
     public ResponseEntity<PaymentGatewayResponse> filterSearchRecurrentTransaction(QueryRecurrentTransactionPojo queryCustomerTransactionPojo, Pageable pageable) {
         return null;
@@ -46,14 +54,20 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
         String merchantId = merchantData.getMerchantId();
         String mode = merchantData.getMerchantKeyMode();
         Page<?> result;
-        if (mode == MerchantTransactionMode.PRODUCTION.toString()) {
-            result = recurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
+        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
+        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
+            if (mode == MerchantTransactionMode.PRODUCTION.toString()) {
+                result = recurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
 
-        } else {
-            result = sandboxRecurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
+            } else {
+                result = sandboxRecurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
+            }
+            return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
+                    result), HttpStatus.OK);
         }
-        return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
-                result), HttpStatus.OK);
+        else{
+            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+        }
     }
 
     @Override

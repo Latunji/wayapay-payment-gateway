@@ -74,6 +74,8 @@ waya:
     url: https://services.staging.wayapay.ng/wayapay-settlement-service/api/v1
   card-acquiring-service:
     baseurl: https://services.staging.wayapay.ng/card-acquiring/api/v1
+  role-service:
+    baseurl: https://services.staging.wayapay.ng/wayapay-role-access/
 service:
   wayapay-payment-status-url: https://pay.staging.wayapay.ng/status
   name: admin@wayapaychat.com

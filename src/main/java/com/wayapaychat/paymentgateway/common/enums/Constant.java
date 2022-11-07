@@ -37,5 +37,6 @@ public class Constant {
     public static final String PAYMENT_REQUEST_MESSAGE = "## requested an amount of $$ naira";
     public static final String PAYMENT_REQUEST_SETTLED_MESSAGE = "## has settled your payment request of $$ naiea";
     public static final String PAYMENT_REQUEST_REJECTED_MESSAGE = "## rejected your payment request of $$ naira";
+    public static final String PERMISSION_ERROR = "User Does Not Have Permission";
 
 }

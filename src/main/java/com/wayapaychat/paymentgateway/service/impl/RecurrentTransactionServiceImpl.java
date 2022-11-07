@@ -1,11 +1,13 @@
 package com.wayapaychat.paymentgateway.service.impl;
 
+import com.wayapaychat.paymentgateway.common.enums.Constant;
 import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.entity.RecurrentTransaction;
 import com.wayapaychat.paymentgateway.entity.SandboxRecurrentTransaction;
 import com.wayapaychat.paymentgateway.enumm.MerchantPermissions;
 import com.wayapaychat.paymentgateway.exception.ApplicationException;
+import com.wayapaychat.paymentgateway.pojo.RolePermissionResponsePayload;
 import com.wayapaychat.paymentgateway.pojo.RoleResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
@@ -52,8 +54,8 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
         String merchantId = merchantData.getMerchantId();
         String mode = merchantData.getMerchantKeyMode();
         Page<?> result;
-        RoleResponse response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
-        if (response.getData().getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
+        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
+        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
             if (mode == MerchantTransactionMode.PRODUCTION.toString()) {
                 result = recurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
 

@@ -7,6 +7,7 @@ import com.wayapaychat.paymentgateway.dao.TransactionSettlementDAO;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.enumm.MerchantPermissions;
+import com.wayapaychat.paymentgateway.pojo.RolePermissionResponsePayload;
 import com.wayapaychat.paymentgateway.pojo.RoleResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
@@ -54,8 +55,8 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
             MerchantData merchantData = merchantResponse.getData();
             mode = merchantData.getMerchantKeyMode();
         }
-        RoleResponse response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
-        if (response.getData().getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
+        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
+        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
             TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse, mode);
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
         }else{
@@ -69,8 +70,8 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,true);
         String token = paymentGateWayCommonUtils.getDaemonAuthToken();
         MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantIdToUse);
-        RoleResponse response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
-        if (response.getData().getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
+        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
+        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
             if (ObjectUtils.isNotEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isEmpty(settlementQueryPojo.getStartSettlementDate()))
                 data = transactionSettlementRepository.findAllWithStatus(merchantIdToUse, settlementQueryPojo.getStatus().name(), pageable);
             else if (ObjectUtils.isNotEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isNotEmpty(settlementQueryPojo.getStartSettlementDate())
@@ -112,8 +113,8 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
         String token = paymentGateWayCommonUtils.getDaemonAuthToken();
         MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantId);
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,false);
-        RoleResponse response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
-        if (response.getData().getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
+        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
+        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
             data = wayaPaymentDAO.getAllTransactionSettlement(settlementQueryPojo, merchantIdToUse, pageable);
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
         }else{

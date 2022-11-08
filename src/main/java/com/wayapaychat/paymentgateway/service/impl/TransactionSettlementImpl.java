@@ -55,13 +55,13 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
             MerchantData merchantData = merchantResponse.getData();
             mode = merchantData.getMerchantKeyMode();
         }
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
-        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
+//        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
             TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse, mode);
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-        }
+//        }else{
+//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+//        }
     }
 
     @Override
@@ -70,8 +70,8 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,true);
         String token = paymentGateWayCommonUtils.getDaemonAuthToken();
         MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantIdToUse);
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
-        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
+//        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
             if (ObjectUtils.isNotEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isEmpty(settlementQueryPojo.getStartSettlementDate()))
                 data = transactionSettlementRepository.findAllWithStatus(merchantIdToUse, settlementQueryPojo.getStatus().name(), pageable);
             else if (ObjectUtils.isNotEmpty(settlementQueryPojo.getStatus()) && ObjectUtils.isNotEmpty(settlementQueryPojo.getStartSettlementDate())
@@ -102,9 +102,9 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
             else
                 data = transactionSettlementRepository.findAll(merchantIdToUse, pageable);
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-        }
+//        }else{
+//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+//        }
     }
 
     @Override
@@ -113,14 +113,14 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
         String token = paymentGateWayCommonUtils.getDaemonAuthToken();
         MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantId);
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,false);
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
-        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
+//        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
             data = wayaPaymentDAO.getAllTransactionSettlement(settlementQueryPojo, merchantIdToUse, pageable);
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-
-        }
+//        }else{
+//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+//
+//        }
     }
 
     @Override

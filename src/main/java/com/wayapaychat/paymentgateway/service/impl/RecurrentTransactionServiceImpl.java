@@ -54,8 +54,8 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
         String merchantId = merchantData.getMerchantId();
         String mode = merchantData.getMerchantKeyMode();
         Page<?> result;
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
-        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
+//        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
             if (mode == MerchantTransactionMode.PRODUCTION.toString()) {
                 result = recurrentTransactionRepository.getTransactionByCustomerId(customerId, merchantId, pageable);
 
@@ -64,10 +64,10 @@ public class RecurrentTransactionServiceImpl implements RecurrentTransactionServ
             }
             return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
                     result), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-        }
+//        }
+//        else{
+//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+//        }
     }
 
     @Override

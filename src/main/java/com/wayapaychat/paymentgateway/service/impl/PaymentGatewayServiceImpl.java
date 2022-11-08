@@ -1252,8 +1252,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
 
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
-        if(response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
+//        if(response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
             if (merchant.getData().getMerchantKeyMode().equals(MerchantTransactionMode.PRODUCTION.toString())) {
                 @NotNull List<PaymentGateway> paymentGatewayList;
                 paymentGatewayList = this.paymentGatewayRepo.findByMerchantPayment(merchantId);
@@ -1269,10 +1269,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 final List<ReportPayment> sPay = mapList(paymentGatewayList, ReportPayment.class);
                 return new ResponseEntity<>(new SuccessResponse("Sandbox Payment List", sPay), HttpStatus.OK);
             }
-        }
-        else{
-            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR, null), HttpStatus.NOT_FOUND);
-        }
+//        }
+//        else{
+//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR, null), HttpStatus.NOT_FOUND);
+//        }
     }
 
     // s-l done
@@ -1353,13 +1353,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.error("Higher Wahala {}", ex.getMessage());
             log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
-        if(response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
+//        if(response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
             TransactionReportStats revenue = wayaPayment.getTransactionReportStats(merchantIdToUse, mode);
             return new ResponseEntity<>(new SuccessResponse("GET REVENUE", revenue), HttpStatus.OK);
-        }else{
-            return  new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-        }
+//        }else{
+//            return  new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+//        }
     }
 
     // s-l done
@@ -1413,14 +1413,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         AuthenticatedUser authenticatedUser = PaymentGateWayCommonUtils.getAuthenticatedUser();
         String token = paymentGateWayCommonUtils.getDaemonAuthToken();
         MerchantData merchantResponse = merchantProxy.getMerchantInfo(token, authenticatedUser.getMerchantId()).getData();
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getUserId(), token);
-        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getUserId(), token);
+//        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
             queryPojo.setMerchantId(merchantResponse.getMerchantId());
             return new ResponseEntity<>(new SuccessResponse("Data fetched successfully",
                     getCustomerTransaction(queryPojo, merchantResponse.getMerchantKeyMode(), pageable)), HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-        }
+//        }else{
+//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+//        }
     }
 
     // s-l done
@@ -1638,8 +1638,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
             }
         }
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
-        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
+//        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_TRANSACTIONS)) {
             List<TransactionYearMonthStats> transactionYearMonthStats = wayaPaymentDAO.getTransactionStatsByYearAndMonth(merchantIdToUse, year, startDate, endDate, mode);
             BigDecimal totalRevenueForSelectedDateRange = transactionYearMonthStats.stream()
                     .map(TransactionYearMonthStats::getTotalRevenue)
@@ -1647,9 +1647,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             Map<String, Object> result = Map.of("dateRangeResult", transactionYearMonthStats,
                     "totalRevenueForSelectedDateRange", totalRevenueForSelectedDateRange);
             return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, result), HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-        }
+//        }else{
+//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+//        }
     }
 
     // s-l done
@@ -1675,15 +1675,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage().toString());
             }
         }
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
-        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
+//        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
             log.info("merchant to use is " + merchantIdToUse);
             TransactionOverviewResponse transactionOverviewResponse = wayaPaymentDAO.getTransactionReport(merchantIdToUse, mode);
             return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, transactionOverviewResponse), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-        }
+//        }
+//        else{
+//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+//        }
     }
 
     // s-l done
@@ -1737,8 +1737,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
 
         Page<?> result = null;
-        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
-        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
+//        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
             if (merchant.getData().getMerchantKeyMode() == MerchantTransactionMode.PRODUCTION.toString()) {
                 if (ObjectUtils.isEmpty(merchantIdToUse))
                     result = paymentGatewayRepo.getAllByPaymentLinkId(paymentLinkId, pageable);
@@ -1749,9 +1749,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 else result = sandboxPaymentGatewayRepo.getAllByPaymentLinkId(merchantIdToUse, paymentLinkId, pageable);
             }
             return new ResponseEntity<>(new SuccessResponse(DEFAULT_SUCCESS_MESSAGE, result), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-        }
+//        } else {
+//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
+//        }
     }
 
     private String replaceKeyPrefixWithEmptyString(String pub) {

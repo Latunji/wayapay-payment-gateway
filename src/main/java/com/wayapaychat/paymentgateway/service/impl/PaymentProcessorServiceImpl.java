@@ -38,7 +38,8 @@ public class PaymentProcessorServiceImpl implements PaymentProcessorService {
             ProcessorConfiguration processor = new ProcessorConfiguration();
             processor.setName(request.getName());
             processor.setDescription(request.getDescription());
-            processor.setCode(request.getName().trim().replace(" ", "_"));
+            processor.setCode(request.getCode());
+//            processor.setCode(request.getName().trim().replace(" ", "_"));
 //            processor.setTestBaseUrl(request.getTestBaseUrl());
 //            processor.setLiveBaseUrl(request.getLiveBaseUrl());
             processor.setPayattitudeAcquiring(request.getPayattitudeAcquiring());
@@ -74,6 +75,7 @@ public class PaymentProcessorServiceImpl implements PaymentProcessorService {
         if (configuration.isPresent()) {
             ProcessorConfiguration config = configuration.get();
             config.setName(updateRequest.getName());
+//            config.setCode(updateRequest.getCode());
             config.setDescription(updateRequest.getDescription());
 //            config.setLiveBaseUrl(updateRequest.getLiveBaseUrl());
 //            config.setTestBaseUrl(updateRequest.getTestBaseUrl());

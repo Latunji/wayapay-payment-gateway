@@ -9,6 +9,7 @@ import lombok.*;
 @ToString
 public class ProcessorConfigurationRequest {
     private String name;
+    private String code;
     private String description;
 //    private String testBaseUrl;
 //    private String liveBaseUrl;

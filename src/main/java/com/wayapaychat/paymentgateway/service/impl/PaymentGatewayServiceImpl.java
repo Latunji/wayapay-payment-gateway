@@ -79,6 +79,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private MerchantProxy merchantProxy;
     @Autowired
     private AuthApiClient authProxy;
+
+    @Autowired
+    private WalletProxy walletProxy;
     @Autowired
     private IdentityManagementServiceProxy identManager;
     @Autowired
@@ -93,6 +96,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private WayaPaymentDAO wayaPayment;
     @Autowired
     private PaymentWalletRepository paymentWalletRepo;
+
+    @Autowired
+    TransactionSettlementRepository transactionSettlementRepository;
     @Autowired
     private RecurrentTransactionRepository recurrentTransactionRepository;
     @Autowired
@@ -975,6 +981,18 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                             payment.setTransactionReceiptSent(true);
                         });
                     paymentWalletRepo.save(wallet);
+
+                    //save settlement
+                    DefaultWalletResponse merchantDefaultWallet = walletProxy.getUserDefaultWalletAccount(token, mAuth.getId());
+                    TransactionSettlement transactionSettlement = new TransactionSettlement();
+                    transactionSettlement.setSettlementReferenceId(tran.getTranId());
+                    transactionSettlement.setMerchantId(payment.getMerchantId());
+                    transactionSettlement.setSettlementNetAmount(payment.getAmount());
+                    transactionSettlement.setMerchantUserId(mAuth.getId());
+                    transactionSettlement.setSettlementAccount(merchantDefaultWallet.getData().getAccountNo());
+                    transactionSettlement.setSettlementGrossAmount(payment.getAmount());
+                    transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
+                    transactionSettlementRepository.save(transactionSettlement);
                 } else {
                     wallet.setPaymentDescription(payment.getDescription());
                     wallet.setPaymentReference(payment.getPreferenceNo());

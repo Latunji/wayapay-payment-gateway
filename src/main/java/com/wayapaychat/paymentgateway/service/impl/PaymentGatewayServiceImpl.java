@@ -993,6 +993,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     transactionSettlement.setSettlementGrossAmount(payment.getAmount());
                     transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
                     transactionSettlement.setCreatedBy(mAuth.getId());
+                    transactionSettlement.setDateCreated(LocalDateTime.now());
                     transactionSettlementRepository.save(transactionSettlement);
                 } else {
                     wallet.setPaymentDescription(payment.getDescription());

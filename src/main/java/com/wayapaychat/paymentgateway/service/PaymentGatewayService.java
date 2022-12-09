@@ -6,6 +6,7 @@ import com.wayapaychat.paymentgateway.entity.SandboxPaymentGateway;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.CardTokenization;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
@@ -84,4 +85,8 @@ public interface PaymentGatewayService {
     ResponseEntity<PaymentGatewayResponse> getTransactionGrossAndNetRevenue(String merchantId, String token);
 
     ResponseEntity<PaymentGatewayResponse> fetchPaymentLinkTransactions(String merchantId, String paymentLinkId, String token, Pageable pageable);
+
+    ResponseEntity<?> tokenizeCard(CardTokenization cardTokenization, String token);
+
+    ResponseEntity<?> tokenizePayment(String customerId, String merchantId, String transactionRef, String cardToken, String token);
 }

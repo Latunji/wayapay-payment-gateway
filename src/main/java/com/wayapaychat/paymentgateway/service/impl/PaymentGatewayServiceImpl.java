@@ -1826,7 +1826,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
               card.setDateCreated(LocalDateTime.now());
               card.setCardTokenReference(tokenize.getTransactionRef());
 
-              TokenizedCard save = tokenizedRepo.save(card);
+//              TokenizedCard save = tokenizedRepo.save(card);
 
           }
           return new ResponseEntity<>(tokenize, HttpStatus.CREATED);
@@ -1859,14 +1859,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
 
                 //validate token against customer and merchant
-            Optional<TokenizedCard> validateToken = tokenizedRepo.findToken(customerId, merchantId);
-                if(validateToken.isEmpty()){
-                    return new ResponseEntity<>(new ErrorResponse("No Valid Token for customer"), HttpStatus.BAD_REQUEST);
-                }
-            TokenizedCard isTokenValid = validateToken.get();
-                if(!isTokenValid.getCardToken().equalsIgnoreCase(cardToken)){
-                    return new ResponseEntity<>(new ErrorResponse("No Valid Token for customer"), HttpStatus.BAD_REQUEST);
-                }
+//            Optional<TokenizedCard> validateToken = tokenizedRepo.findToken(customerId, merchantId);
+//                if(validateToken.isEmpty()){
+//                    return new ResponseEntity<>(new ErrorResponse("No Valid Token for customer"), HttpStatus.BAD_REQUEST);
+//                }
+//            TokenizedCard isTokenValid = validateToken.get();
+//                if(!isTokenValid.getCardToken().equalsIgnoreCase(cardToken)){
+//                    return new ResponseEntity<>(new ErrorResponse("No Valid Token for customer"), HttpStatus.BAD_REQUEST);
+//                }
                 //send request to pay with token
                 TokenizePayment pay = new TokenizePayment();
                 pay.setAmount(response.getAmount());

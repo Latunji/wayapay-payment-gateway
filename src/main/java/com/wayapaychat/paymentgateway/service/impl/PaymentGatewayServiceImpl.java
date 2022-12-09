@@ -131,9 +131,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private ISWService iswService;
 
-    @Autowired
-    private TokenizationRepository tokenizedRepo;
-
     // s-l done
     @Override
     public PaymentGatewayResponse initiateCardTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {

@@ -7,20 +7,25 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.Column;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 //@EntityListeners(value = FraudEventEntityListener.class)
 @Builder
-//@Entity
+@Entity
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-//@Table(name = "m_tokenized_card")
-public class TokenizedCard extends GenericBaseEntity {
+@Table(name = "m_tokenized_card")
+public class TokenizedCard {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(unique = true, nullable = false)
+    private Long id;
+
     @JsonIgnore
     @Column(unique = true, nullable = false, name = "customer_id")
     private String customerId;
@@ -32,7 +37,7 @@ public class TokenizedCard extends GenericBaseEntity {
     @Column(nullable = false, name = "card_token")
     private String cardToken;
 
-    @Column(nullable = false)
+    @Column()
     private String cardTokenVendor;
 
     @JsonIgnore
@@ -40,7 +45,7 @@ public class TokenizedCard extends GenericBaseEntity {
     private String cardTokenReference;
 
     @JsonIgnore
-    @Column(unique = true, nullable = false, name = "encrypted_card")
+    @Column(unique = true,  name = "encrypted_card")
     private String encryptedCard;
 
     @Column(nullable = false)

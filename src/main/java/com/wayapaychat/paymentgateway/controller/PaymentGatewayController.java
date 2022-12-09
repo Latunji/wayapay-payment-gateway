@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.CardTokenization;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
@@ -231,5 +232,22 @@ public class PaymentGatewayController {
     @GetMapping("/revenue/query")
     public ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest request) {
         return paymentGatewayService.getAllTransactionRevenue(request);
+    }
+
+    @ApiOperation(value = "Card Tokenization", notes = "This endpoint is to tokenize a card", tags = {"PAYMENT-GATEWAY"})
+    @PostMapping("/card/tokenize")
+    public ResponseEntity<?> tokenizeCard(HttpServletRequest request, @Valid @RequestBody CardTokenization CardTokenization, @RequestHeader("Authorization") String token) {
+        ResponseEntity<?> resp = paymentGatewayService.tokenizeCard(CardTokenization, token);
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Pay with token", notes = "This endpoint allows payment with token", tags = {"PAYMENT-GATEWAY"})
+    @PostMapping("/card/tokenize-pay")
+    public ResponseEntity<?> payWithToken(@RequestParam String customerId,  @RequestParam String merchantId,
+                                          @RequestParam String transactionRef, @RequestParam String cardToken,
+                                          @RequestHeader("Authorization") String token) {
+        ResponseEntity<?> resp = paymentGatewayService.tokenizePayment(customerId, merchantId, transactionRef,
+                cardToken, token);
+        return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 }

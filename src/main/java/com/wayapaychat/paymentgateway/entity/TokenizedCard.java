@@ -23,29 +23,29 @@ import java.time.LocalDateTime;
 public class TokenizedCard {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private Long id;
 
-    @JsonIgnore
-    @Column(unique = true, nullable = false, name = "customer_id")
+//    @JsonIgnore
+    @Column(name = "customer_id")
     private String customerId;
 
-    @Column(unique = true, nullable = false, name = "merchant_id")
+    @Column(name = "merchant_id")
     private String merchantId;
 
-    @JsonIgnore
-    @Column(nullable = false, name = "card_token")
+//    @JsonIgnore
+    @Column(name = "card_token")
     private String cardToken;
 
-    @Column()
+    @Column(name = "vendor")
     private String cardTokenVendor;
 
-    @JsonIgnore
-    @Column(unique = true, nullable = false, name = "card_token_reference")
+//    @JsonIgnore
+    @Column(name = "card_token_reference")
     private String cardTokenReference;
 
-    @JsonIgnore
-    @Column(unique = true,  name = "encrypted_card")
+//    @JsonIgnore
+    @Column( name = "encrypted_card")
     private String encryptedCard;
 
     @Column(nullable = false)

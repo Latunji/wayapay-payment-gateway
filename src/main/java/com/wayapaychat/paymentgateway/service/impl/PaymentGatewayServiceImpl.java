@@ -1295,6 +1295,60 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 //        }
     }
 
+    @Override
+    public PaymentGatewayResponse getWalletBalance(HttpServletRequest request, String merchantId, String token) {
+        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, true);
+
+        MerchantResponse merchant = null;
+        String mode = null;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
+            }
+            mode = merchant.getData().getMerchantKeyMode();
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
+//        if(response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
+        PaymentGatewayResponse revenue = wayaPayment.getWalletBalance(merchantId, mode);
+        return new PaymentGatewayResponse("GET REVENUE", revenue);
+    }
+
+//    @Override
+//    public PaymentGatewayResponse (HttpServletRequest request, WayaWalletWithdrawal merchantId, String token) {
+//        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, true);
+//
+//        MerchantResponse merchant = null;
+//        String mode = null;
+//        // get merchant data
+//        try {
+//            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+//            if (!merchant.getCode().equals("00") || (merchant == null)) {
+//                return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
+//            }
+//            mode = merchant.getData().getMerchantKeyMode();
+//        } catch (Exception ex) {
+//            if (ex instanceof FeignException) {
+//                String httpStatus = Integer.toString(((FeignException) ex).status());
+//                log.error("Feign Exception Status {}", httpStatus);
+//            }
+//            log.error("Higher Wahala {}", ex.getMessage());
+//            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+//        }
+////        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
+////        if(response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
+//        PaymentGatewayResponse revenue = wayaPayment.getWalletBalance(merchantId, mode);
+//        return new PaymentGatewayResponse("GET REVENUE", revenue);
+//    }
+
     // s-l done
     @Override
     public ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo) {

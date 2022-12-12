@@ -7,6 +7,8 @@ import com.wayapaychat.paymentgateway.mapper.BigDecimalAmountWrapper;
 import com.wayapaychat.paymentgateway.mapper.SettlementWrapper;
 import com.wayapaychat.paymentgateway.mapper.WalletRevenueMapper;
 import com.wayapaychat.paymentgateway.pojo.waya.MerchantUnsettledSuccessfulTransaction;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.ResponseHelper;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.*;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.TransactionReportStats;
@@ -77,6 +79,26 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         WalletRevenueMapper rowMapper = new WalletRevenueMapper();
         product = jdbcTemplate.queryForObject(sql, rowMapper);
         return product;
+    }
+
+    @Override
+    public PaymentGatewayResponse getWalletBalance(String merchantId, String mode) {
+        String tbl;
+        TransactionReportStats product;
+        if(mode.equals(MerchantTransactionMode.TEST.toString())){
+            tbl = "m_sandbox_payment_gateway";
+        } else {
+            tbl = "m_payment_gateway";
+        }
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT COUNT(a.TRAN_ID) AS TOTALTRAN,");
+        query.append("SUM(CASE WHEN a.status = 'SUCCESSFUL' THEN 1 ELSE 0 END) as TOTALSUCCESS,");
+        query.append("SUM(CASE WHEN settlement_status =  'SETTLED'    THEN 1 ELSE 0 END) as TOTALSETTLED ");
+        query.append(String.format(" FROM %s a WHERE merchant_id = '%s' ", tbl, merchantId));
+        String sql = query.toString();
+        WalletRevenueMapper rowMapper = new WalletRevenueMapper();
+        product = jdbcTemplate.queryForObject(sql, rowMapper);
+        return new PaymentGatewayResponse("SUCCESS", product);
     }
 
     // s-l done

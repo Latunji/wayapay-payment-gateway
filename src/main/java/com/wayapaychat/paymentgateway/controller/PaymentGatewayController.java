@@ -93,6 +93,26 @@ public class PaymentGatewayController {
         return paymentGatewayService.getTransactionStatus(request, tranId);
     }
 
+    @ApiOperation(value = "Get Wallet Balance", notes = "This endpoint gets merchant wallet balance", tags = {"PAYMENT-GATEWAY"})
+    @GetMapping("/wallet/balance/{merchantId}")
+    public ResponseEntity<?> getWalletBalance(HttpServletRequest request, @PathVariable("merchantId") final String merchantId,
+                                           @RequestHeader("Authorization") String token) throws JsonProcessingException {
+        PaymentGatewayResponse resp = paymentGatewayService.getWalletBalance(request, merchantId, token);
+        if (!resp.getStatus())
+            return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Get Wallet Balance", notes = "This endpoint gets merchant wallet balance", tags = {"PAYMENT-GATEWAY"})
+    @PostMapping("/wallet/withdrawal")
+    public ResponseEntity<?> withdrawFromWallet(HttpServletRequest request, @RequestBody WayaWalletPayment walletPayment,
+                                           @RequestHeader("Authorization") String token) throws JsonProcessingException {
+//        PaymentGatewayResponse resp = paymentGatewayService.withdrawFromWallet(request, walletPayment, token);
+//        if (!resp.getStatus())
+//            return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(null, HttpStatus.OK);
+    }
+
     @ApiOperation(value = "Waya-Request Transaction", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})
     @PostMapping("/request/transaction")
     public ResponseEntity<?> initiateTransaction(HttpServletRequest request, Device device,

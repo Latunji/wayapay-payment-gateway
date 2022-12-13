@@ -50,7 +50,7 @@ public interface PaymentGatewayService {
 
     PaymentGatewayResponse getWalletBalance(HttpServletRequest request, String merchantId, String token);
 
-//    PaymentGatewayResponse withdrawFromWallet(HttpServletRequest request, WayaWalletWithdrawal wayaWalletWithdrawal, String token);
+    PaymentGatewayResponse withdrawFromWallet(HttpServletRequest request, WayaWalletWithdrawal wayaWalletWithdrawal, String token);
 
     ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo);
 

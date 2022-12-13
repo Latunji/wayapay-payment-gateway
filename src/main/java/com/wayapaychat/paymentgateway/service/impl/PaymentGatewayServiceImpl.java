@@ -26,10 +26,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionOverviewRespons
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionRevenueStats;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionYearMonthStats;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
-import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
-import com.wayapaychat.paymentgateway.proxy.ISettlementProductPricingProxy;
-import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
-import com.wayapaychat.paymentgateway.proxy.WalletProxy;
+import com.wayapaychat.paymentgateway.proxy.*;
 import com.wayapaychat.paymentgateway.proxy.pojo.MerchantProductPricingQuery;
 import com.wayapaychat.paymentgateway.repository.*;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
@@ -92,6 +89,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private SandboxPaymentGatewayRepository sandboxPaymentGatewayRepo;
     @Autowired
     private WalletProxy wallProxy;
+    @Autowired
+    private NIPTransferProxy nipTransferProxy;
     @Autowired
     private WayaPaymentDAO wayaPayment;
     @Autowired
@@ -1350,6 +1349,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         MerchantResponse merchant = null;
         Withdrawals withdrawals = null;
         CreditBankAccountRequest creditBankAccountRequest = new CreditBankAccountRequest();
+        NIPTransferRequest nipTransferRequest = null;
         String mode = null;
         Date dte = new Date();
         String strLong = Long.toString(dte.getTime()) + rnd.nextInt(999999);
@@ -1359,7 +1359,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
             }
-            mode = merchant.getData().getMerchantKeyMode();
+            PinResponse pinResponse = authProxy.validatePin(merchant.getData().getUserId(), Long.valueOf(wayaWalletWithdrawal.getTransactionPin()), token);
+            if(!pinResponse.isStatus()){
+               return new PaymentGatewayResponse(Constant.INVALID_TRANSACTION_PIN, HttpStatus.BAD_REQUEST);
+            }
         } catch (Exception ex) {
             if (ex instanceof FeignException) {
                 String httpStatus = Integer.toString(((FeignException) ex).status());
@@ -1371,26 +1374,20 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         DefaultWalletResponse defaultWalletResponse = walletProxy.getUserDefaultWalletAccount(token, merchant.getData().getUserId());
         BigDecimal walletBal = defaultWalletResponse.getData().getClrBalAmt();
         if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal.doubleValue()) {
-//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchant.getData().getUserId(), token);
-//        if(response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
-            creditBankAccountRequest.setAmount(wayaWalletWithdrawal.getAmount());
-            creditBankAccountRequest.setBankName(wayaWalletWithdrawal.getBankName());
-            creditBankAccountRequest.setTransRef(strLong);
-            creditBankAccountRequest.setCrAccount(wayaWalletWithdrawal.getAccountNo());
-            creditBankAccountRequest.setUserId(String.valueOf(merchant.getData().getUserId()));
-            creditBankAccountRequest.setCrAccountName(wayaWalletWithdrawal.getAccountName());
-            creditBankAccountRequest.setTransactionPin(wayaWalletWithdrawal.getTransactionPin());
-            creditBankAccountRequest.setBankCode(wayaWalletWithdrawal.getBankCode());
-            creditBankAccountRequest.setNarration("WayaQuick Credit To Customer's Account");
-            creditBankAccountRequest.setSaveBen(Boolean.TRUE);
+            nipTransferRequest.setMyAmount(wayaWalletWithdrawal.getAmount());
+            nipTransferRequest.setMyOriginatorName(merchant.getData().getMerchantEmailAddress());
+            nipTransferRequest.setMyPaymentReference(strLong);
+            nipTransferRequest.setMyDestinationAccountNumber(wayaWalletWithdrawal.getAccountNo());
+            nipTransferRequest.setMyAccountName(wayaWalletWithdrawal.getAccountName());
+            nipTransferRequest.setMyDestinationBankCode(wayaWalletWithdrawal.getBankCode());
+            nipTransferRequest.setMyNarration("WayaQuick Credit To Customer's Account");
             if (defaultWalletResponse.getStatus() == true) {
-                creditBankAccountRequest.setWalletAccountNo(defaultWalletResponse.getData().getAccountNo());
+                nipTransferRequest.setSourceAccountNo(defaultWalletResponse.getData().getAccountNo());
             } else {
-                return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, Constant.UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER);
+                return new PaymentGatewayResponse(Constant.UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER, HttpStatus.NOT_FOUND);
             }
-            creditBankAccountRequest.setSaveBen(Boolean.FALSE);
 
-            WalletSettlementResponse resp = walletProxy.creditBankAccount(token, creditBankAccountRequest);
+            DefaultWalletResponse resp = nipTransferProxy.creditBankAccount(token, nipTransferRequest);
             MathContext mc = new MathContext(5);
             BigDecimal newAmount;
 

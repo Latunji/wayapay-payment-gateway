@@ -102,7 +102,7 @@ public class PaymentGatewayController {
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Wallet Balance", notes = "This endpoint gets merchant wallet balance", tags = {"PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Get Wallet Balance", notes = "This endpoint allows merchant withdraw from wallet balance", tags = {"PAYMENT-GATEWAY"})
     @PostMapping("/wallet/withdrawal")
     public ResponseEntity<?> withdrawFromWallet(HttpServletRequest request, @RequestBody WayaWalletWithdrawal walletPayment,
                                            @RequestHeader("Authorization") String token) throws JsonProcessingException {

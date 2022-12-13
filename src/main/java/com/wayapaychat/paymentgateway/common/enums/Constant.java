@@ -28,6 +28,8 @@ public class Constant {
     public static final String INVALID_BANK_CODE = "Please provide a valid bank code";
     public static final String INVALID_BANK_NAME = "Please provide a valid bank name";
     public static final String INVALID_CREDIT_ACCOUNT_NUMBER = "Please provide a valid credit account number";
+    public static final String UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER = "Credit Account Number Could Not Be Fetched";
+    public static final String INSUFFICIENT_FUNDS = "Insufficient Funds In Merchant Account";
     public static final String INVALID_CREDIT_ACCOUNT_NAME = "Please provide a valid credit account name";
     public static final String INVALID_DEBIT_ACCOUNT = "Please provide a valid debit account";
     public static final String INVALID_TRANSACTION_PIN = "Please provide a valid transaction pin";

@@ -82,7 +82,7 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
     }
 
     @Override
-    public PaymentGatewayResponse getWalletBalance(String merchantId, String mode) {
+    public TransactionReportStats getWalletBalance(String merchantId, String mode) {
         String tbl;
         TransactionReportStats product;
         if(mode.equals(MerchantTransactionMode.TEST.toString())){
@@ -92,13 +92,12 @@ public class WayaPaymentDAOImpl implements WayaPaymentDAO {
         }
         StringBuilder query = new StringBuilder();
         query.append("SELECT COUNT(a.TRAN_ID) AS TOTALTRAN,");
-        query.append("SUM(CASE WHEN a.status = 'SUCCESSFUL' THEN 1 ELSE 0 END) as TOTALSUCCESS,");
-        query.append("SUM(CASE WHEN settlement_status =  'SETTLED'    THEN 1 ELSE 0 END) as TOTALSETTLED ");
+        query.append("SUM(CASE WHEN a.status = 'SUCCESSFUL' THEN 1 ELSE 0 END) as TOTALSUCCESS ");
         query.append(String.format(" FROM %s a WHERE merchant_id = '%s' ", tbl, merchantId));
         String sql = query.toString();
         WalletRevenueMapper rowMapper = new WalletRevenueMapper();
         product = jdbcTemplate.queryForObject(sql, rowMapper);
-        return new PaymentGatewayResponse("SUCCESS", product);
+        return product;
     }
 
     // s-l done

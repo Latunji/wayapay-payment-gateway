@@ -8,6 +8,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionOverviewRespons
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionRevenueStats;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionYearMonthStats;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.TransactionReportStats;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.WayaWalletWithdrawal;
 import com.wayapaychat.paymentgateway.service.impl.TransactionSettlementPojo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +37,7 @@ public interface WayaPaymentDAO {
     @SuppressWarnings(value = "unchecked")
     List<PaymentGateway> getAllTransactionsByRefNo(String delimiterRefNo);
 
-    PaymentGatewayResponse getWalletBalance(String merchantId, String mode);
+    TransactionReportStats getWalletBalance(String merchantId, String mode);
 
     @SuppressWarnings(value = "unchecked")
     Page<TransactionSettlementPojo> getAllTransactionSettlement(SettlementQueryPojo settlementQueryPojo, String merchantId, Pageable pageable);

@@ -106,10 +106,10 @@ public class PaymentGatewayController {
     @PostMapping("/wallet/withdrawal")
     public ResponseEntity<?> withdrawFromWallet(HttpServletRequest request, @RequestBody WayaWalletWithdrawal walletPayment,
                                            @RequestHeader("Authorization") String token) throws JsonProcessingException {
-//        PaymentGatewayResponse resp = paymentGatewayService.withdrawFromWallet(request, walletPayment, token);
-//        if (!resp.getStatus())
-//            return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        PaymentGatewayResponse resp = paymentGatewayService.withdrawFromWallet(request, walletPayment, token);
+        if (!resp.getStatus())
+            return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Waya-Request Transaction", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})

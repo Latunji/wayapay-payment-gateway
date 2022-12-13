@@ -30,7 +30,6 @@ public class Withdrawals extends GenericBaseEntity {
         @Column(name = "merchant_user_id")
         private Long merchantUserId;
 
-        @Enumerated(EnumType.STRING)
         @Column(name = "amount")
         private BigDecimal amount;
 
@@ -40,6 +39,7 @@ public class Withdrawals extends GenericBaseEntity {
         @Column(name = "withdrawal_date")
         private LocalDateTime withdrawalDate = LocalDateTime.now();
 
+        @Enumerated(EnumType.STRING)
         @Column(name = "withdrawal_status")
         private WithdrawalStatus withdrawalStatus;
 }

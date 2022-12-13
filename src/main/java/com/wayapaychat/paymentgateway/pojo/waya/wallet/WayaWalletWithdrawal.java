@@ -15,19 +15,19 @@ public class WayaWalletWithdrawal {
     @JsonProperty("accountNo")
     private String accountNo;
 
-    @JsonProperty("bank_code")
+    @JsonProperty("bankCode")
     private String bankCode;
 
-    @JsonProperty("bank_name")
+    @JsonProperty("bankName")
     private String bankName;
 
-    @JsonProperty("account_name")
+    @JsonProperty("accountName")
     private String accountName;
 
-    @JsonProperty("transaction_pin")
+    @JsonProperty("transactionPin")
     private String transactionPin;
 
-    @JsonProperty("merchant_id")
+    @JsonProperty("merchantId")
     private String merchantId;
 
     @JsonProperty("amount")

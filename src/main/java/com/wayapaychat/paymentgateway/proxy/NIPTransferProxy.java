@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "${waya.wallet.tempname}", url = "${waya.wallet.tempurl}", configuration = PaymentGatewayClientConfiguration.class)
+@FeignClient(name = "${waya.wallet.nip}", url = "${waya.wallet.nipurl}", configuration = PaymentGatewayClientConfiguration.class)
 
 public interface NIPTransferProxy {
 
-    @PostMapping("/api/v1/wayama/NIPBank/fundTransfer")
+    @PostMapping("/wayama/NIPBank/fundTransfer")
     DefaultWalletResponse creditBankAccount(@RequestHeader("authorization") String token, @RequestHeader NIPTransferRequest nipTransferRequest);
 }

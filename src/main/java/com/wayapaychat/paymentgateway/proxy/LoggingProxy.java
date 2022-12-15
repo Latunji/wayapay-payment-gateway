@@ -1,8 +1,8 @@
 package com.wayapaychat.paymentgateway.proxy;
 
 
-import com.wayapaychat.paymentgateway.pojo.ApiResponseBody;
-import com.wayapaychat.paymentgateway.pojo.LogRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.ApiResponseBody;
+import com.wayapaychat.paymentgateway.pojo.waya.LogRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

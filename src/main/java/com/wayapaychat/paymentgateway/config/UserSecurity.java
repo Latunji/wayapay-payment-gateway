@@ -1,7 +1,7 @@
 package com.wayapaychat.paymentgateway.config;
 
 
-import com.wayapaychat.paymentgateway.pojo.MyUserData;
+import com.wayapaychat.paymentgateway.pojo.waya.AuthenticatedUser;
 import com.wayapaychat.paymentgateway.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -20,7 +20,7 @@ public class UserSecurity {
     }
 
     public boolean isCorporate(boolean isCorporate, Authentication authentication) {
-        MyUserData user = ((MyUserData) authentication.getPrincipal());
+        AuthenticatedUser user = ((AuthenticatedUser) authentication.getPrincipal());
         return user.isCorporate() && isCorporate;
     }
 

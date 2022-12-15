@@ -32,7 +32,7 @@ public class GenericBaseEntity {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime dateModified;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "created_by")
     private Long createdBy;
 
     @Column(name = "modified_by")

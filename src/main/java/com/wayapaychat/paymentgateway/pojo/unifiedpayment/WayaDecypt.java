@@ -4,15 +4,13 @@ import lombok.Data;
 
 @Data
 public class WayaDecypt {
-
 	private String decryptString;
-
-	private String merchantSecretKey;
+	private String merchantPublicKey;
 
 	public WayaDecypt(String decryptString, String merchantSecretKey) {
 		super();
 		this.decryptString = decryptString;
-		this.merchantSecretKey = merchantSecretKey;
+		this.merchantPublicKey = merchantSecretKey;
 	}
 
 	public WayaDecypt() {

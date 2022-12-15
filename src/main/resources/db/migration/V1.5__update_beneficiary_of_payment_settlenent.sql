@@ -1,0 +1,1 @@
+UPDATE m_transaction_settlement set settlement_beneficiary_account = 'Wayapay Wallet' WHERE settlement_beneficiary_account LIKE '%Wayabank Wallet%';

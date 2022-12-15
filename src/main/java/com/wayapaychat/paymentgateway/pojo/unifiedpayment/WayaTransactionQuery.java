@@ -57,6 +57,9 @@ public class WayaTransactionQuery {
 	
 	@JsonProperty("StatusDescription")
 	private String statusDescription;
+
+	@JsonProperty("SessionId")
+	private String sessionId;
 	
 
 	@JsonProperty("Order Id")
@@ -169,4 +172,13 @@ public class WayaTransactionQuery {
 	this.statusDescription = statusDescription;
 	}
 
+	@JsonProperty("SessionId")
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	@JsonProperty("SessionId")
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
 }

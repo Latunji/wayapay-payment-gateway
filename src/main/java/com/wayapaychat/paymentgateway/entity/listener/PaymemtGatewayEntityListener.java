@@ -1,31 +1,35 @@
 package com.wayapaychat.paymentgateway.entity.listener;
 
 
+import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
+import com.wayapaychat.paymentgateway.common.utils.VariableUtil;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
-import com.wayapaychat.paymentgateway.enumm.EventCategory;
-import com.wayapaychat.paymentgateway.enumm.EventType;
-import com.wayapaychat.paymentgateway.enumm.ProductType;
-import com.wayapaychat.paymentgateway.enumm.TransactionStatus;
-import com.wayapaychat.paymentgateway.pojo.LoginRequest;
-import com.wayapaychat.paymentgateway.pojo.NotificationPojo;
-import com.wayapaychat.paymentgateway.pojo.PaymentData;
-import com.wayapaychat.paymentgateway.pojo.TokenAuthResponse;
-import com.wayapaychat.paymentgateway.pojo.notification.EmailStreamData;
-import com.wayapaychat.paymentgateway.pojo.notification.NotificationReceiver;
-import com.wayapaychat.paymentgateway.pojo.notification.NotificationServiceResponse;
-import com.wayapaychat.paymentgateway.pojo.notification.NotificationStreamData;
+import com.wayapaychat.paymentgateway.enumm.*;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.model.LitePaymentGateway;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.model.ProducerMessageDto;
+import com.wayapaychat.paymentgateway.kafkamessagebroker.producer.IkafkaMessageProducer;
+import com.wayapaychat.paymentgateway.pojo.notification.*;
+import com.wayapaychat.paymentgateway.pojo.waya.LoginRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.NotificationPojo;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentData;
+import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
+import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
-import com.wayapaychat.paymentgateway.utils.VariableUtil;
+import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
 import java.util.Currency;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,6 +40,30 @@ public class PaymemtGatewayEntityListener {
     private static NotificationServiceProxy notificationServiceProxy;
     private static AuthApiClient authApiClient;
     private static VariableUtil variableUtil;
+    private static IkafkaMessageProducer ikafkaMessageProducer;
+    private static ModelMapper modelMapper;
+    private static PaymentGatewayRepository paymentGatewayRepository;
+    private static IdentityManagementServiceProxy identityManagementServiceProxy;
+    private static PaymentGateWayCommonUtils paymentGateWayCommonUtils;
+
+    @Value("${service.token}")
+    public String daemonToken;
+
+    private static String getDaemonAuthToken() throws Exception {
+        TokenAuthResponse authToken = authApiClient.authenticateUser(
+                LoginRequest.builder()
+                        .password(variableUtil.getPassword())
+                        .emailOrPhoneNumber(variableUtil.getUserName())
+                        .build());
+        log.info("AUTHENTICATION RESPONSE: " + authToken.toString());
+        if (!authToken.getStatus()) {
+            log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------",
+                    variableUtil.getUserName(), variableUtil.getPassword());
+            throw new Exception("Failed to process user authentication...!");
+        }
+        PaymentData payData = authToken.getData();
+        return payData.getToken();
+    }
 
     @Autowired
     public void setAuthApiClient(AuthApiClient authApiClient) {
@@ -55,22 +83,39 @@ public class PaymemtGatewayEntityListener {
         log.info("Initializing with dependency [" + variableUtil + "]");
     }
 
-    @PostPersist
-    @PostUpdate
+    @Autowired
+    public void setIkafkaMessageProducer(IkafkaMessageProducer ikafkaMessageProducer) {
+        PaymemtGatewayEntityListener.ikafkaMessageProducer = ikafkaMessageProducer;
+        log.info("Initializing with dependency [" + ikafkaMessageProducer + "]");
+    }
+
+    @Autowired
+    public void setIkafkaMessageProducer(ModelMapper modelMapper) {
+        PaymemtGatewayEntityListener.modelMapper = modelMapper;
+        log.info("Initializing with dependency [" + modelMapper + "]");
+    }
+
+    @Autowired
+    public void setIkafkaMessageProducer(PaymentGatewayRepository paymentGatewayRepository) {
+        PaymemtGatewayEntityListener.paymentGatewayRepository = paymentGatewayRepository;
+        log.info("Initializing with dependency [" + paymentGatewayRepository + "]");
+    }
+
+    //    @PostPersist
+//    @PostUpdate
     public void sendTransactionNotificationAfterPaymentIsSuccessful(PaymentGateway paymentGateway) {
         CompletableFuture.runAsync(() -> {
             SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
             log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
                     paymentGateway.getTranId());
-            if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL
-                    || paymentGateway.getStatus() == TransactionStatus.TRANSACTION_COMPLETED) {
+            if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
                 NotificationPojo notificationPojo = NotificationPojo
                         .builder()
                         .paymentChannel(paymentGateway.getChannel())
                         .merchantName(paymentGateway.getMerchantName())
                         .transactionDate(paymentGateway.getVendorDate())
                         .transactionAmount(paymentGateway.getAmount())
-                        .transactionMode(variableUtil.getMode())
+                        .transactionMode(paymentGateway.getMode().toString())
                         .customerEmailAddress(paymentGateway.getCustomerEmail())
                         .customerName(paymentGateway.getCustomerName())
                         .merchantName(paymentGateway.getMerchantName())
@@ -82,8 +127,18 @@ public class PaymemtGatewayEntityListener {
                         .build();
                 try {
                     processEmailAlert(notificationPojo);
+                    // notify the merchant via in-app
+                    String token = getDaemonAuthToken();
+                    MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, paymentGateway.getMerchantId());
+                    MerchantData merchantData = merchantResponse.getData();
+                    processInAppNotification("TRANSACTION",
+                            merchantData.getUserId(),
+                            String.format("You received payment of %s from %s", paymentGateway.getAmount(), paymentGateway.getCustomerName()),
+                            "1",
+                            token
+                    );
                 } catch (Exception e) {
-                    log.error("{0}",e);
+                    log.error("{0}", e);
                 }
             }
         });
@@ -130,20 +185,23 @@ public class PaymemtGatewayEntityListener {
         log.info("------||||NOTIFICATION SERVICE RESPONSE {}||||--------", notificationServiceResponse1);
     }
 
-    private String getDaemonAuthToken() throws Exception {
-        TokenAuthResponse authToken = authApiClient.authenticateUser(
-                LoginRequest.builder()
-                        .password(variableUtil.getPassword())
-                        .emailOrPhoneNumber(variableUtil.getUserName())
-                        .build());
-        log.info("AUTHENTICATION RESPONSE: " + authToken.toString());
-        if (!authToken.getStatus()) {
-            log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------",
-                    variableUtil.getUserName(), variableUtil.getPassword());
-            throw new Exception("Failed to process user authentication...!");
-        }
-        PaymentData payData = authToken.getData();
-        return payData.getToken();
+    private void processInAppNotification(String type, final Long receiverUserId, String message, String senderUserId, String demonToken) throws Exception {
+        CompletableFuture.runAsync(() -> {
+            InAppNotificationEvent inAppNotificationEvent = InAppNotificationEvent.builder()
+                    .data(InAppPayload.builder()
+                            .type(type)
+                            .users(List.of(InAppRecipient.builder()
+                                    .userId(receiverUserId.toString())
+                                    .build()))
+                            .message(message)
+                            .build())
+                    .token(demonToken)
+                    .eventType(EventType.IN_APP)
+                    .build();
+            inAppNotificationEvent.setInitiator(senderUserId);
+            ResponseEntity<?> response = notificationServiceProxy.sendInAppNotification(inAppNotificationEvent, demonToken);
+            log.info("--------||||IN APP NOTIFICATION RESPONSE||||---------\n{}", response);
+        });
     }
 
     private String getCurrencyName(String currencyCode) {
@@ -151,5 +209,26 @@ public class PaymemtGatewayEntityListener {
         if (currency.isPresent())
             return currency.get().getCurrencyCode();
         return CURRENCY_DISPLAY;
+    }
+
+    //    @PostPersist
+//    @PostUpdate
+    public void sendTransactionForSettlement(PaymentGateway paymentGateway) {
+        log.info("------||||PENDING SETTLEMENT PUBLISHED FOR PROCESSING||||--------");
+        if (!paymentGateway.isSentForSettlement()) {
+            if (Objects.equals(paymentGateway.getStatus(), TransactionStatus.SUCCESSFUL) &&
+                    !Objects.equals(paymentGateway.getSettlementStatus(), SettlementStatus.SETTLED)) {
+                LitePaymentGateway litePaymentGateway = new LitePaymentGateway();
+                modelMapper.map(paymentGateway, litePaymentGateway);
+                ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
+                        .data(litePaymentGateway)
+                        .eventCategory(EventType.PENDING_TRANSACTION_SETTLEMENT)
+                        .build();
+                ikafkaMessageProducer.send("merchant.settlement", producerMessageDto);
+                paymentGateway.setSentForSettlement(true);
+                paymentGatewayRepository.save(paymentGateway);
+                log.info("------||||SUCCESSFULLY PUBLISHED PENDING SETTLEMENT FOR PROCESSING {}||||--------", producerMessageDto);
+            }
+        }
     }
 }

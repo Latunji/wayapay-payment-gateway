@@ -2,7 +2,7 @@ package com.wayapaychat.paymentgateway.proxy;
 
 
 import com.wayapaychat.paymentgateway.config.PaymentGatewayClientConfiguration;
-import com.wayapaychat.paymentgateway.pojo.*;
+import com.wayapaychat.paymentgateway.pojo.waya.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,11 +27,11 @@ public interface AuthApiClient {
 
 
     @GetMapping("/user/email/{email}")
-    ApiResponseBody<MyUserData> getUserByEmail(@PathVariable("email") String email);
+    ApiResponseBody<AuthenticatedUser> getUserByEmail(@PathVariable("email") String email);
 
     @GetMapping("/user/phone/{phoneNumber}")
-    ApiResponseBody<MyUserData> getUserByPhoneNumber(@PathVariable("phoneNumber") String phoneNumber);
+    ApiResponseBody<AuthenticatedUser> getUserByPhoneNumber(@PathVariable("phoneNumber") String phoneNumber);
 
     @GetMapping("/user/{id}")
-    ApiResponseBody<MyUserData> getUserById(@PathVariable("id") Long id);
+    ApiResponseBody<AuthenticatedUser> getUserById(@PathVariable("id") Long id);
 }

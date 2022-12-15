@@ -1359,6 +1359,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
             }
+            log.info("transaction pin :::: "+Long.valueOf(wayaWalletWithdrawal.getTransactionPin()));
             PinResponse pinResponse = authProxy.validatePin(merchant.getData().getUserId(), Long.valueOf(wayaWalletWithdrawal.getTransactionPin()), token);
             if(!pinResponse.isStatus()){
                return new PaymentGatewayResponse(Constant.INVALID_TRANSACTION_PIN, HttpStatus.BAD_REQUEST);

@@ -95,7 +95,7 @@ public class PaymentGatewayController {
     }
 
     @ApiOperation(value = "Get Merchant Account Numbers", notes = "This endpoint fetch merchant account no", tags = {"PAYMENT-GATEWAY"})
-    @GetMapping("/wallet/query/{tranId}")
+    @GetMapping("/wallet/merchant/accounts/{merchantId}")
     public PaymentGatewayResponse getMerchantAccountNumbers(@RequestHeader("authorization") String token,
                                                   @PathVariable("merchantId") final String merchantId) {
         return paymentGatewayService.getMerchantAccounts(token, merchantId);

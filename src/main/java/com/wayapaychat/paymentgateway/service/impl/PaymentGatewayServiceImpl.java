@@ -134,6 +134,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private RoleProxy roleProxy;
 
+    @Autowired
+    private ISWService iswService;
+
     // s-l done
     @Override
     public PaymentGatewayResponse initiateCardTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
@@ -2040,6 +2043,76 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 return cappedFee;
         }
         return fee;
+    }
+
+    @Override
+    public ResponseEntity<?> tokenizeCard(CardTokenization cardTokenization, String token) {
+      try{
+          //send request to tokenize card
+          TokenizationResponse tokenize = iswService.tokenizeCard(cardTokenization);
+          if(tokenize.getToken() != null || !tokenize.getToken().equalsIgnoreCase("")){
+              TokenizedCard card = new TokenizedCard();
+              card.setMerchantId(cardTokenization.getMerchantId());
+              card.setCustomerId(cardTokenization.getCustomerId());
+              card.setCardToken(tokenize.getToken());
+              card.setDateCreated(LocalDateTime.now());
+              card.setCardTokenReference(tokenize.getTransactionRef());
+
+//              TokenizedCard save = tokenizedRepo.save(card);
+
+          }
+          return new ResponseEntity<>(tokenize, HttpStatus.CREATED);
+      }catch(Exception ex){
+          return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+      }
+    }
+
+    @Override
+    public ResponseEntity<?> tokenizePayment(String customerId, String merchantId, String transactionRef,
+                                             String cardToken, String token) {
+        try{
+            //get merchant info
+            MerchantResponse merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if(merchant == null || !merchant.getCode().equals("00")){
+                return new ResponseEntity<>("Merchant id doesn't exist", HttpStatus.UNPROCESSABLE_ENTITY);
+            }
+
+            //check that the transaction ref provided exist
+            WayaTransactionQuery response = null;
+            String mode = "";
+                if (transactionRef.startsWith("7263269")){
+                    mode = MerchantTransactionMode.TEST.name();
+                } else {
+                    mode = MerchantTransactionMode.PRODUCTION.name();
+                }
+                response = uniPaymentProxy.transactionQuery(transactionRef, mode);
+                if(response == null){
+                    return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH"), HttpStatus.BAD_REQUEST);
+                }
+
+                //validate token against customer and merchant
+//            Optional<TokenizedCard> validateToken = tokenizedRepo.findToken(customerId, merchantId);
+//                if(validateToken.isEmpty()){
+//                    return new ResponseEntity<>(new ErrorResponse("No Valid Token for customer"), HttpStatus.BAD_REQUEST);
+//                }
+//            TokenizedCard isTokenValid = validateToken.get();
+//                if(!isTokenValid.getCardToken().equalsIgnoreCase(cardToken)){
+//                    return new ResponseEntity<>(new ErrorResponse("No Valid Token for customer"), HttpStatus.BAD_REQUEST);
+//                }
+                //send request to pay with token
+                TokenizePayment pay = new TokenizePayment();
+                pay.setAmount(response.getAmount());
+                pay.setCurrency("NGN");
+                pay.setToken(cardToken);
+                pay.setTransactionRef(transactionRef);
+                pay.setCustomerId(customerId);
+                pay.setTokenExpiryDate("");
+
+                TokenizationResponse tokenPayment = iswService.tokenPayment(pay);
+              return new ResponseEntity<>(tokenPayment, HttpStatus.CREATED);
+        }catch (Exception ex){
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+        }
     }
 }
 

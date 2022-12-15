@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.sql.Timestamp;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "timestamp", "message", "status", "data" })
 @Getter
@@ -20,7 +22,7 @@ import lombok.ToString;
 public class PinResponse {
 	
 	@JsonProperty("timestamp")
-	private String timestamp;
+	private Timestamp timestamp;
 
 	@JsonProperty("message")
 	private String message;

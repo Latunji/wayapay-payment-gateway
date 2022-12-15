@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.AdminWayaWithdrawal;
 import com.wayapaychat.paymentgateway.pojo.waya.CardTokenization;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
@@ -93,6 +94,13 @@ public class PaymentGatewayController {
         return paymentGatewayService.getTransactionStatus(request, tranId);
     }
 
+    @ApiOperation(value = "Get Merchant Account Numbers", notes = "This endpoint fetch merchant account no", tags = {"PAYMENT-GATEWAY"})
+    @GetMapping("/wallet/query/{tranId}")
+    public PaymentGatewayResponse getMerchantAccountNumbers(@RequestHeader("authorization") String token,
+                                                  @PathVariable("merchantId") final String merchantId) {
+        return paymentGatewayService.getMerchantAccounts(token, merchantId);
+    }
+
     @ApiOperation(value = "Get Wallet Balance", notes = "This endpoint gets merchant wallet balance", tags = {"PAYMENT-GATEWAY"})
     @GetMapping("/wallet/balance/{merchantId}")
     public ResponseEntity<?> getWalletBalance(HttpServletRequest request, @PathVariable("merchantId") final String merchantId,
@@ -103,11 +111,21 @@ public class PaymentGatewayController {
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Get Wallet Balance", notes = "This endpoint allows merchant withdraw from wallet balance", tags = {"PAYMENT-GATEWAY"})
+    @ApiOperation(value = "Withdraw From Wallet", notes = "This endpoint allows merchant withdraw from wallet balance", tags = {"PAYMENT-GATEWAY"})
     @PostMapping("/wallet/withdrawal")
     public ResponseEntity<?> withdrawFromWallet(HttpServletRequest request, @RequestBody WayaWalletWithdrawal walletPayment,
                                            @RequestHeader("Authorization") String token) throws JsonProcessingException {
         PaymentGatewayResponse resp = paymentGatewayService.withdrawFromWallet(request, walletPayment, token);
+        if (!resp.getStatus())
+            return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Admin Withdraw For Merchant", notes = "This endpoint allows admin withdraw from merchant wallet balance", tags = {"PAYMENT-GATEWAY"})
+    @PostMapping("/admin/wallet/withdrawal")
+    public ResponseEntity<?> withdrawFromWalletAdmin(HttpServletRequest request, @RequestBody AdminWayaWithdrawal walletPayment,
+                                                @RequestHeader("Authorization") String token) throws JsonProcessingException {
+        PaymentGatewayResponse resp = paymentGatewayService.adminWithdrawFromWallet(request, walletPayment, token);
         if (!resp.getStatus())
             return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);

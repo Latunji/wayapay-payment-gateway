@@ -23,6 +23,12 @@ public class Constant {
     public static final String RUBIES_SUCCESS_CODE = "00";
     public static final String RUBIES_PENDING_CODE = "-1";
 
+    public static final String WAYAQUICK_DISBURSEMENT_ACCOUNT_NUMBER = "-1";
+    public static final String WAYAQUICK_DISBURSEMENT_ACCOUNT_NAME = "-1";
+    public static final String WAYAQUICK_DISBURSEMENT_BANK_NAME = "-1";
+    public static final String WAYAQUICK_BANK_CODE = "090590";
+
+
     public static final String INVALID_BVN = "Please provide a valid BVN";
     public static final String INVALID_ACCOUNT_NUMBER = "Please provide a valid account number";
     public static final String INVALID_BANK_CODE = "Please provide a valid bank code";

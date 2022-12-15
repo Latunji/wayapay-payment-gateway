@@ -163,6 +163,9 @@ public class PaymentGateway {
     @Column(name = "sent_for_settlement", columnDefinition = "bool default false")
     private boolean sentForSettlement;
 
+    @Transient
+    private String transactionPin;
+
     @PrePersist
     void prePersist() {
         if (ObjectUtils.isEmpty(isFromRecurrentPayment))

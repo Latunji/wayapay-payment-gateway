@@ -356,6 +356,7 @@ public class UnifiedPaymentProxy {
         String strLong = Utility.transactionId();
         DefaultWalletResponse defaultWalletResponse = wallProxy.getUserDefaultWalletAccount(token,  userId);
 
+        log.info("Wallet Proxy Response :::::"+defaultWalletResponse.toString());
 
         withdrawalRequest.setAmount(mPay.getAmount().toString());
         withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
@@ -372,7 +373,8 @@ public class UnifiedPaymentProxy {
         }
         try{
            DefaultResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
-        if(resp != null){
+            log.info("Withdrawal Proxy Response :::::"+resp.toString());
+            if(resp != null){
             fundEventResponse.setTranId(strLong);
             fundEventResponse.setPaymentReference(strLong);
             fundEventResponse.setTranNarrate(withdrawalRequest.getNarration());

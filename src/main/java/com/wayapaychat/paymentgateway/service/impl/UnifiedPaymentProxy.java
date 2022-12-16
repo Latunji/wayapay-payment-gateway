@@ -348,13 +348,13 @@ public class UnifiedPaymentProxy {
         return null;
     }
 
-    public FundEventResponse postWalletTransaction(WayaWalletPayment account, String token, PaymentGateway mPay) {
+    public FundEventResponse postWalletTransaction(WayaWalletPayment account, String token, PaymentGateway mPay, Long userId) {
 
         FundEventResponse fundEventResponse = null;
         WithdrawalRequest withdrawalRequest = null;
         Date dte = new Date();
         String strLong = Utility.transactionId();
-        DefaultWalletResponse defaultWalletResponse = wallProxy.getUserDefaultWalletAccount(token,  Long.valueOf(mPay.getCustomerId()));
+        DefaultWalletResponse defaultWalletResponse = wallProxy.getUserDefaultWalletAccount(token,  userId);
 
 
         withdrawalRequest.setAmount(mPay.getAmount().toString());
@@ -365,7 +365,7 @@ public class UnifiedPaymentProxy {
         withdrawalRequest.setCrAccountName(Constant.WAYAQUICK_DISBURSEMENT_ACCOUNT_NAME);
         withdrawalRequest.setSaveBen(false);
         withdrawalRequest.setTransactionPin(mPay.getTransactionPin());
-        withdrawalRequest.setUserId(mPay.getCustomerId());
+        withdrawalRequest.setUserId(String.valueOf(userId));
         withdrawalRequest.setTransRef(strLong);
         if (defaultWalletResponse.getStatus() == true) {
             withdrawalRequest.setWalletAccountNo(defaultWalletResponse.getData().getAccountNo());

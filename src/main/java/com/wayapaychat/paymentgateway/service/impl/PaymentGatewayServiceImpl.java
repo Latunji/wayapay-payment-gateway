@@ -954,7 +954,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                             HttpStatus.OK);
                 }
                 PaymentWallet wallet = new PaymentWallet();
-                FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, payment);
+                FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, payment, mAuth.getId());
                 if (tran != null) {
                     response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()),
                             HttpStatus.CREATED);

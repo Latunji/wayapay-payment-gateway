@@ -23,9 +23,9 @@ public class Constant {
     public static final String RUBIES_SUCCESS_CODE = "00";
     public static final String RUBIES_PENDING_CODE = "-1";
 
-    public static final String WAYAQUICK_DISBURSEMENT_ACCOUNT_NUMBER = "-1";
-    public static final String WAYAQUICK_DISBURSEMENT_ACCOUNT_NAME = "-1";
-    public static final String WAYAQUICK_DISBURSEMENT_BANK_NAME = "-1";
+    public static final String WAYAQUICK_DISBURSEMENT_ACCOUNT_NUMBER = "2015898360";
+    public static final String WAYAQUICK_DISBURSEMENT_ACCOUNT_NAME = "GREEN VERA";
+    public static final String WAYAQUICK_DISBURSEMENT_BANK_NAME = "WAYA MICROFINANCE BANK";
     public static final String WAYAQUICK_BANK_CODE = "090590";
 
 

@@ -30,6 +30,7 @@ import com.wayapaychat.paymentgateway.proxy.*;
 import com.wayapaychat.paymentgateway.proxy.pojo.MerchantProductPricingQuery;
 import com.wayapaychat.paymentgateway.repository.*;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
+import com.wayapaychat.paymentgateway.utility.Utility;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -1353,11 +1354,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         MerchantResponse merchant = null;
         Withdrawals withdrawals = null;
         WithdrawalRequest withdrawalRequest = null;
-        CreditBankAccountRequest creditBankAccountRequest = new CreditBankAccountRequest();
-        NIPTransferRequest nipTransferRequest = null;
-        String mode = null;
-        Date dte = new Date();
-        String strLong = Long.toString(dte.getTime()) + rnd.nextInt(999999);
+        String strLong = Utility.transactionId();
         // get merchant data
         try {
             merchant = merchantProxy.getMerchantInfo(token, wayaWalletWithdrawal.getMerchantId());
@@ -1390,7 +1387,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             withdrawalRequest.setCrAccount(wayaWalletWithdrawal.getAccountNo());
             withdrawalRequest.setCrAccountName(wayaWalletWithdrawal.getAccountName());
             withdrawalRequest.setSaveBen(false);
-            withdrawalRequest.setTransactionPin(strLong);
+            withdrawalRequest.setTransactionPin(wayaWalletWithdrawal.getTransactionPin());
             withdrawalRequest.setUserId(String.valueOf(merchant.getData().getUserId()));
             if (defaultWalletResponse.getStatus() == true) {
                 withdrawalRequest.setWalletAccountNo(defaultWalletResponse.getData().getAccountNo());

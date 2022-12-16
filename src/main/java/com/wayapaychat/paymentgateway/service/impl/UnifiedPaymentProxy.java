@@ -19,6 +19,7 @@ import com.wayapaychat.paymentgateway.proxy.UnifiedPaymentApiClient;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
 import com.wayapaychat.paymentgateway.proxy.WithdrawalProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
+import com.wayapaychat.paymentgateway.utility.Utility;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -352,7 +353,7 @@ public class UnifiedPaymentProxy {
         FundEventResponse fundEventResponse = null;
         WithdrawalRequest withdrawalRequest = null;
         Date dte = new Date();
-        String strLong = Long.toString(dte.getTime()) + rnd.nextInt(999999);
+        String strLong = Utility.transactionId();
         DefaultWalletResponse defaultWalletResponse = wallProxy.getUserDefaultWalletAccount(token,  Long.valueOf(mPay.getCustomerId()));
 
 

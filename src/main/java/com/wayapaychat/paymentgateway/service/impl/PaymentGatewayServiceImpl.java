@@ -1428,6 +1428,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
 
             DefaultResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
+            log.info("Withdraw Wallet Response::::"+ resp);
             MathContext mc = new MathContext(5);
             BigDecimal newAmount;
 

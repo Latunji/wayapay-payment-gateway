@@ -30,6 +30,7 @@ import com.wayapaychat.paymentgateway.proxy.*;
 import com.wayapaychat.paymentgateway.proxy.pojo.MerchantProductPricingQuery;
 import com.wayapaychat.paymentgateway.repository.*;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
+import com.wayapaychat.paymentgateway.utility.Utility;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -77,9 +78,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private MerchantProxy merchantProxy;
     @Autowired
     private AuthApiClient authProxy;
-
     @Autowired
     private WalletProxy walletProxy;
+    @Autowired
+    private WithdrawalProxy withdrawalProxy;
     @Autowired
     private IdentityManagementServiceProxy identManager;
     @Autowired
@@ -93,9 +95,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private WalletProxy wallProxy;
     @Autowired
+    private NIPTransferProxy nipTransferProxy;
+    @Autowired
     private WayaPaymentDAO wayaPayment;
     @Autowired
     private PaymentWalletRepository paymentWalletRepo;
+
+    @Autowired
+    private WithdrawalRepository withdrawalRepository;
 
     @Autowired
     TransactionSettlementRepository transactionSettlementRepository;
@@ -965,7 +972,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                             HttpStatus.OK);
                 }
                 PaymentWallet wallet = new PaymentWallet();
-                FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, payment);
+                FundEventResponse tran = uniPaymentProxy.postWalletTransaction(account, token, payment, mAuth.getId());
                 if (tran != null) {
                     response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()),
                             HttpStatus.CREATED);
@@ -1011,6 +1018,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     transactionSettlement.setSettlementAccount(merchantDefaultWallet.getData().getAccountNo());
                     transactionSettlement.setSettlementGrossAmount(payment.getAmount());
                     transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
+                    transactionSettlement.setCreatedBy(mAuth.getId());
+                    transactionSettlement.setDateCreated(LocalDateTime.now());
                     transactionSettlementRepository.save(transactionSettlement);
                 } else {
                     wallet.setPaymentDescription(payment.getDescription());
@@ -1322,6 +1331,229 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 //        else{
 //            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR, null), HttpStatus.NOT_FOUND);
 //        }
+    }
+
+    @Override
+    public PaymentGatewayResponse getWalletBalance(HttpServletRequest request, String merchantId, String token) {
+        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, true);
+
+        MerchantResponse merchant = null;
+        String mode = null;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
+            }
+            mode = merchant.getData().getMerchantKeyMode();
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+
+        List<PaymentGateway> totalSuccessfulTransactions = paymentGatewayRepo.findPaymentBySuccessfulStatus(merchantId);
+        List<PaymentGateway> totalTransactionsSettled = paymentGatewayRepo.findPaymentBySettledStatus(merchantId);
+        List<Withdrawals> totalWithdrawals = withdrawalRepository.findByWithdrawalStatus(merchantId);
+        BigDecimal successfulTransactions = totalSuccessfulTransactions.stream()
+                .map(x -> x.getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal successfulSettlements = totalTransactionsSettled.stream()
+                .map(x -> x.getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal successfulWithdrawals = totalWithdrawals.stream()
+                .map(x -> x.getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal allWithdrawals = successfulWithdrawals.add(successfulSettlements);
+        BigDecimal merchantWalBal = successfulTransactions.subtract(allWithdrawals);
+        if((merchantWalBal != null) && (merchantWalBal.doubleValue() >= 0)) {
+            return new PaymentGatewayResponse(Constant.OPERATION_SUCCESS, merchantWalBal);
+        }else{
+            return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, null);
+        }
+    }
+
+    @Override
+    public PaymentGatewayResponse withdrawFromWallet(HttpServletRequest request, WayaWalletWithdrawal wayaWalletWithdrawal, String token) {
+        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(wayaWalletWithdrawal.getMerchantId(), true);
+
+        MerchantResponse merchant = null;
+        Withdrawals withdrawals = null;
+        WithdrawalRequest withdrawalRequest = null;
+        String strLong = Utility.transactionId();
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, wayaWalletWithdrawal.getMerchantId());
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
+            }
+            log.info("transaction pin :::: "+Long.valueOf(wayaWalletWithdrawal.getTransactionPin()));
+            PinResponse pinResponse = authProxy.validatePin(merchant.getData().getUserId(), Long.valueOf(wayaWalletWithdrawal.getTransactionPin()), token);
+            log.info("Pin Validation Response ::::"+pinResponse);
+            if(!pinResponse.isStatus()){
+               return new PaymentGatewayResponse(Constant.INVALID_TRANSACTION_PIN, HttpStatus.BAD_REQUEST);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+
+
+        DefaultWalletResponse defaultWalletResponse = walletProxy.getUserDefaultWalletAccount(token, merchant.getData().getUserId());
+        BigDecimal walletBal = defaultWalletResponse.getData().getClrBalAmt();
+        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal.doubleValue()) {
+            withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
+            withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
+            withdrawalRequest.setBankCode(wayaWalletWithdrawal.getBankCode());
+            withdrawalRequest.setBankName(wayaWalletWithdrawal.getBankName());
+            withdrawalRequest.setCrAccount(wayaWalletWithdrawal.getAccountNo());
+            withdrawalRequest.setCrAccountName(wayaWalletWithdrawal.getAccountName());
+            withdrawalRequest.setSaveBen(false);
+            withdrawalRequest.setTransactionPin(wayaWalletWithdrawal.getTransactionPin());
+            withdrawalRequest.setUserId(String.valueOf(merchant.getData().getUserId()));
+            if (defaultWalletResponse.getStatus() == true) {
+                withdrawalRequest.setWalletAccountNo(defaultWalletResponse.getData().getAccountNo());
+            } else {
+                return new PaymentGatewayResponse(Constant.UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER, HttpStatus.NOT_FOUND);
+            }
+
+            DefaultResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
+            MathContext mc = new MathContext(5);
+            BigDecimal newAmount;
+
+            newAmount = new BigDecimal(wayaWalletWithdrawal.getAmount(), mc);
+            if (resp.isStatus()) {
+                withdrawals.setWithdrawalStatus(WithdrawalStatus.SUSSESSFUL);
+                withdrawals.setAmount(newAmount);
+                withdrawals.setWithdrawalReferenceId(strLong);
+                withdrawals.setCreatedBy(merchant.getData().getUserId());
+                withdrawals.setDateCreated(LocalDateTime.now());
+                withdrawals.setMerchantId(wayaWalletWithdrawal.getMerchantId());
+                withdrawals.setMerchantUserId(merchant.getData().getUserId());
+                withdrawalRepository.save(withdrawals);
+                return new PaymentGatewayResponse(Constant.OPERATION_SUCCESS, resp);
+            } else {
+                withdrawals.setWithdrawalStatus(WithdrawalStatus.FAILED);
+                withdrawals.setAmount(newAmount);
+                withdrawals.setCreatedBy(merchant.getData().getUserId());
+                withdrawals.setDateCreated(LocalDateTime.now());
+                withdrawals.setWithdrawalReferenceId(strLong);
+                withdrawals.setMerchantId(wayaWalletWithdrawal.getMerchantId());
+                withdrawals.setMerchantUserId(merchant.getData().getUserId());
+                return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, resp);
+            }
+        }else{
+            return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, Constant.INSUFFICIENT_FUNDS);
+        }
+    }
+
+    @Override
+    public PaymentGatewayResponse adminWithdrawFromWallet(HttpServletRequest request, AdminWayaWithdrawal wayaWalletWithdrawal, String token) {
+        MerchantResponse merchant = null;
+        Withdrawals withdrawals = null;
+        WithdrawalRequest withdrawalRequest = null;
+        Date dte = new Date();
+        String strLong = Long.toString(dte.getTime()) + rnd.nextInt(999999);
+        TokenCheckResponse auth = getUserDataService.getUserData(token);
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, wayaWalletWithdrawal.getMerchantId());
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+
+
+        DefaultWalletResponse defaultWalletResponse = walletProxy.getUserDefaultWalletAccount(token, merchant.getData().getUserId());
+        BigDecimal walletBal = defaultWalletResponse.getData().getClrBalAmt();
+        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal.doubleValue()) {
+            withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
+            withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
+            withdrawalRequest.setBankCode(wayaWalletWithdrawal.getBankCode());
+            withdrawalRequest.setBankName(wayaWalletWithdrawal.getBankName());
+            withdrawalRequest.setCrAccount(wayaWalletWithdrawal.getAccountNo());
+            withdrawalRequest.setCrAccountName(wayaWalletWithdrawal.getAccountName());
+            withdrawalRequest.setSaveBen(false);
+            withdrawalRequest.setTransactionPin(strLong);
+            withdrawalRequest.setUserId(String.valueOf(merchant.getData().getUserId()));
+            if (defaultWalletResponse.getStatus() == true) {
+                withdrawalRequest.setWalletAccountNo(defaultWalletResponse.getData().getAccountNo());
+            } else {
+                return new PaymentGatewayResponse(Constant.UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER, HttpStatus.NOT_FOUND);
+            }
+
+            DefaultResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
+            MathContext mc = new MathContext(5);
+            BigDecimal newAmount;
+
+            newAmount = new BigDecimal(wayaWalletWithdrawal.getAmount(), mc);
+            if (resp.isStatus()) {
+                withdrawals.setWithdrawalStatus(WithdrawalStatus.SUSSESSFUL);
+                withdrawals.setAmount(newAmount);
+                withdrawals.setCreatedBy(auth.getData().getId());
+                withdrawals.setDateCreated(LocalDateTime.now());
+                withdrawals.setWithdrawalReferenceId(strLong);
+                withdrawals.setMerchantId(wayaWalletWithdrawal.getMerchantId());
+                withdrawals.setMerchantUserId(merchant.getData().getUserId());
+                withdrawalRepository.save(withdrawals);
+                return new PaymentGatewayResponse(Constant.OPERATION_SUCCESS, resp);
+            } else {
+                withdrawals.setWithdrawalStatus(WithdrawalStatus.FAILED);
+                withdrawals.setAmount(newAmount);
+                withdrawals.setCreatedBy(auth.getData().getId());
+                withdrawals.setDateCreated(LocalDateTime.now());
+                withdrawals.setWithdrawalReferenceId(strLong);
+                withdrawals.setMerchantId(wayaWalletWithdrawal.getMerchantId());
+                withdrawals.setMerchantUserId(merchant.getData().getUserId());
+                return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, resp);
+            }
+        }else{
+            return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, Constant.INSUFFICIENT_FUNDS);
+        }
+    }
+
+
+    @Override
+    public PaymentGatewayResponse getMerchantAccounts(String token, String merchantId) {
+        MerchantResponse merchant = null;
+        WalletResponse walletResponse = null;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
+            }
+
+            walletResponse = walletProxy.getWalletDetails(token, merchant.getData().getUserId());
+            log.info("Wallet  Response ::::"+walletResponse);
+            if(!walletResponse.getStatus() == true){
+                return new PaymentGatewayResponse(Constant.INVALID_TRANSACTION_PIN, HttpStatus.BAD_REQUEST);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+        return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, walletResponse);
     }
 
     // s-l done
@@ -1865,6 +2097,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> tokenizeCard(CardTokenization cardTokenization, String token) {
         try {
+
             //check if card has been tokenized
             Optional<TokenizedCard> getCard = tokenizedRepo.findByCustomerIdAndCardNumber(
                     cardTokenization.getCustomerId(), cardTokenization.getPan());
@@ -1874,7 +2107,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
             //send request to tokenize card
             TokenizationResponse tokenize = iswService.tokenizeCard(cardTokenization);
-
             if (tokenize.getToken() != null || !tokenize.getToken().equalsIgnoreCase("")) {
                 TokenizedCard card = new TokenizedCard();
                 card.setMerchantId(cardTokenization.getMerchantId());
@@ -1887,6 +2119,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
               TokenizedCard save = tokenizedRepo.save(card);
                 log.info("Tokenize card successful: ", tokenize);
             }
+           //dump response
+            tokenize.setBalance("0.00");
+            tokenize.setCardType("");
+            tokenize.setPanLast4Digits("0002");
+            tokenize.setToken("5123453847245380");
+            tokenize.setTokenExpiryDate(cardTokenization.getExpiryDate());
+            tokenize.setTransactionRef(cardTokenization.getTransactionRef());
             log.error("Tokenize card failed: ", tokenize);
             return new ResponseEntity<>(tokenize, HttpStatus.CREATED);
         } catch (Exception ex) {
@@ -1938,28 +2177,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
             TokenizationResponse tokenPayment = iswService.tokenPayment(pay);
             return new ResponseEntity<>(tokenPayment, HttpStatus.CREATED);
-        } catch (Exception ex) {
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-    }
-
-    @Override
-    public ResponseEntity<?> chargeCard(ChargeCard chargeCard, String token) {
-        try {
-
-            //persist record in db
-            ChargedCard charge = new ChargedCard();
-            charge.setCardNumber(chargeCard.getCardNumber());
-            charge.setAccountNumber(chargeCard.getWalletAccountNo());
-            charge.setTransRef(chargeCard.getTransRef());
-            charge.setAmount(chargeCard.getAmount());
-            ChargedCard persit = cardRepository.save(charge);
-
-            ResponseEntity<?> chargeCust = walletProxy.fundWayaAccount();
-
-
-
-            return null;
         } catch (Exception ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
         }

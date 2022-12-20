@@ -6,6 +6,7 @@ import com.wayapaychat.paymentgateway.entity.SandboxPaymentGateway;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
+import com.wayapaychat.paymentgateway.pojo.waya.AdminWayaWithdrawal;
 import com.wayapaychat.paymentgateway.pojo.waya.CardTokenization;
 import com.wayapaychat.paymentgateway.pojo.waya.ChargeCard;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
@@ -47,7 +48,14 @@ public interface PaymentGatewayService {
 
     ResponseEntity<?> getTransactionStatus(HttpServletRequest req, String tranId);
 
+    PaymentGatewayResponse getMerchantAccounts(String token, String merchantId);
+
     ResponseEntity<?> fetchAllMerchantTransactions(String merchantId, String token);
+
+    PaymentGatewayResponse getWalletBalance(HttpServletRequest request, String merchantId, String token);
+
+    PaymentGatewayResponse withdrawFromWallet(HttpServletRequest request, WayaWalletWithdrawal wayaWalletWithdrawal, String token);
+    PaymentGatewayResponse adminWithdrawFromWallet(HttpServletRequest request, AdminWayaWithdrawal wayaWalletWithdrawal, String token);
 
     ResponseEntity<?> getTransactionByRef(HttpServletRequest req, String refNo);
 
@@ -90,6 +98,4 @@ public interface PaymentGatewayService {
     ResponseEntity<?> tokenizeCard(CardTokenization cardTokenization, String token);
 
     ResponseEntity<?> tokenizePayment(String customerId, String merchantId, String transactionRef, String cardToken, String token);
-
-    ResponseEntity<?> chargeCard(ChargeCard chargeCard, String token);
 }

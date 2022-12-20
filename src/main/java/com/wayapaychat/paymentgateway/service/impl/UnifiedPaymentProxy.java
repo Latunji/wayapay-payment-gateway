@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wayapaychat.paymentgateway.common.enums.Constant;
 import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.config.FeignClientInterceptor;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
@@ -16,7 +17,9 @@ import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.proxy.QRCodeProxy;
 import com.wayapaychat.paymentgateway.proxy.UnifiedPaymentApiClient;
 import com.wayapaychat.paymentgateway.proxy.WalletProxy;
+import com.wayapaychat.paymentgateway.proxy.WithdrawalProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentWalletRepository;
+import com.wayapaychat.paymentgateway.utility.Utility;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -36,10 +39,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -51,6 +52,8 @@ public class UnifiedPaymentProxy {
     private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
     WalletProxy wallProxy;
+    @Autowired
+    WithdrawalProxy withdrawalProxy;
     @Autowired
     QRCodeProxy qrCodeProxy;
     @Autowired
@@ -72,7 +75,7 @@ public class UnifiedPaymentProxy {
     @Value("${waya.unified-payment.testBaseurl}")
     private String testMerchantUrl;
 
-
+    private final Random rnd = new Random();
     private String merchantId;
     private String merchantSecret;
     private String merchantUrl;
@@ -345,36 +348,40 @@ public class UnifiedPaymentProxy {
         return null;
     }
 
-    public FundEventResponse postWalletTransaction(WayaWalletPayment account, String token, PaymentGateway mPay) {
+    public FundEventResponse postWalletTransaction(WayaWalletPayment account, String token, PaymentGateway mPay, Long userId) {
 
-        FundEventResponse result = null;
-        WalletEventPayment event = new WalletEventPayment();
-        event.setAmount(mPay.getAmount());
-        event.setEventId("WAYAPAY");
-        event.setTranCrncy("NGN");
-        event.setCustomerAccountNumber(account.getAccountNo());
-        event.setPaymentReference(mPay.getRefNo());
-        String tranParticular = mPay.getDescription() + "-" + mPay.getRefNo();
-        event.setTranNarration(tranParticular);
-        event.setTransactionCategory("WITHDRAW");
-        log.info("EVENT DEBIT: " + event);
-        try {
-            WalletPaymentResponse wallet = wallProxy.fundWayaAccount(token, event);
-            log.info(wallet.toString());
-            if (wallet.getStatus()) {
-                log.info("FUNDING WALLET");
-                for (FundEventResponse response : wallet.getData()) {
-                    if (response.getPartTranType().equals("C")) {
-                        result = response;
-                    }
-                }
-            } else {
-                log.error("WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: "
-                        + mPay.getMerchantId());
-                throw new CustomException(
-                        "WALLET TRANSACTION FAILED: " + wallet.getMessage() + " with Merchant: " + mPay.getMerchantId(),
-                        HttpStatus.BAD_REQUEST);
-            }
+        FundEventResponse fundEventResponse = null;
+        WithdrawalRequest withdrawalRequest = null;
+        Date dte = new Date();
+        String strLong = Utility.transactionId();
+        DefaultWalletResponse defaultWalletResponse = wallProxy.getUserDefaultWalletAccount(token,  userId);
+
+        log.info("Wallet Proxy Response :::::"+defaultWalletResponse.toString());
+
+        withdrawalRequest.setAmount(mPay.getAmount().toString());
+        withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
+        withdrawalRequest.setBankCode(Constant.WAYAQUICK_BANK_CODE);
+        withdrawalRequest.setBankName(Constant.WAYAQUICK_DISBURSEMENT_BANK_NAME);
+        withdrawalRequest.setCrAccount(Constant.WAYAQUICK_DISBURSEMENT_ACCOUNT_NUMBER);
+        withdrawalRequest.setCrAccountName(Constant.WAYAQUICK_DISBURSEMENT_ACCOUNT_NAME);
+        withdrawalRequest.setSaveBen(false);
+        withdrawalRequest.setTransactionPin(mPay.getTransactionPin());
+        withdrawalRequest.setUserId(String.valueOf(userId));
+        withdrawalRequest.setTransRef(strLong);
+        if (defaultWalletResponse.getStatus() == true) {
+            withdrawalRequest.setWalletAccountNo(defaultWalletResponse.getData().getAccountNo());
+        }
+        try{
+           DefaultResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
+            log.info("Withdrawal Proxy Response :::::"+resp.toString());
+            if(resp != null){
+            fundEventResponse.setTranId(strLong);
+            fundEventResponse.setPaymentReference(strLong);
+            fundEventResponse.setTranNarrate(withdrawalRequest.getNarration());
+            fundEventResponse.setTranAmount(mPay.getAmount());
+            fundEventResponse.setTranDate(String.valueOf(LocalDateTime.now()));
+        return fundEventResponse;
+        }
         } catch (Exception ex) {
             if (ex instanceof FeignException) {
                 String httpStatus = Integer.toString(((FeignException) ex).status());
@@ -385,7 +392,7 @@ public class UnifiedPaymentProxy {
             throw new CustomException("WALLET TRANSACTION FAILED: " + ex.getLocalizedMessage() + " with Merchant: "
                     + mPay.getMerchantId(), HttpStatus.BAD_REQUEST);
         }
-        return result;
+        return fundEventResponse;
     }
 
     public FundEventResponse postTransactionPosition(String token, PaymentGateway mPay) {

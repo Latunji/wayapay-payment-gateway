@@ -33,6 +33,9 @@ public class TokenizedCard {
     @Column(name = "merchant_id")
     private String merchantId;
 
+    @Column(name = "card_number")
+    private String cardNumber;
+
 //    @JsonIgnore
     @Column(name = "card_token")
     private String cardToken;

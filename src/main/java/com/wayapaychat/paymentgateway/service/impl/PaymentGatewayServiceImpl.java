@@ -134,6 +134,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private ISWService iswService;
 
+    @Autowired
+    CardRepository cardRepository;
+
     // s-l done
     @Override
     public PaymentGatewayResponse initiateCardTransaction(HttpServletRequest request, WayaPaymentRequest transactionRequestPojo, Device device) {
@@ -1862,8 +1865,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Override
     public ResponseEntity<?> tokenizeCard(CardTokenization cardTokenization, String token) {
         try {
+            //check if card has been tokenized
+            Optional<TokenizedCard> getCard = tokenizedRepo.findByCustomerIdAndCardNumber(
+                    cardTokenization.getCustomerId(), cardTokenization.getPan());
+            if(getCard.isPresent()){
+                return new ResponseEntity<>("Existing tokenized card", HttpStatus.FOUND);
+            }
+
             //send request to tokenize card
             TokenizationResponse tokenize = iswService.tokenizeCard(cardTokenization);
+
             if (tokenize.getToken() != null || !tokenize.getToken().equalsIgnoreCase("")) {
                 TokenizedCard card = new TokenizedCard();
                 card.setMerchantId(cardTokenization.getMerchantId());
@@ -1871,11 +1882,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 card.setCardToken(tokenize.getToken());
                 card.setDateCreated(LocalDateTime.now());
                 card.setCardTokenReference(tokenize.getTransactionRef());
+                card.setEncryptedCard(cardTokenization.getPan());
 
               TokenizedCard save = tokenizedRepo.save(card);
+                log.info("Tokenize card successful: ", tokenize);
             }
+            log.error("Tokenize card failed: ", tokenize);
             return new ResponseEntity<>(tokenize, HttpStatus.CREATED);
         } catch (Exception ex) {
+            log.error("Exception: ", ex.getMessage());
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
@@ -1923,6 +1938,28 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
             TokenizationResponse tokenPayment = iswService.tokenPayment(pay);
             return new ResponseEntity<>(tokenPayment, HttpStatus.CREATED);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> chargeCard(ChargeCard chargeCard, String token) {
+        try {
+
+            //persist record in db
+            ChargedCard charge = new ChargedCard();
+            charge.setCardNumber(chargeCard.getCardNumber());
+            charge.setAccountNumber(chargeCard.getWalletAccountNo());
+            charge.setTransRef(chargeCard.getTransRef());
+            charge.setAmount(chargeCard.getAmount());
+            ChargedCard persit = cardRepository.save(charge);
+
+            ResponseEntity<?> chargeCust = walletProxy.fundWayaAccount();
+
+
+
+            return null;
         } catch (Exception ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
         }

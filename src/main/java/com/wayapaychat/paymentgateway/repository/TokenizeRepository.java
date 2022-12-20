@@ -17,5 +17,7 @@ public interface TokenizeRepository extends JpaRepository<TokenizedCard, Long>{
     
        @Query(value = "SELECT * FROM m_tokenized_card WHERE customer_id=:customerId AND merchant_id=:merchantId ", nativeQuery = true)
     Optional<TokenizedCard> findByRefMerchant(String customerId, String merchantId);
+
+       Optional<TokenizedCard> findByCustomerIdAndCardNumber(String customerId, String cardNumber);
     
 }

@@ -5,6 +5,7 @@ import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.CardTokenization;
+import com.wayapaychat.paymentgateway.pojo.waya.ChargeCard;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
@@ -248,6 +249,13 @@ public class PaymentGatewayController {
                                           @RequestHeader("Authorization") String token) {
         ResponseEntity<?> resp = paymentGatewayService.tokenizePayment(customerId, merchantId, transactionRef,
                 cardToken, token);
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "charge card", notes = "This endpoint allows to charge card", tags = {"PAYMENT-GATEWAY"})
+    @PostMapping("/card/charge")
+    public ResponseEntity<?> chargeCard(@RequestBody ChargeCard chargeCard, @RequestHeader("Authorization") String token) {
+        ResponseEntity<?> resp = paymentGatewayService.chargeCard(chargeCard, token);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 }

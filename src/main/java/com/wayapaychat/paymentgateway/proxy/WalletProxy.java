@@ -25,4 +25,8 @@ public interface WalletProxy {
 
     @PostMapping("/wallet/event/charge/payment")
     WalletSettlementResponse creditMerchantDefaultWalletWithEventId(@RequestHeader("authorization") String token, WalletSettlementWithEventIdPojo walletSettlementWithEventIdPojo);
+
+    @PostMapping("/wallet/event/charge/payment")
+    WalletSettlementResponse chargeForCard(@RequestHeader("authorization") String token, WalletSettlementWithEventIdPojo walletSettlementWithEventIdPojo);
+
 }

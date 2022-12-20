@@ -1392,7 +1392,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
             }
-            log.info("transaction pin :::: "+Long.valueOf(wayaWalletWithdrawal.getTransactionPin()));
             PinResponse pinResponse = authProxy.validatePin(merchant.getData().getUserId(), Long.valueOf(wayaWalletWithdrawal.getTransactionPin()), token);
             log.info("Pin Validation Response ::::"+pinResponse);
             if(!pinResponse.isStatus()){
@@ -1426,8 +1425,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             } else {
                 return new PaymentGatewayResponse(Constant.UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER, HttpStatus.NOT_FOUND);
             }
-
-            DefaultResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
+            log.info("Withdraw Wallet Req::::"+ withdrawalRequest);
+            WithdrawalResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
             log.info("Withdraw Wallet Response::::"+ resp);
             MathContext mc = new MathContext(5);
             BigDecimal newAmount;
@@ -1500,7 +1499,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 return new PaymentGatewayResponse(Constant.UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER, HttpStatus.NOT_FOUND);
             }
 
-            DefaultResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
+            WithdrawalResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
             MathContext mc = new MathContext(5);
             BigDecimal newAmount;
 

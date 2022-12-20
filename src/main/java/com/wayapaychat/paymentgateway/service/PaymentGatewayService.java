@@ -8,6 +8,7 @@ import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.AdminWayaWithdrawal;
 import com.wayapaychat.paymentgateway.pojo.waya.CardTokenization;
+import com.wayapaychat.paymentgateway.pojo.waya.ChargeCard;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.QueryCustomerTransactionPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;

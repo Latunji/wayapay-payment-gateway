@@ -39,8 +39,9 @@ public class TransactionsSettlementController {
         ));
     }
 
+    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/query-all/pending")
+    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Get all transactions pending settlement", notes = "This endpoint get all merchant transactions", tags = {"PAYMENT-GATEWAY"})
-    @GetMapping("/query-all/pending")
     public PaymentGatewayResponse getAllTransactionsPendingSettlement() {
         return transactionSettlementService.fetchAllTransactionsPendingSettlement();
     }

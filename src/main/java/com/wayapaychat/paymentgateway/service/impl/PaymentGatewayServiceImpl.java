@@ -1409,9 +1409,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
         DefaultWalletResponse defaultWalletResponse = walletProxy.getUserDefaultWalletAccount(token, merchant.getData().getUserId());
         log.info("Default Wallet Response::::"+ defaultWalletResponse);
-        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
-        log.info(" Wallet Bal::::"+ walletBal);
-        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal) {
+//        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
+        log.info(" Wallet Data::::"+ defaultWalletResponse.getData());
+        log.info(" Wallet Bal::::"+ defaultWalletResponse.getData().getClrBalAmt());
+        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= defaultWalletResponse.getData().getClrBalAmt()) {
             log.info(" Got here 1::::");
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
@@ -2103,28 +2104,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> tokenizeCard(CardTokenization cardTokenization, String token) {
         try {
 
-            //check if card has been tokenized
-            Optional<TokenizedCard> getCard = tokenizedRepo.findByCustomerIdAndCardNumber(
-                    cardTokenization.getCustomerId(), cardTokenization.getPan());
-            if(getCard.isPresent()){
-                return new ResponseEntity<>("Existing tokenized card", HttpStatus.FOUND);
-            }
-
-            //send request to tokenize card
-            TokenizationResponse tokenize = iswService.tokenizeCard(cardTokenization);
-            if (tokenize.getToken() != null || !tokenize.getToken().equalsIgnoreCase("")) {
-                TokenizedCard card = new TokenizedCard();
-                card.setMerchantId(cardTokenization.getMerchantId());
-                card.setCustomerId(cardTokenization.getCustomerId());
-                card.setCardToken(tokenize.getToken());
-                card.setDateCreated(LocalDateTime.now());
-                card.setCardTokenReference(tokenize.getTransactionRef());
-                card.setEncryptedCard(cardTokenization.getPan());
-
-              TokenizedCard save = tokenizedRepo.save(card);
-                log.info("Tokenize card successful: ", tokenize);
-            }
-           //dump response
+            //dump response
+            TokenizationResponse tokenize = new TokenizationResponse();
             tokenize.setBalance("0.00");
             tokenize.setCardType("");
             tokenize.setPanLast4Digits("0002");

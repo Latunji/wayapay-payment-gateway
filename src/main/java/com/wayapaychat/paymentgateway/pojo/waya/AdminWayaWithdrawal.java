@@ -30,5 +30,5 @@ public class AdminWayaWithdrawal {
     private String merchantId;
 
     @JsonProperty("amount")
-    private String amount;
+    private double amount;
 }

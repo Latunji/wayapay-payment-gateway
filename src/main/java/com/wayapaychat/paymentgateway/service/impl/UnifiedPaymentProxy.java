@@ -35,6 +35,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.DatatypeConverter;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -358,7 +360,7 @@ public class UnifiedPaymentProxy {
 
         log.info("Wallet Proxy Response :::::"+defaultWalletResponse.toString());
 
-        withdrawalRequest.setAmount(mPay.getAmount().toString());
+        withdrawalRequest.setAmount(mPay.getAmount().doubleValue());
         withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
         withdrawalRequest.setBankCode(Constant.WAYAQUICK_BANK_CODE);
         withdrawalRequest.setBankName(Constant.WAYAQUICK_DISBURSEMENT_BANK_NAME);

@@ -372,7 +372,7 @@ public class UnifiedPaymentProxy {
             withdrawalRequest.setWalletAccountNo(defaultWalletResponse.getData().getAccountNo());
         }
         try{
-           DefaultResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
+           WithdrawalResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
             log.info("Withdrawal Proxy Response :::::"+resp.toString());
             if(resp != null){
             fundEventResponse.setTranId(strLong);

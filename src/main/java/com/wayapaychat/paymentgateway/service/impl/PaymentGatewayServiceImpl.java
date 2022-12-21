@@ -1409,18 +1409,22 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
         DefaultWalletResponse defaultWalletResponse = walletProxy.getUserDefaultWalletAccount(token, merchant.getData().getUserId());
         log.info("Default Wallet Response::::"+ defaultWalletResponse);
-        BigDecimal walletBal = defaultWalletResponse.getData().getClrBalAmt();
-        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal.doubleValue()) {
+        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
+        log.info(" Wallet Bal::::"+ walletBal);
+        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal) {
+            log.info(" Got here 1::::");
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
             withdrawalRequest.setBankCode(wayaWalletWithdrawal.getBankCode());
             withdrawalRequest.setBankName(wayaWalletWithdrawal.getBankName());
             withdrawalRequest.setCrAccount(wayaWalletWithdrawal.getAccountNo());
+            log.info(" Got here 2::::");
             withdrawalRequest.setCrAccountName(wayaWalletWithdrawal.getAccountName());
             withdrawalRequest.setSaveBen(false);
             withdrawalRequest.setTransactionPin(wayaWalletWithdrawal.getTransactionPin());
             withdrawalRequest.setUserId(String.valueOf(merchant.getData().getUserId()));
             if (defaultWalletResponse.getStatus() == true) {
+                log.info(" Got here 3::::");
                 withdrawalRequest.setWalletAccountNo(defaultWalletResponse.getData().getAccountNo());
             } else {
                 return new PaymentGatewayResponse(Constant.UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER, HttpStatus.NOT_FOUND);
@@ -1482,8 +1486,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 
         DefaultWalletResponse defaultWalletResponse = walletProxy.getUserDefaultWalletAccount(token, merchant.getData().getUserId());
-        BigDecimal walletBal = defaultWalletResponse.getData().getClrBalAmt();
-        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal.doubleValue()) {
+        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
+        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal) {
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
             withdrawalRequest.setBankCode(wayaWalletWithdrawal.getBankCode());

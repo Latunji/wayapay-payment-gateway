@@ -5,6 +5,7 @@ import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.TransactionSettlementDAO;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
+import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.enumm.MerchantPermissions;
 import com.wayapaychat.paymentgateway.pojo.RolePermissionResponsePayload;
@@ -28,6 +29,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -126,5 +129,17 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
     @Override
     public ResponseEntity<PaymentGatewayResponse> getSettlementByReferenceId(String settlementReferenceId) {
         return new ResponseEntity<>(new SuccessResponse("Search Completed", transactionSettlementRepository.getTransactionSettlementBySettlementReferenceId(settlementReferenceId)), HttpStatus.OK);
+    }
+
+    @Override
+    public PaymentGatewayResponse fetchAllTransactionsPendingSettlement() {
+        List<PaymentGateway> allPayments = paymentGatewayRepository.getAllTransactionNotSettled();
+        return new PaymentGatewayResponse(true, "Retrieved Successfully", allPayments);
+    }
+
+    @Override
+    public PaymentGatewayResponse fetchAllMerchantTransactionsPendingSettlement(String merchantId) {
+        List<PaymentGateway> allPayments = paymentGatewayRepository.getAllTransactionNotSettled(merchantId);
+        return new PaymentGatewayResponse(true, "Retrieved Successfully", allPayments);
     }
 }

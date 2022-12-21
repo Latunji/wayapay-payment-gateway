@@ -16,20 +16,15 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class WalletData {
-	
-	@JsonProperty("accountNo")
+
 	private String accountNo;
-	
-	@JsonProperty("acct_name")
+
 	private String acctName;
-	
-	@JsonProperty("clr_bal_amt")
-	private BigDecimal clrBalAmt;
-	
-	@JsonProperty("walletDefault")
+
+	private double clrBalAmt;
+
 	private Boolean walletDefault;
-	
-	@JsonProperty("acct_crncy_code")
+
 	private String acctCrncyCode;
 
 }

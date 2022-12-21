@@ -9,7 +9,7 @@ import lombok.*;
 @ToString
 public class WithdrawalRequest {
 
-    private String amount;
+    private double amount;
     private String bankCode;
     private String bankName;
     private String crAccount;

@@ -1412,7 +1412,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 //        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
         log.info(" Wallet Data::::"+ defaultWalletResponse.getData());
         log.info(" Wallet Bal::::"+ defaultWalletResponse.getData().getClrBalAmt());
-        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= defaultWalletResponse.getData().getClrBalAmt()) {
+        log.info(" Amount To Withdraw ::::"+ wayaWalletWithdrawal.getAmount());
+        if(wayaWalletWithdrawal.getAmount() <= defaultWalletResponse.getData().getClrBalAmt()) {
             log.info(" Got here 1::::");
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
@@ -1458,6 +1459,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, resp);
             }
         }else{
+            log.info(" Got here Insufficient::::");
             return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, Constant.INSUFFICIENT_FUNDS);
         }
     }

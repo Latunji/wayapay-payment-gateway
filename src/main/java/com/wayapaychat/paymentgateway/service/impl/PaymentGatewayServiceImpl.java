@@ -1460,7 +1460,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
         }else{
             log.info(" Got here Insufficient::::");
-            return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, Constant.INSUFFICIENT_FUNDS);
+            return new PaymentGatewayResponse(Constant.INSUFFICIENT_FUNDS, null);
         }
     }
 

@@ -1409,9 +1409,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
         DefaultWalletResponse defaultWalletResponse = walletProxy.getUserDefaultWalletAccount(token, merchant.getData().getUserId());
         log.info("Default Wallet Response::::"+ defaultWalletResponse);
-        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
-        log.info(" Wallet Bal::::"+ walletBal);
-        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal) {
+//        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
+        log.info(" Wallet Data::::"+ defaultWalletResponse.getData());
+        log.info(" Wallet Bal::::"+ defaultWalletResponse.getData().getClrBalAmt());
+        if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= defaultWalletResponse.getData().getClrBalAmt()) {
             log.info(" Got here 1::::");
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");

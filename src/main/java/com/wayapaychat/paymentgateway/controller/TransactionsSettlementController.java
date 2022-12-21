@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.ws.rs.Path;
+
 @CrossOrigin
 @RestController
 @RequestMapping("/api/v1/transactions/settlements")
@@ -35,6 +37,18 @@ public class TransactionsSettlementController {
                 paginationPojo.getSize(), paginationPojo.getOrder(),
                 paginationPojo.getSortBy(), true, "settlementDate"
         ));
+    }
+
+    @ApiOperation(value = "Get all transactions pending settlement", notes = "This endpoint get all merchant transactions", tags = {"PAYMENT-GATEWAY"})
+    @GetMapping("/query-all/pending")
+    public PaymentGatewayResponse getAllTransactionsPendingSettlement() {
+        return transactionSettlementService.fetchAllTransactionsPendingSettlement();
+    }
+
+    @ApiOperation(value = "Get all merchant transactions pending settlement", notes = "This endpoint get all merchant transactions", tags = {"PAYMENT-GATEWAY"})
+    @GetMapping("/query-all/pending/{merchantId}")
+    public PaymentGatewayResponse getAllMerchantTransactionsPendingSettlement(@PathVariable("merchantId") String merchantId) {
+        return transactionSettlementService.fetchAllMerchantTransactionsPendingSettlement(merchantId);
     }
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{settlementReferenceId}")

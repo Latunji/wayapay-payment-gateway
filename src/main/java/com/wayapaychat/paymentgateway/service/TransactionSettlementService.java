@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.service;
 
 
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentListResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -18,5 +19,5 @@ public interface TransactionSettlementService {
 
     PaymentGatewayResponse fetchAllTransactionsPendingSettlement();
 
-    PaymentGatewayResponse fetchAllMerchantTransactionsPendingSettlement(String merchantId);
+    PaymentListResponse fetchAllMerchantTransactionsPendingSettlement(String merchantId);
 }

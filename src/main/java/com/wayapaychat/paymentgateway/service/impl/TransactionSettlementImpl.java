@@ -11,6 +11,7 @@ import com.wayapaychat.paymentgateway.enumm.MerchantPermissions;
 import com.wayapaychat.paymentgateway.pojo.RolePermissionResponsePayload;
 import com.wayapaychat.paymentgateway.pojo.RoleResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentListResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
@@ -138,8 +139,8 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
     }
 
     @Override
-    public PaymentGatewayResponse fetchAllMerchantTransactionsPendingSettlement(String merchantId) {
+    public PaymentListResponse fetchAllMerchantTransactionsPendingSettlement(String merchantId) {
         List<PaymentGateway> allPayments = paymentGatewayRepository.getAllTransactionNotSettled(merchantId);
-        return new PaymentGatewayResponse(true, "Retrieved Successfully", allPayments);
+        return new PaymentListResponse(true, "Retrieved Successfully", allPayments);
     }
 }

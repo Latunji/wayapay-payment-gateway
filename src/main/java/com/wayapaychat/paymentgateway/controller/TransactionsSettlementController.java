@@ -4,6 +4,7 @@ package com.wayapaychat.paymentgateway.controller;
 import com.wayapaychat.paymentgateway.common.utils.PageableResponseUtil;
 import com.wayapaychat.paymentgateway.pojo.waya.PaginationPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentListResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.service.TransactionSettlementService;
 import io.swagger.annotations.ApiImplicitParam;
@@ -48,7 +49,7 @@ public class TransactionsSettlementController {
 
     @ApiOperation(value = "Get all merchant transactions pending settlement", notes = "This endpoint get all merchant transactions", tags = {"PAYMENT-GATEWAY"})
     @GetMapping("/query-all/pending/{merchantId}")
-    public PaymentGatewayResponse getAllMerchantTransactionsPendingSettlement(@PathVariable("merchantId") String merchantId) {
+    public PaymentListResponse getAllMerchantTransactionsPendingSettlement(@PathVariable("merchantId") String merchantId) {
         return transactionSettlementService.fetchAllMerchantTransactionsPendingSettlement(merchantId);
     }
 

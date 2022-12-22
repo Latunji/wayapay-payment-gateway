@@ -1429,7 +1429,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 log.info(" Got here 3::::");
                 withdrawalRequest.setWalletAccountNo(defaultWalletResponse.getData().getAccountNo());
             } else {
-                return new PaymentGatewayResponse(Constant.UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER, HttpStatus.NOT_FOUND);
+                return new PaymentGatewayResponse(false, Constant.UNABLE_TO_FETCH_CREDIT_ACCOUNT_NUMBER, null);
             }
             log.info("Withdraw Wallet Req::::"+ withdrawalRequest);
             WithdrawalResponse resp = withdrawalProxy.withdrawFromWallet(token, withdrawalRequest);
@@ -1447,7 +1447,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 withdrawals.setMerchantId(wayaWalletWithdrawal.getMerchantId());
                 withdrawals.setMerchantUserId(merchant.getData().getUserId());
                 withdrawalRepository.save(withdrawals);
-                return new PaymentGatewayResponse(Constant.OPERATION_SUCCESS, resp);
+                return new PaymentGatewayResponse(true, Constant.OPERATION_SUCCESS, resp);
             } else {
                 withdrawals.setWithdrawalStatus(WithdrawalStatus.FAILED);
                 withdrawals.setAmount(newAmount);
@@ -1456,11 +1456,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 withdrawals.setWithdrawalReferenceId(strLong);
                 withdrawals.setMerchantId(wayaWalletWithdrawal.getMerchantId());
                 withdrawals.setMerchantUserId(merchant.getData().getUserId());
-                return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, resp);
+                return new PaymentGatewayResponse(false, Constant.ERROR_PROCESSING, resp);
             }
         }else{
             log.info(" Got here Insufficient::::");
-            return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, Constant.INSUFFICIENT_FUNDS);
+            return new PaymentGatewayResponse(false, Constant.INSUFFICIENT_FUNDS, null);
         }
     }
 

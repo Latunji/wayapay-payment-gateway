@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.controller;
 
 
 import com.wayapaychat.paymentgateway.common.utils.PageableResponseUtil;
+import com.wayapaychat.paymentgateway.pojo.SettlementStatusUpdateDto;
 import com.wayapaychat.paymentgateway.pojo.waya.PaginationPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentListResponse;
@@ -51,6 +52,13 @@ public class TransactionsSettlementController {
     @GetMapping("/query-all/pending/{merchantId}")
     public PaymentListResponse getAllMerchantTransactionsPendingSettlement(@PathVariable("merchantId") String merchantId) {
         return transactionSettlementService.fetchAllMerchantTransactionsPendingSettlement(merchantId);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, value = "/update-status")
+    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
+    @ApiOperation(value = "Updates all transactions status", notes = "This endpoint update merchant transactions status", tags = {"PAYMENT-GATEWAY"})
+    public PaymentGatewayResponse updateMerchantTransactions(@RequestBody SettlementStatusUpdateDto merchant) {
+        return transactionSettlementService.updateMerchantSettlement(merchant);
     }
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{settlementReferenceId}")

@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.service;
 
 
+import com.wayapaychat.paymentgateway.pojo.SettlementStatusUpdateDto;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentListResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
@@ -18,6 +19,8 @@ public interface TransactionSettlementService {
     ResponseEntity<PaymentGatewayResponse> getSettlementByReferenceId(String settlementReferenceId);
 
     PaymentGatewayResponse fetchAllTransactionsPendingSettlement();
+
+    PaymentGatewayResponse updateMerchantSettlement(SettlementStatusUpdateDto settlementStatusUpdateDto);
 
     PaymentListResponse fetchAllMerchantTransactionsPendingSettlement(String merchantId);
 }

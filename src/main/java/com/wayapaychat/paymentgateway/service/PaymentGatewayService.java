@@ -98,4 +98,6 @@ public interface PaymentGatewayService {
     ResponseEntity<?> tokenizeCard(CardTokenization cardTokenization, String token);
 
     ResponseEntity<?> tokenizePayment(String customerId, String merchantId, String transactionRef, String cardToken, String token);
+    
+    ResponseEntity<?> chargeWithToken(String customerId, String transactionREf, String cardToken,String amount, String token);
 }

@@ -2109,8 +2109,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 //            if(getCard.isPresent()){
 //                return new ResponseEntity<>("Existing tokenized card", HttpStatus.FOUND);
 //            }
-//
-//            //send request to tokenize card
+
+            //send request to tokenize card
 //            TokenizationResponse tokenize = iswService.tokenizeCard(cardTokenization);
 //            if (tokenize.getToken() != null || !tokenize.getToken().equalsIgnoreCase("")) {
 //                TokenizedCard card = new TokenizedCard();

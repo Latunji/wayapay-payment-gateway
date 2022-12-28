@@ -31,5 +31,5 @@ public class WayaWalletWithdrawal {
     private String merchantId;
 
     @JsonProperty("amount")
-    private String amount;
+    private double amount;
 }

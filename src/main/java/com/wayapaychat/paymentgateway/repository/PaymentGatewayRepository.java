@@ -82,4 +82,7 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE settlement_reference_id=:settlementReferenceId AND del_flg=false ", nativeQuery = true)
     Optional<PaymentGateway> getTransactionSettlementBySettlementReferenceId(String settlementReferenceId);
+
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE merchant_id=:merchantId AND settlement_status= 'PENDING'", nativeQuery = true)
+    List<PaymentGateway> findTransactionsByMerchantAndSettlementStatus(String merchantId);
 }

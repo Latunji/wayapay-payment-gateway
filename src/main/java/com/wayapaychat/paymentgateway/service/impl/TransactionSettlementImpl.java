@@ -8,9 +8,12 @@ import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.enumm.MerchantPermissions;
+import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
 import com.wayapaychat.paymentgateway.pojo.RolePermissionResponsePayload;
 import com.wayapaychat.paymentgateway.pojo.RoleResponse;
+import com.wayapaychat.paymentgateway.pojo.SettlementStatusUpdateDto;
 import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.PaymentListResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
@@ -138,8 +141,18 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
     }
 
     @Override
-    public PaymentGatewayResponse fetchAllMerchantTransactionsPendingSettlement(String merchantId) {
+    public PaymentGatewayResponse updateMerchantSettlement(SettlementStatusUpdateDto settlementStatusUpdateDto) {
+
+        List<PaymentGateway> allPayments = paymentGatewayRepository.findTransactionsByMerchantAndSettlementStatus(settlementStatusUpdateDto.getMerchantId());
+        allPayments.stream().forEach( paymentGateway -> {
+                paymentGateway.setSettlementStatus(SettlementStatus.SETTLED);
+        });
+        return new PaymentGatewayResponse(true, "Updated Successfully", null);
+    }
+
+    @Override
+    public PaymentListResponse fetchAllMerchantTransactionsPendingSettlement(String merchantId) {
         List<PaymentGateway> allPayments = paymentGatewayRepository.getAllTransactionNotSettled(merchantId);
-        return new PaymentGatewayResponse(true, "Retrieved Successfully", allPayments);
+        return new PaymentListResponse(true, "Retrieved Successfully", allPayments);
     }
 }

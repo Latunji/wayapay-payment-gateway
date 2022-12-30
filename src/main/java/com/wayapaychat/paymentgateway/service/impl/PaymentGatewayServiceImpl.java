@@ -1576,7 +1576,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH SANDBOX TRANSACTION"), HttpStatus.BAD_REQUEST);
                 }
                 Customer customer = new Customer(msPay.getCustomerName(), msPay.getCustomerEmail(), msPay.getCustomerPhone(), msPay.getCustomerId());
-                response = new TransactionStatusResponse(msPay.getPreferenceNo(), msPay.getAmount(), msPay.getDescription(),
+                response = new TransactionStatusResponse(msPay.getRefNo(), msPay.getAmount(), msPay.getDescription(),
                         msPay.getFee(), msPay.getCurrencyCode(), msPay.getStatus().name(), msPay.getChannel().name(),
                         msPay.getMerchantName(), customer, msPay.getMerchantId(), msPay.getTranDate());
             } else { // live payment
@@ -1585,7 +1585,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     return new ResponseEntity<>(new ErrorResponse("UNABLE TO FETCH LIVE TRANSACTION"), HttpStatus.BAD_REQUEST);
                 }
                 Customer customer = new Customer(mPay.getCustomerName(), mPay.getCustomerEmail(), mPay.getCustomerPhone(), mPay.getCustomerId());
-                response = new TransactionStatusResponse(mPay.getPreferenceNo(), mPay.getAmount(), mPay.getDescription(),
+                response = new TransactionStatusResponse(mPay.getRefNo(), mPay.getAmount(), mPay.getDescription(),
                         mPay.getFee(), mPay.getCurrencyCode(), mPay.getStatus().name(), mPay.getChannel().name(),
                         mPay.getMerchantName(), customer, mPay.getMerchantId(), mPay.getTranDate());
             }

@@ -35,6 +35,8 @@ public interface TransactionSettlementRepository extends JpaRepository<Transacti
             " BETWEEN CAST(?3 AS TIMESTAMP) AND CAST(?4 AS TIMESTAMP) ", nativeQuery = true)
     Page<TransactionSettlement> findAllWithStartEndDates(String merchantId, Date startSettlementDate, Date endSettlementDate, Pageable pageable);
 
+
+
     @Query(value = "SELECT * FROM m_transaction_settlement WHERE deleted = false AND settlement_status = 'PENDING' ", nativeQuery = true)
     List<TransactionSettlement> findAllMerchantSettlementPending();
 

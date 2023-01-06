@@ -904,6 +904,22 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 sandboxPayment.setSuccessfailure(true);
                 sandboxPaymentGatewayRepo.save(sandboxPayment);
 
+
+                //save settlement
+                DefaultWalletResponse merchantDefaultWallet = walletProxy.getUserDefaultWalletAccount(token, mAuth.getId());
+                TransactionSettlement transactionSettlement = new TransactionSettlement();
+                transactionSettlement.setSettlementReferenceId(sandboxPayment.getTranId());
+                transactionSettlement.setMerchantId(sandboxPayment.getMerchantId());
+                transactionSettlement.setSettlementNetAmount(sandboxPayment.getAmount());
+                transactionSettlement.setMerchantUserId(mAuth.getId());
+                transactionSettlement.setSettlementAccount(merchantDefaultWallet.getData().getAccountNo());
+                transactionSettlement.setSettlementGrossAmount(sandboxPayment.getAmount());
+                transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
+                transactionSettlement.setCreatedBy(mAuth.getId());
+                transactionSettlement.setDateCreated(LocalDateTime.now());
+                log.info("Saving Settlement Object :::: "+transactionSettlement);
+                transactionSettlementRepository.save(transactionSettlement);
+
 //                    wallet.setPaymentDescription(tran.getTranNarrate());
 //                    wallet.setPaymentReference(tran.getPaymentReference());
 //                    wallet.setTranAmount(tran.getTranAmount());

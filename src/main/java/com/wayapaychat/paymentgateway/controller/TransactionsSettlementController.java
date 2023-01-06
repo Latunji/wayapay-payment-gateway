@@ -37,7 +37,7 @@ public class TransactionsSettlementController {
             @RequestParam(value = "merchantId", required = false) final String merchantId) {
         return transactionSettlementService.getAllSettledSuccessfulTransactions(settlementQueryPojo,merchantId, PageableResponseUtil.createPageRequest(paginationPojo.getPage(),
                 paginationPojo.getSize(), paginationPojo.getOrder(),
-                paginationPojo.getSortBy(), true, "settlementDate"
+                paginationPojo.getSortBy(), true, "date_settled"
         ));
     }
 

@@ -258,6 +258,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setTranDate(currentAccurateTime());
                 payment.setRcre_time(LocalDateTime.now());
                 payment.setVendorDate(LocalDateTime.now());
+                log.info("Payment Data :::::: "+payment);
                 paymentGatewayRepo.save(payment);
             } else {
                 log.error("============================= SANDBOX PAYMENT =================================");
@@ -287,6 +288,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 sandboxPayment.setTranDate(currentAccurateTime());
                 sandboxPayment.setRcre_time(LocalDateTime.now());
                 sandboxPayment.setVendorDate(LocalDateTime.now());
+                log.info("Payment Data - SandBox :::::: "+sandboxPayment);
                 sandboxPaymentGatewayRepo.save(sandboxPayment);
             }
             return response;

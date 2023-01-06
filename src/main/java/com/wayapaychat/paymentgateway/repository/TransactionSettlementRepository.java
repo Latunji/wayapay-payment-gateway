@@ -40,7 +40,7 @@ public interface TransactionSettlementRepository extends JpaRepository<Transacti
     @Query(value = "SELECT * FROM m_transaction_settlement WHERE deleted = false AND settlement_status = 'PENDING' ", nativeQuery = true)
     List<TransactionSettlement> findAllMerchantSettlementPending();
 
-    @Query(value = "SELECT * FROM m_transaction_settlement WHERE deleted = false AND merchant_id=:merchantId ", nativeQuery = true)
+    @Query(value = "SELECT * FROM m_transaction_settlement WHERE merchant_id=:merchantId ", nativeQuery = true)
     Page<TransactionSettlement> findAll(String merchantId, Pageable pageable);
 
     @Query(value = "SELECT * FROM m_transaction_settlement WHERE deleted = false AND settlement_reference_id=:settlementReferenceId ", nativeQuery = true)

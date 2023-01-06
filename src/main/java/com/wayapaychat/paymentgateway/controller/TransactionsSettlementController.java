@@ -57,9 +57,17 @@ public class TransactionsSettlementController {
     @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, value = "/update-status")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
     @ApiOperation(value = "Updates all transactions status", notes = "This endpoint update merchant transactions status", tags = {"PAYMENT-GATEWAY"})
-    public PaymentGatewayResponse updateMerchantTransactions(@RequestBody SettlementStatusUpdateDto merchant) {
-        return transactionSettlementService.updateMerchantSettlement(merchant);
+    public PaymentGatewayResponse updateMerchantTransactions(@RequestBody SettlementStatusUpdateDto merchantId) {
+        return transactionSettlementService.updateMerchantSettlement(merchantId);
     }
+
+
+//    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/statistics/{merchantId}")
+//    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
+//    @ApiOperation(value = "Updates all transactions status", notes = "This endpoint update merchant transactions status", tags = {"PAYMENT-GATEWAY"})
+//    public PaymentGatewayResponse getSettlementStats(@PathVariable("merchantId") String merchantId) {
+//        return transactionSettlementService.updateMerchantSettlement(merchantId);
+//    }
 
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{settlementReferenceId}")
     @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
@@ -81,11 +89,11 @@ public class TransactionsSettlementController {
         ));
     }
 
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/stats")
-    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-    @ApiOperation(value = "Fetch settlement stats for admin or a merchant", notes = "Transaction settlement report for admin or merchant", tags = {"TRANSACTIONS-SETTLEMENT"})
-    public ResponseEntity<PaymentGatewayResponse> getSettlementStats(
-            @RequestParam(value = "merchantId", required = false) final String merchantId) {
-        return transactionSettlementService.getSettlementStats(merchantId);
-    }
+//    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/stats")
+//    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
+//    @ApiOperation(value = "Fetch settlement stats for admin or a merchant", notes = "Transaction settlement report for admin or merchant", tags = {"TRANSACTIONS-SETTLEMENT"})
+//    public ResponseEntity<PaymentGatewayResponse> getSettlementStats(
+//            @RequestParam(value = "merchantId", required = false) final String merchantId) {
+//        return transactionSettlementService.getSettlementStats(merchantId);
+//    }
 }

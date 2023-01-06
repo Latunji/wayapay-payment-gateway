@@ -63,6 +63,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils.getMerchantIdToUse;
+import static com.wayapaychat.paymentgateway.utility.Utility.currentAccurateTime;
 
 @Service
 @Slf4j
@@ -254,7 +255,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 payment.setSecretKey(encryptedMerchantSecretKey);
                 payment.setPaymentLinkId(transactionRequestPojo.getPaymentLinkId());
                 payment.setTranId(tranId);
-                payment.setTranDate(LocalDateTime.now());
+                payment.setTranDate(currentAccurateTime());
                 payment.setRcre_time(LocalDateTime.now());
                 payment.setVendorDate(LocalDateTime.now());
                 paymentGatewayRepo.save(payment);
@@ -283,7 +284,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 sandboxPayment.setSecretKey(encryptedMerchantSecretKey);
                 sandboxPayment.setPaymentLinkId(transactionRequestPojo.getPaymentLinkId());
                 sandboxPayment.setTranId(tranId);
-                sandboxPayment.setTranDate(LocalDateTime.now());
+                sandboxPayment.setTranDate(currentAccurateTime());
                 sandboxPayment.setRcre_time(LocalDateTime.now());
                 sandboxPayment.setVendorDate(LocalDateTime.now());
                 sandboxPaymentGatewayRepo.save(sandboxPayment);
@@ -886,7 +887,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                         HttpStatus.CREATED);
                 sandboxPayment.setTranId(strLong);
 //                    sandboxPayment.setTranId(tran.getTranId());
-                sandboxPayment.setTranDate(LocalDateTime.now());
+                sandboxPayment.setTranDate(currentAccurateTime());
                 sandboxPayment.setRcre_time(LocalDateTime.now());
                 sandboxPayment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL);
                 sandboxPayment.setChannel(PaymentChannel.WALLET);
@@ -977,7 +978,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     response = new ResponseEntity<>(new SuccessResponse("SUCCESS TRANSACTION", tran.getTranId()),
                             HttpStatus.CREATED);
                     payment.setTranId(tran.getTranId());
-                    payment.setTranDate(LocalDateTime.now());
+                    payment.setTranDate(currentAccurateTime());
                     payment.setRcre_time(LocalDateTime.now());
                     payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.SUCCESSFUL);
                     payment.setChannel(PaymentChannel.WALLET);
@@ -1076,7 +1077,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             if (tranRep != null) {
                 tranRep.setName(profile.getData().getOtherDetails().getOrganisationName());
                 response = new ResponseEntity<>(new SuccessResponse("SUCCESS GENERATED", tranRep), HttpStatus.CREATED);
-                payment.setTranDate(LocalDateTime.now());
+                payment.setTranDate(currentAccurateTime());
                 payment.setRcre_time(LocalDateTime.now());
                 paymentGatewayRepo.save(payment);
             }
@@ -1144,7 +1145,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setSecretKey(vt);
             payment.setTranId(account.getReferenceNo());
             payment.setPreferenceNo(account.getReferenceNo());
-            payment.setTranDate(LocalDateTime.now());
+            payment.setTranDate(currentAccurateTime());
             payment.setRcre_time(LocalDateTime.now());
             paymentGatewayRepo.save(payment);
             return new ResponseEntity<>(new SuccessResponse("SUCCESS WALLET", strLong), HttpStatus.CREATED);
@@ -1203,7 +1204,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             payment.setSecretKey(vt);
             payment.setTranId(ussdRequest.getReferenceNo());
             payment.setPreferenceNo(ussdRequest.getReferenceNo());
-            payment.setTranDate(LocalDateTime.now());
+            payment.setTranDate(currentAccurateTime());
             payment.setRcre_time(LocalDateTime.now());
             payment.setMerchantName(profile.getData().getOtherDetails().getOrganisationName());
             payment.setCustomerName(ussdRequest.getCustomer().getName());

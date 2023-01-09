@@ -89,11 +89,11 @@ public class TransactionsSettlementController {
         ));
     }
 
-//    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/stats")
-//    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
-//    @ApiOperation(value = "Fetch settlement stats for admin or a merchant", notes = "Transaction settlement report for admin or merchant", tags = {"TRANSACTIONS-SETTLEMENT"})
-//    public ResponseEntity<PaymentGatewayResponse> getSettlementStats(
-//            @RequestParam(value = "merchantId", required = false) final String merchantId) {
-//        return transactionSettlementService.getSettlementStats(merchantId);
-//    }
+    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "/report/stats")
+    @ApiImplicitParams({@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true, dataType = "string", dataTypeClass = String.class)})
+    @ApiOperation(value = "Fetch settlement stats for admin or a merchant", notes = "Transaction settlement report for admin or merchant", tags = {"TRANSACTIONS-SETTLEMENT"})
+    public ResponseEntity<PaymentGatewayResponse> getSettlementStats(
+            @RequestParam(value = "merchantId", required = false) final String merchantId) {
+        return transactionSettlementService.getSettlementStats(merchantId);
+    }
 }

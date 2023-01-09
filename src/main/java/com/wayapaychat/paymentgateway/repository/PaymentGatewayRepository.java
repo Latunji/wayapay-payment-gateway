@@ -58,7 +58,7 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND status = 'SUCCESSFUL' AND settlement_status='PENDING'", nativeQuery = true)
     List<PaymentGateway> getAllTransactionNotSettled();
 
-    @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND status = 'SUCCESSFUL' AND settlement_status='PENDING' AND merchant_id=:merchantId ", nativeQuery = true)
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND status = 'SUCCESSFUL' AND settlement_status='PENDING' AND sent_for_settlement=false AND merchant_id=:merchantId ", nativeQuery = true)
     List<PaymentGateway> getAllTransactionNotSettled(String merchantId);
 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND (status = 'PENDING' OR status='FAILED') " +
@@ -83,6 +83,6 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE settlement_reference_id=:settlementReferenceId AND del_flg=false ", nativeQuery = true)
     Optional<PaymentGateway> getTransactionSettlementBySettlementReferenceId(String settlementReferenceId);
 
-    @Query(value = "SELECT * FROM m_payment_gateway WHERE merchant_id=:merchantId AND settlement_status= 'PENDING'", nativeQuery = true)
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE merchant_id=:merchantId AND settlement_status= 'PENDING' AND sent_for_settlement=true", nativeQuery = true)
     List<PaymentGateway> findTransactionsByMerchantAndSettlementStatus(String merchantId);
 }

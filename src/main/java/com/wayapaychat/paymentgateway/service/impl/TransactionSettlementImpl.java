@@ -18,6 +18,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.SettlementQueryPojo;
 import com.wayapaychat.paymentgateway.pojo.waya.SuccessResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementStats;
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementsResponse;
 import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
@@ -63,13 +64,9 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
             MerchantData merchantData = merchantResponse.getData();
             mode = merchantData.getMerchantKeyMode();
         }
-//        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
-//        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_DASHBOARD_OVERVIEW)) {
-            TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse, mode);
+
+        TransactionSettlementsResponse data = transactionSettlementDAO.merchantTransactionSettlementStats(merchantIdToUse, mode);
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", data), HttpStatus.OK);
-//        }else{
-//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-//        }
     }
 
     @Override
@@ -157,6 +154,7 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
     @Override
     public PaymentListResponse fetchAllMerchantTransactionsPendingSettlement(String merchantId) {
         List<PaymentGateway> allPayments = paymentGatewayRepository.getAllTransactionNotSettled(merchantId);
+        allPayments.stream().forEach(payment -> payment.setSentForSettlement(Boolean.TRUE));
         return new PaymentListResponse(true, "Retrieved Successfully", allPayments);
     }
 }

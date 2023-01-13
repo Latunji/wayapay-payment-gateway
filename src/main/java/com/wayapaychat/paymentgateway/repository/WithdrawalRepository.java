@@ -15,7 +15,7 @@ public interface WithdrawalRepository extends JpaRepository<Withdrawals, Long> {
     List<Withdrawals> findByWithdrawalStatus(String merchantId);
 
     @Query(value = "SELECT * FROM m_withdrawal WHERE " +
-            "AND merchant_id=:merchantId", nativeQuery = true)
+            " merchant_id=:merchantId", nativeQuery = true)
     List<Withdrawals> findAll(String merchantId, Pageable pageable);
 
 }

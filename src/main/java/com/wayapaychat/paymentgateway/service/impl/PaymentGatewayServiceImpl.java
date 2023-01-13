@@ -1492,6 +1492,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
         MerchantResponse merchant = null;
         BigDecimal totalWithdrawals;
+        Map<String, Object> result = new HashMap<>();
         // get merchant data
         try {
             merchant = merchantProxy.getMerchantInfo(token, merchantId);
@@ -1509,12 +1510,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
         List<Withdrawals> withdrawalsList = withdrawalRepository.findByWithdrawalStatus(merchantId);
         if(withdrawalsList.isEmpty()) {
-            return new PaymentGatewayResponse(false, "No withdrawal history", null);
+            result.put("Total Withdrawal", 0);
+            return new PaymentGatewayResponse(false, "No withdrawal history", result);
         }
             totalWithdrawals = withdrawalsList.stream()
                 .map(Withdrawals::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-            return new PaymentGatewayResponse(true, "Data Retrieved Successfully", totalWithdrawals);
+            result.put("Total Withdrawal", totalWithdrawals);
+            return new PaymentGatewayResponse(true, "Data Retrieved Successfully", result);
     }
 
     @Override

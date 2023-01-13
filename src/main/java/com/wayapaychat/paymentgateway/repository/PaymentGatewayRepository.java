@@ -74,10 +74,10 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE ref_no IN (?1)", nativeQuery = true)
     List<PaymentGateway> findAllByDelimiters(String delimitedRefNo);
 
-    @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND status = 'SUCCESSFUL' AND settlement_status='PENDING' WHERE merchant_id=:merchantId", nativeQuery = true)
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND status = 'SUCCESSFUL' AND settlement_status='PENDING' AND merchant_id=:merchantId", nativeQuery = true)
     List<PaymentGateway> findPaymentBySuccessfulStatus(String merchantId);
 
-    @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND status = 'SUCCESSFUL' AND settlement_status='SETTLED' WHERE merchant_id=:merchantId", nativeQuery = true)
+    @Query(value = "SELECT * FROM m_payment_gateway WHERE del_flg=false AND status = 'SUCCESSFUL' AND settlement_status='SETTLED' AND merchant_id=:merchantId", nativeQuery = true)
     List<PaymentGateway> findPaymentBySettledStatus(String merchantId);
 
     @Query(value = "SELECT * FROM m_payment_gateway WHERE settlement_reference_id=:settlementReferenceId AND del_flg=false ", nativeQuery = true)

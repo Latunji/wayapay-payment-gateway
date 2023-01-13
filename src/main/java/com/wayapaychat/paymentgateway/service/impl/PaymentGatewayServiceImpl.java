@@ -94,6 +94,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private SandboxPaymentGatewayRepository sandboxPaymentGatewayRepo;
     @Autowired
+    private SandboxTransactionSettlementRepository sandboxTransactionSettlementRepository;
+    @Autowired
     private WalletProxy wallProxy;
     @Autowired
     private NIPTransferProxy nipTransferProxy;
@@ -907,7 +909,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
                 //save settlement
                 DefaultWalletResponse merchantDefaultWallet = walletProxy.getUserDefaultWalletAccount(token, mAuth.getId());
-                TransactionSettlement transactionSettlement = new TransactionSettlement();
+                SandboxTransactionSettlement transactionSettlement = new SandboxTransactionSettlement();
                 transactionSettlement.setSettlementReferenceId(sandboxPayment.getTranId());
                 transactionSettlement.setMerchantId(sandboxPayment.getMerchantId());
                 transactionSettlement.setSettlementNetAmount(sandboxPayment.getAmount());
@@ -917,8 +919,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
                 transactionSettlement.setCreatedBy(mAuth.getId());
                 transactionSettlement.setDateCreated(LocalDateTime.now());
-                log.info("Saving Settlement Object :::: "+transactionSettlement);
-                transactionSettlementRepository.save(transactionSettlement);
+                log.info("Saving Settlement Object Sandbox :::: "+transactionSettlement);
+                sandboxTransactionSettlementRepository.save(transactionSettlement);
 
 //                    wallet.setPaymentDescription(tran.getTranNarrate());
 //                    wallet.setPaymentReference(tran.getPaymentReference());
@@ -1484,6 +1486,62 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
     }
     
+    @Override
+    public PaymentGatewayResponse withdrawStats(HttpServletRequest request, String merchantId, String token) {
+        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, true);
+
+        MerchantResponse merchant = null;
+        BigDecimal totalWithdrawals;
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+
+        List<Withdrawals> withdrawalsList = withdrawalRepository.findByWithdrawalStatus(merchantId);
+        if(withdrawalsList.isEmpty()) {
+            return new PaymentGatewayResponse(false, "No withdrawal history", null);
+        }
+            totalWithdrawals = withdrawalsList.stream()
+                .map(Withdrawals::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            return new PaymentGatewayResponse(true, "Data Retrieved Successfully", totalWithdrawals);
+    }
+
+    @Override
+    public PaymentGatewayResponse withdrawalHistory(HttpServletRequest request, String merchantId, String token, Pageable pageable) {
+        @NotNull final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId, true);
+
+        MerchantResponse merchant = null;
+        String strLong = Utility.transactionId();
+        // get merchant data
+        try {
+            merchant = merchantProxy.getMerchantInfo(token, merchantId);
+            if (!merchant.getCode().equals("00") || (merchant == null)) {
+                return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+        }
+        List<Withdrawals> withdrawalsList = withdrawalRepository.findAll(merchantId, pageable);
+        return new PaymentGatewayResponse(true, "Data Retrieved Successfully", withdrawalsList);
+
+    }
+
     @Override
     public PaymentGatewayResponse adminWithdrawFromWallet(HttpServletRequest request, AdminWayaWithdrawal wayaWalletWithdrawal, String token) {
         MerchantResponse merchant = null;

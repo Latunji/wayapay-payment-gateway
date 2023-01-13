@@ -6,6 +6,7 @@ import com.wayapaychat.paymentgateway.common.utils.PaymentGateWayCommonUtils;
 import com.wayapaychat.paymentgateway.dao.TransactionSettlementDAO;
 import com.wayapaychat.paymentgateway.dao.WayaPaymentDAO;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
+import com.wayapaychat.paymentgateway.entity.SandboxTransactionSettlement;
 import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import com.wayapaychat.paymentgateway.enumm.MerchantPermissions;
 import com.wayapaychat.paymentgateway.enumm.SettlementStatus;
@@ -22,6 +23,8 @@ import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementStats
 import com.wayapaychat.paymentgateway.pojo.waya.stats.TransactionSettlementsResponse;
 import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
+import com.wayapaychat.paymentgateway.repository.SandboxPaymentGatewayRepository;
+import com.wayapaychat.paymentgateway.repository.SandboxTransactionSettlementRepository;
 import com.wayapaychat.paymentgateway.repository.TransactionSettlementRepository;
 import com.wayapaychat.paymentgateway.service.TransactionSettlementService;
 import lombok.AllArgsConstructor;
@@ -41,7 +44,11 @@ import java.util.List;
 @AllArgsConstructor
 public class TransactionSettlementImpl implements TransactionSettlementService {
     private TransactionSettlementRepository transactionSettlementRepository;
+
+    private SandboxTransactionSettlementRepository sandboxTransactionSettlementRepository;
     private PaymentGatewayRepository paymentGatewayRepository;
+
+    private SandboxPaymentGatewayRepository sandboxPaymentGatewayRepository;
     private final IdentityManagementServiceProxy identityManagementServiceProxy;
     private final PaymentGateWayCommonUtils paymentGateWayCommonUtils;
     private TransactionSettlementDAO transactionSettlementDAO;
@@ -118,16 +125,19 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
         String token = paymentGateWayCommonUtils.getDaemonAuthToken();
         MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, merchantId);
         String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(merchantId,false);
-
+        MerchantData merchantData = merchantResponse.getData();
+        String mode = merchantData.getMerchantKeyMode();
+        Page<TransactionSettlement> transactionSettlement;
+        Page<SandboxTransactionSettlement> sandboxTransactionSettlement;
 //        RolePermissionResponsePayload response = roleProxy.fetchUserRoleAndPermissions(merchantResponse.getData().getUserId(), token);
 //        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
-        Page<TransactionSettlement> transactionSettlement = transactionSettlementRepository.findAll(merchantId, pageable);
-//            data = wayaPaymentDAO.getAllTransactionSettlement(settlementQueryPojo, merchantIdToUse, pageable);
+        if(mode.equals(MerchantTransactionMode.PRODUCTION.name())) {
+            transactionSettlement = transactionSettlementRepository.findAll(merchantId, pageable);
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", transactionSettlement), HttpStatus.OK);
-//        }else{
-//            return new ResponseEntity<>(new SuccessResponse(Constant.PERMISSION_ERROR), HttpStatus.NOT_FOUND);
-//
-//        }
+        }else{
+            sandboxTransactionSettlement = sandboxTransactionSettlementRepository.findAll(merchantId, pageable);
+            return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", sandboxTransactionSettlement), HttpStatus.OK);
+        }
     }
 
     @Override

@@ -1,13 +1,11 @@
 package com.wayapaychat.paymentgateway.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.wayapaychat.paymentgateway.common.utils.PageableResponseUtil;
 import com.wayapaychat.paymentgateway.pojo.unifiedpayment.*;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDPayment;
 import com.wayapaychat.paymentgateway.pojo.ussd.WayaUSSDRequest;
-import com.wayapaychat.paymentgateway.pojo.waya.AdminWayaWithdrawal;
-import com.wayapaychat.paymentgateway.pojo.waya.CardTokenization;
-import com.wayapaychat.paymentgateway.pojo.waya.ChargeCard;
-import com.wayapaychat.paymentgateway.pojo.waya.PaymentGatewayResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.*;
 import com.wayapaychat.paymentgateway.pojo.waya.wallet.*;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import com.wayapaychat.paymentgateway.service.PaymentGatewayService;
@@ -119,6 +117,23 @@ public class PaymentGatewayController {
     public PaymentGatewayResponse withdrawFromWallet(HttpServletRequest request, @RequestBody WayaWalletWithdrawal walletPayment,
             @RequestHeader("Authorization") String token) throws JsonProcessingException {
         return paymentGatewayService.withdrawFromWallet(request, walletPayment, token);
+    }
+
+    @ApiOperation(value = "Withdrawal Stats", notes = "This endpoint allows merchant to view withdrawal stats", tags = {"PAYMENT-GATEWAY"})
+    @GetMapping("/wallet/withdrawal/stats/{merchantId}")
+    public PaymentGatewayResponse withdrawWalletStats(HttpServletRequest request, @PathVariable("merchantId") String merchantId,
+                                                     @RequestHeader("Authorization") String token) throws JsonProcessingException {
+        return paymentGatewayService.withdrawStats(request, merchantId, token);
+    }
+
+    @ApiOperation(value = "Withdrawal History", notes = "This endpoint allows merchant to view withdrawal history", tags = {"PAYMENT-GATEWAY"})
+    @PostMapping("/wallet/withdrawal/history")
+    public PaymentGatewayResponse withdrawalHistory(HttpServletRequest request, @RequestParam("merchantId") String merchantId,
+                                                      @RequestHeader("Authorization") String token, @RequestBody PaginationPojo paginationPojo) throws JsonProcessingException {
+        return paymentGatewayService.withdrawalHistory(request, merchantId, token, PageableResponseUtil.createPageRequest(paginationPojo.getPage(),
+                paginationPojo.getSize(), paginationPojo.getOrder(),
+                paginationPojo.getSortBy(), true, "withdrawal_date"
+        ));
     }
 
     @ApiOperation(value = "Admin Withdraw For Merchant", notes = "This endpoint allows admin withdraw from merchant wallet balance", tags = {"PAYMENT-GATEWAY"})

@@ -1,6 +1,7 @@
 package com.wayapaychat.paymentgateway.repository;
 
 import com.wayapaychat.paymentgateway.entity.SandboxTransactionSettlement;
+import com.wayapaychat.paymentgateway.entity.TransactionSettlement;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,6 +37,9 @@ public interface SandboxTransactionSettlementRepository extends JpaRepository<Sa
 
     @Query(value = "SELECT * FROM m_sandbox_transaction_settlement WHERE deleted = false AND settlement_status = 'PENDING' ", nativeQuery = true)
     List<SandboxTransactionSettlement> findAllMerchantSettlementPending();
+
+//    @Query(value = "SELECT * FROM m_sandbox_transaction_settlement WHERE merchant_id=:merchantId ", nativeQuery = true)
+//    Page<SandboxTransactionSettlement> findAll(String merchantId, Pageable pageable);
 
     @Query(value = "SELECT * FROM m_sandbox_transaction_settlement WHERE deleted = false AND merchant_id=:merchantId ", nativeQuery = true)
     Page<SandboxTransactionSettlement> findAll(String merchantId, Pageable pageable);

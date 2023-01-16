@@ -38,6 +38,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -133,9 +134,11 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
 //        if (response.getPermissions().contains(MerchantPermissions.CAN_VIEW_SETTLEMENTS)) {
         if(mode.equals(MerchantTransactionMode.PRODUCTION.name())) {
             transactionSettlement = transactionSettlementRepository.findAll(merchantId, pageable);
+            log.info("FETCHING PRODUCTION SETTLEMENTS :::: "+transactionSettlement.get().collect(Collectors.toList()).size());
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", transactionSettlement), HttpStatus.OK);
         }else{
             sandboxTransactionSettlement = sandboxTransactionSettlementRepository.findAll(merchantId, pageable);
+            log.info("FETCHING SANDBOX SETTLEMENTS :::: "+sandboxTransactionSettlement.get().collect(Collectors.toList()).size());
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", sandboxTransactionSettlement), HttpStatus.OK);
         }
     }

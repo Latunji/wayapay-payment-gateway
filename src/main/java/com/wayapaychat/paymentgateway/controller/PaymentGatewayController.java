@@ -303,4 +303,14 @@ public class PaymentGatewayController {
                 cardToken, token);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
+
+    @ApiOperation(value = "Charge with token", notes = "This endpoint allows charge with token", tags = {"PAYMENT-GATEWAY"})
+    @PostMapping("/card/charge")
+    public ResponseEntity<?> chargeWithToken(@RequestParam String customerId, @RequestParam String amount,
+            @RequestParam String transactionRef, @RequestParam String cardToken,
+            @RequestHeader("Authorization") String token) {
+        ResponseEntity<?> resp = paymentGatewayService.chargeWithToken(customerId, transactionRef,
+                cardToken, amount, token);
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 }

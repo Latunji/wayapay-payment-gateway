@@ -1360,6 +1360,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
         MerchantResponse merchant = null;
         String mode = null;
+        BigDecimal successfulTransactions;
+        BigDecimal successfulSettlements;
+        BigDecimal successfulWithdrawals;
         // get merchant data
         try {
             merchant = merchantProxy.getMerchantInfo(token, merchantId);
@@ -1379,24 +1382,33 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         List<PaymentGateway> totalSuccessfulTransactions = paymentGatewayRepo.findPaymentBySuccessfulStatus(merchantId);
         List<PaymentGateway> totalTransactionsSettled = paymentGatewayRepo.findPaymentBySettledStatus(merchantId);
         List<Withdrawals> totalWithdrawals = withdrawalRepository.findByWithdrawalStatus(merchantId);
-        BigDecimal successfulTransactions = totalSuccessfulTransactions.stream()
-                .map(x -> x.getAmount())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal successfulSettlements = totalTransactionsSettled.stream()
-                .map(x -> x.getAmount())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal successfulWithdrawals = totalWithdrawals.stream()
-                .map(x -> x.getAmount())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal allWithdrawals = successfulWithdrawals.add(successfulSettlements);
-        BigDecimal merchantWalBal = successfulTransactions.subtract(allWithdrawals);
-        if((merchantWalBal != null) && (merchantWalBal.doubleValue() >= 0)) {
-            return new PaymentGatewayResponse(Constant.OPERATION_SUCCESS, merchantWalBal);
-        }else{
-            return new PaymentGatewayResponse(Constant.ERROR_PROCESSING, null);
+        if(totalSuccessfulTransactions.isEmpty()) {
+            successfulTransactions = BigDecimal.ZERO;
+        }else {
+            successfulTransactions = totalSuccessfulTransactions.stream()
+                    .map(x -> x.getAmount())
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
+        if(totalTransactionsSettled.isEmpty()){
+            successfulSettlements = BigDecimal.ZERO;
+        }else {
+            successfulSettlements = totalTransactionsSettled.stream()
+                    .map(x -> x.getAmount())
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+        if(totalWithdrawals.isEmpty()){
+            successfulWithdrawals = BigDecimal.ZERO;
+        }else{
+            successfulWithdrawals = totalWithdrawals.stream()
+                    .map(x -> x.getAmount())
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+        BigDecimal allWithdrawals = successfulWithdrawals.add(successfulSettlements);
+        log.info("All withdrawals ::::: "+allWithdrawals);
+        BigDecimal merchantWalBal = successfulTransactions.subtract(allWithdrawals);
+        log.info("Merchant Wallet Bal ::::: "+merchantWalBal);
+            return new PaymentGatewayResponse(Constant.OPERATION_SUCCESS, merchantWalBal);
+
     }
 
     @Override

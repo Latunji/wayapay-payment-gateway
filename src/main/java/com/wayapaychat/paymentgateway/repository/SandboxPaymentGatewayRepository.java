@@ -1,5 +1,6 @@
 package com.wayapaychat.paymentgateway.repository;
 
+import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.SandboxPaymentGateway;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,12 @@ public interface SandboxPaymentGatewayRepository extends JpaRepository<SandboxPa
 
     @Query(value = "select * from m_sandbox_payment_gateway WHERE merchant_id =:mechtId AND del_flg = false ORDER BY rcre_time DESC", nativeQuery = true)
     List<SandboxPaymentGateway> findByMerchantPayment(String mechtId);
+
+    @Query(value = "SELECT * FROM m_sandbox_payment_gateway WHERE status = 'SUCCESSFUL' AND settlement_status='PENDING' AND merchant_id=:merchantId", nativeQuery = true)
+    List<PaymentGateway> findPaymentBySuccessfulStatus(String merchantId);
+
+    @Query(value = "SELECT * FROM m_sandbox_payment_gateway WHERE status = 'SUCCESSFUL' AND settlement_status='SETTLED' AND merchant_id=:merchantId", nativeQuery = true)
+    List<PaymentGateway> findPaymentBySettledStatus(String merchantId);
 
     @Query(value = "SELECT * FROM m_sandbox_payment_gateway WHERE merchant_id IS NOT NULL AND del_flg = false ORDER BY rcre_time DESC", nativeQuery = true)
     List<SandboxPaymentGateway> findByMerchantPayment();

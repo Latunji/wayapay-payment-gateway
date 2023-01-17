@@ -1411,9 +1411,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     .map(x -> x.getAmount())
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
-        log.info("All settlements ::::: "+successfulSettlements);
+        log.info("All Successful settlements ::::: "+successfulSettlements);
         BigDecimal allWithdrawals = successfulWithdrawals.add(successfulSettlements);
+        log.info("All Successful withdrawals ::::: "+successfulWithdrawals);
         log.info("All withdrawals ::::: "+allWithdrawals);
+        log.info("All Successful Transactions ::::: "+successfulTransactions);
         BigDecimal merchantWalBal = successfulTransactions.subtract(allWithdrawals);
         log.info("Merchant Wallet Bal ::::: "+merchantWalBal);
         return new ResponseEntity<>(new SuccessResponse(Constant.OPERATION_SUCCESS, merchantWalBal), HttpStatus.OK);

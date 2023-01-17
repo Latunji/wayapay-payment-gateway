@@ -105,11 +105,8 @@ public class PaymentGatewayController {
     @GetMapping("/wallet/balance/{merchantId}")
     public ResponseEntity<?> getWalletBalance(HttpServletRequest request, @PathVariable("merchantId") final String merchantId,
             @RequestHeader("Authorization") String token) throws JsonProcessingException {
-        PaymentGatewayResponse resp = paymentGatewayService.getWalletBalance(request, merchantId, token);
-        if (!resp.getStatus()) {
-            return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(resp, HttpStatus.OK);
+      return paymentGatewayService.getWalletBalance(request, merchantId, token);
+
     }
 
     @ApiOperation(value = "Withdraw From Wallet", notes = "This endpoint allows merchant withdraw from wallet balance", tags = {"PAYMENT-GATEWAY"})

@@ -48,7 +48,7 @@ public interface PaymentGatewayService {
 
     ResponseEntity<?> fetchAllMerchantTransactions(String merchantId, String token);
 
-    PaymentGatewayResponse getWalletBalance(HttpServletRequest request, String merchantId, String token);
+    ResponseEntity<PaymentGatewayResponse> getWalletBalance(HttpServletRequest request, String merchantId, String token);
 
     PaymentGatewayResponse withdrawFromWallet(HttpServletRequest request, WayaWalletWithdrawal wayaWalletWithdrawal, String token);
     PaymentGatewayResponse withdrawStats(HttpServletRequest request, String merchantId, String token);

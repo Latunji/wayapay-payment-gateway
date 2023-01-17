@@ -138,7 +138,9 @@ public class TransactionSettlementImpl implements TransactionSettlementService {
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", transactionSettlement), HttpStatus.OK);
         }else{
             sandboxTransactionSettlement = sandboxTransactionSettlementRepository.findAll(merchantId, pageable);
-            log.info("FETCHING SANDBOX SETTLEMENTS :::: "+sandboxTransactionSettlement.get().collect(Collectors.toList()).size());
+            sandboxTransactionSettlement.forEach(s -> {
+                s.setDateSettled(s.getMerchantConfiguredSettlementDate());
+            });
             return new ResponseEntity<>(new SuccessResponse("Data successfully fetched", sandboxTransactionSettlement), HttpStatus.OK);
         }
     }

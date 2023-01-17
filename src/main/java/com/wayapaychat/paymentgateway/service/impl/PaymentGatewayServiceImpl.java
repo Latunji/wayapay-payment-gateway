@@ -2271,4 +2271,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
+
+    @Override
+    public ResponseEntity<?> chargeWithToken(String customerId, String transactionRef, String cardToken, String amount, String token) {
+        TokenizePaymentResponse tokenPayment = new TokenizePaymentResponse();
+        tokenPayment.setAmount(amount);
+        tokenPayment.setMessage("Charge Successful");
+        tokenPayment.setTransactionRef(transactionRef);
+        return new ResponseEntity<>(tokenPayment, HttpStatus.CREATED);
+    }
 }

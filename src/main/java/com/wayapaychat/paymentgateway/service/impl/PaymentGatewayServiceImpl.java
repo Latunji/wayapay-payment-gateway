@@ -1365,6 +1365,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         BigDecimal successfulWithdrawals;
         List<PaymentGateway> totalSuccessfulTransactions;
         List<PaymentGateway> totalTransactionsSettled;
+        HashMap<String, Object> bal = new HashMap<>();
 
         // get merchant data
         try {
@@ -1418,7 +1419,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         log.info("All Successful Transactions ::::: "+successfulTransactions);
         BigDecimal merchantWalBal = successfulTransactions.subtract(allWithdrawals);
         log.info("Merchant Wallet Bal ::::: "+merchantWalBal);
-        return new ResponseEntity<>(new SuccessResponse(Constant.OPERATION_SUCCESS, merchantWalBal), HttpStatus.OK);
+        bal.put("balance", merchantWalBal);
+        return new ResponseEntity<>(new SuccessResponse(Constant.OPERATION_SUCCESS, bal), HttpStatus.OK);
 
     }
 
@@ -1456,9 +1458,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         log.info("Default Wallet Response::::"+ defaultWalletResponse);
 //        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
         log.info(" Wallet Data::::"+ defaultWalletResponse.getData());
-        log.info(" Wallet Bal::::"+ defaultWalletResponse.getData().getClrBalAmt());
+        log.info(" Wallet Bal::::"+ defaultWalletResponse.getData().getClr_bal_amt());
         log.info(" Amount To Withdraw ::::"+ wayaWalletWithdrawal.getAmount());
-        if(wayaWalletWithdrawal.getAmount() <= defaultWalletResponse.getData().getClrBalAmt()) {
+        if(wayaWalletWithdrawal.getAmount() <= defaultWalletResponse.getData().getClr_bal_amt()) {
             log.info(" Got here 1::::");
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
@@ -1593,7 +1595,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
 
         DefaultWalletResponse defaultWalletResponse = walletProxy.getUserDefaultWalletAccount(token, merchant.getData().getUserId());
-        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
+        double walletBal = defaultWalletResponse.getData().getClr_bal_amt();
         if(Double.valueOf(wayaWalletWithdrawal.getAmount()) <= walletBal) {
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");

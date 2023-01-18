@@ -1365,6 +1365,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         BigDecimal successfulWithdrawals;
         List<PaymentGateway> totalSuccessfulTransactions;
         List<PaymentGateway> totalTransactionsSettled;
+        HashMap<String, Object> bal = new HashMap<>();
 
         // get merchant data
         try {
@@ -1418,7 +1419,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         log.info("All Successful Transactions ::::: "+successfulTransactions);
         BigDecimal merchantWalBal = successfulTransactions.subtract(allWithdrawals);
         log.info("Merchant Wallet Bal ::::: "+merchantWalBal);
-        return new ResponseEntity<>(new SuccessResponse(Constant.OPERATION_SUCCESS, merchantWalBal), HttpStatus.OK);
+        bal.put("balance", merchantWalBal);
+        return new ResponseEntity<>(new SuccessResponse(Constant.OPERATION_SUCCESS, bal), HttpStatus.OK);
 
     }
 

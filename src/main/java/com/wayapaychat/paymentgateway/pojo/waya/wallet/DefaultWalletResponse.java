@@ -24,6 +24,6 @@ public class DefaultWalletResponse {
     private String message;
 
     @JsonProperty("data")
-    private WalletBalanceData data;
+    private WalletData data;
 
 }

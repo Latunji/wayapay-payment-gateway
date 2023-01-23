@@ -1453,14 +1453,14 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
 
-
         DefaultWalletResponse defaultWalletResponse = walletProxy.getUserDefaultWalletAccount(token, merchant.getData().getUserId());
+
         log.info("Default Wallet Response::::"+ defaultWalletResponse);
 //        double walletBal = defaultWalletResponse.getData().getClrBalAmt();
         log.info(" Wallet Data::::"+ defaultWalletResponse.getData());
         log.info(" Wallet Bal::::"+ defaultWalletResponse.getData().getClrBalAmt());
         log.info(" Amount To Withdraw ::::"+ wayaWalletWithdrawal.getAmount());
-        if(wayaWalletWithdrawal.getAmount() <= defaultWalletResponse.getData().getClrBalAmt()) {
+//        if(wayaWalletWithdrawal.getAmount() <= defaultWalletResponse.getData().getClrBalAmt()) {
             log.info(" Got here 1::::");
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
@@ -1505,10 +1505,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 withdrawals.setMerchantUserId(merchant.getData().getUserId());
                 return new PaymentGatewayResponse(false, Constant.ERROR_PROCESSING, resp);
             }
-        }else{
-            log.info(" Got here Insufficient::::");
-            return new PaymentGatewayResponse(false, Constant.INSUFFICIENT_FUNDS, null);
-        }
+//        }else{
+//            log.info(" Got here Insufficient::::");
+//            return new PaymentGatewayResponse(false, Constant.INSUFFICIENT_FUNDS, null);
+//        }
     }
 
     @Override

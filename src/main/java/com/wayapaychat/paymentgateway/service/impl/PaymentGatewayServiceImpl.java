@@ -1436,6 +1436,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         // get merchant data
         try {
             merchant = merchantProxy.getMerchantInfo(token, wayaWalletWithdrawal.getMerchantId());
+            log.info("Merchant Validation Response ::::"+merchant);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
             }
@@ -1462,10 +1463,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         log.info(" Amount To Withdraw ::::"+ wayaWalletWithdrawal.getAmount());
 //        if(wayaWalletWithdrawal.getAmount() <= defaultWalletResponse.getData().getClrBalAmt()) {
             log.info(" Got here 1::::");
+            log.info("Withdrawal Req :::::"+wayaWalletWithdrawal);
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
+            log.info(" Got here 11::::");
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
+            log.info(" Got here 11....::::");
             withdrawalRequest.setBankCode(wayaWalletWithdrawal.getBankCode());
+            log.info(" Got here 111::::");
             withdrawalRequest.setBankName(wayaWalletWithdrawal.getBankName());
+            log.info(" Got here 1111::::");
             withdrawalRequest.setCrAccount(wayaWalletWithdrawal.getAccountNo());
             log.info(" Got here 2::::");
             withdrawalRequest.setCrAccountName(wayaWalletWithdrawal.getAccountName());

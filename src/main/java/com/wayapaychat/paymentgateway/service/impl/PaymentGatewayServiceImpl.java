@@ -1436,6 +1436,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         // get merchant data
         try {
             merchant = merchantProxy.getMerchantInfo(token, wayaWalletWithdrawal.getMerchantId());
+            log.info("Merchant Validation Response ::::"+merchant);
             if (!merchant.getCode().equals("00") || (merchant == null)) {
                 return new PaymentGatewayResponse("Profile doesn't exist", HttpStatus.NOT_FOUND);
             }

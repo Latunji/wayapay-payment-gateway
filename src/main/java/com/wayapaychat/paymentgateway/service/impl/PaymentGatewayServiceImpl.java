@@ -1414,11 +1414,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
         log.info("All Successful settlements ::::: "+successfulSettlements);
-        BigDecimal allWithdrawals = successfulWithdrawals.add(successfulSettlements);
+//        BigDecimal allWithdrawals = successfulWithdrawals.add(successfulSettlements);
         log.info("All Successful withdrawals ::::: "+successfulWithdrawals);
-        log.info("All withdrawals ::::: "+allWithdrawals);
+//        log.info("All withdrawals ::::: "+allWithdrawals);
         log.info("All Successful Transactions ::::: "+successfulTransactions);
-        BigDecimal merchantWalBal = successfulTransactions.subtract(allWithdrawals);
+        BigDecimal merchantWalBal = successfulTransactions.subtract(successfulWithdrawals);
         log.info("Merchant Wallet Bal ::::: "+merchantWalBal);
         bal.put("balance", merchantWalBal);
         return new ResponseEntity<>(new SuccessResponse(Constant.OPERATION_SUCCESS, bal), HttpStatus.OK);

@@ -1462,6 +1462,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         log.info(" Amount To Withdraw ::::"+ wayaWalletWithdrawal.getAmount());
 //        if(wayaWalletWithdrawal.getAmount() <= defaultWalletResponse.getData().getClrBalAmt()) {
             log.info(" Got here 1::::");
+            log.info("Withdrawal Req :::::"+wayaWalletWithdrawal);
             withdrawalRequest.setAmount(wayaWalletWithdrawal.getAmount());
             withdrawalRequest.setNarration("WayaQuick Credit To Customer's Account");
             withdrawalRequest.setBankCode(wayaWalletWithdrawal.getBankCode());

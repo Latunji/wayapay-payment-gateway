@@ -1431,7 +1431,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         final String merchantIdToUse = PaymentGateWayCommonUtils.getMerchantIdToUse(wayaWalletWithdrawal.getMerchantId(), true);
         
         MerchantResponse merchant = null;
-        Withdrawals withdrawals = null;
+        Withdrawals withdrawals = new Withdrawals();
         WithdrawalRequest withdrawalRequest = new WithdrawalRequest();
         String strLong = Utility.transactionId();
         // get merchant data

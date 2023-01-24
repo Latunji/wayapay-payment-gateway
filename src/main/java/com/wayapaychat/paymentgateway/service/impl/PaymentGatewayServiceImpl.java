@@ -1431,7 +1431,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         
         MerchantResponse merchant = null;
         Withdrawals withdrawals = null;
-        WithdrawalRequest withdrawalRequest = null;
+        WithdrawalRequest withdrawalRequest = new WithdrawalRequest();
         String strLong = Utility.transactionId();
         // get merchant data
         try {

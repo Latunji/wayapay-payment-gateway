@@ -1382,22 +1382,23 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             log.error("Higher Wahala {}", ex.getMessage());
             log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
         }
-
+        TransactionRevenueStats transactionRevenueStats = wayaPaymentDAO.getTransactionGrossAndNetRevenue(merchantIdToUse, mode);
+        successfulTransactions = transactionRevenueStats.getGrossRevenue();
         if(mode.equals(MerchantTransactionMode.PRODUCTION.name())){
-            totalSuccessfulTransactions = sandboxPaymentGatewayRepo.findPaymentBySuccessfulStatus(merchantId);
+//            totalSuccessfulTransactions = sandboxPaymentGatewayRepo.findPaymentBySuccessfulStatus(merchantId);
             totalTransactionsSettled = sandboxPaymentGatewayRepo.findPaymentBySettledStatus(merchantId);
         }else{
             totalSuccessfulTransactions = paymentGatewayRepo.findPaymentBySuccessfulStatus(merchantId);
             totalTransactionsSettled = paymentGatewayRepo.findPaymentBySettledStatus(merchantId);
         }
         List<Withdrawals> totalWithdrawals = withdrawalRepository.findByWithdrawalStatus(merchantId);
-        if(totalSuccessfulTransactions.isEmpty()) {
-            successfulTransactions = BigDecimal.ZERO;
-        }else {
-            successfulTransactions = totalSuccessfulTransactions.stream()
-                    .map(x -> x.getAmount())
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-        }
+//        if(totalSuccessfulTransactions.isEmpty()) {
+//            successfulTransactions = BigDecimal.ZERO;
+//        }else {
+//            successfulTransactions = totalSuccessfulTransactions.stream()
+//                    .map(x -> x.getAmount())
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+//        }
         if(totalTransactionsSettled.isEmpty()){
             successfulSettlements = BigDecimal.ZERO;
         }else {

@@ -18,6 +18,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
+import com.wayapaychat.paymentgateway.proxy.PushNotifier;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -106,8 +107,21 @@ public class PaymemtGatewayEntityListener {
     public void sendTransactionNotificationAfterPaymentIsSuccessful(PaymentGateway paymentGateway) {
         CompletableFuture.runAsync(() -> {
             SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-            log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
-                    paymentGateway.getTranId());
+            log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------", paymentGateway.getTranId());
+
+            
+            String token = null;
+            MerchantData merchantData = new MerchantData();
+            try {
+                MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, paymentGateway.getMerchantId());
+                merchantData = merchantResponse.getData();
+                // notify the merchant via in-app
+                token = getDaemonAuthToken();
+                PushNotifier.postObjectToUrl(paymentGateway, merchantData.getMerchantWebHookURL());
+            } catch (Exception e) {
+            }
+
+
             if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
                 NotificationPojo notificationPojo = NotificationPojo
                         .builder()
@@ -127,10 +141,6 @@ public class PaymemtGatewayEntityListener {
                         .build();
                 try {
                     processEmailAlert(notificationPojo);
-                    // notify the merchant via in-app
-                    String token = getDaemonAuthToken();
-                    MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, paymentGateway.getMerchantId());
-                    MerchantData merchantData = merchantResponse.getData();
                     processInAppNotification("TRANSACTION",
                             merchantData.getUserId(),
                             String.format("You received payment of %s from %s", paymentGateway.getAmount(), paymentGateway.getCustomerName()),

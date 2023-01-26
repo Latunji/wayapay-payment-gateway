@@ -732,6 +732,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
         }
 
+        //Todo: send webhook  here
         return response;
     }
 
@@ -922,6 +923,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 log.info("Saving Settlement Object Sandbox :::: "+transactionSettlement);
                 sandboxTransactionSettlementRepository.save(transactionSettlement);
 
+                //Todo: call notification on another thread
 //                    wallet.setPaymentDescription(tran.getTranNarrate());
 //                    wallet.setPaymentReference(tran.getPaymentReference());
 //                    wallet.setTranAmount(tran.getTranAmount());
@@ -1793,7 +1795,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             preprocessSandboxTransactionStatus(sandboxPayment);
             return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
         }
-
+        //Todo: send webhook here
         return ResponseEntity.badRequest().body("Ooops! TRANSACTION DOES NOT EXIST... FAILED TO COMPLETE TRANSACTION.");
     }
 

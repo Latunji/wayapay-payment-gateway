@@ -109,16 +109,12 @@ public class PaymemtGatewayEntityListener {
             SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
             log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------", paymentGateway.getTranId());
 
-            
             String token = null;
             MerchantData merchantData = new MerchantData();
             try {
-                log.info("Pushing to merchant webhook url: {}", paymentGateway.getTranId());
+                token = getDaemonAuthToken();
                 MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, paymentGateway.getMerchantId());
                 merchantData = merchantResponse.getData();
-                // notify the merchant via in-app
-                token = getDaemonAuthToken();
-                WebhookPushClient.postObjectToUrl(paymentGateway, merchantData.getMerchantWebHookURL());
             } catch (Exception e) {
             }
 
@@ -241,5 +237,16 @@ public class PaymemtGatewayEntityListener {
                 log.info("------||||SUCCESSFULLY PUBLISHED PENDING SETTLEMENT FOR PROCESSING {}||||--------", producerMessageDto);
             }
         }
+    }
+  
+    public void pushToMerchantWebhook(PaymentGateway payment) {
+        MerchantData merchantData = new MerchantData();
+        try {
+            log.info("Pushing to merchant webhook url: {}", payment.getTranId());
+            MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(getDaemonAuthToken(), payment.getMerchantId());
+            merchantData = merchantResponse.getData();
+            WebhookPushClient.postObjectToUrl(payment, merchantData.getMerchantWebHookURL());
+        } catch (Exception e) {
+        }   
     }
 }

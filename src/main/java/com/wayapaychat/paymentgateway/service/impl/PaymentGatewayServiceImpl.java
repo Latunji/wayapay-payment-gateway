@@ -99,8 +99,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     private WalletProxy wallProxy;
     @Autowired
-    private NIPTransferProxy nipTransferProxy;
-    @Autowired
     private WayaPaymentDAO wayaPayment;
     @Autowired
     private PaymentWalletRepository paymentWalletRepo;

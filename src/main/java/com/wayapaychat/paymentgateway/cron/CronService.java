@@ -55,10 +55,10 @@ public class CronService {
     @Autowired
     private WayaPaymentDAO wayaPaymentDAO;
 
-
+//To remove
 //    @Scheduled(cron = "*/30 * * * * *") // 30sec for dev env
-    @Scheduled(cron = "* 20 * * * *") // 20min for staging and prod
-    @SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    //@Scheduled(cron = "* 20 * * * *") // 20min for staging and prod
+    //@SchedulerLock(name = "TaskScheduler_updateTransactionStatusEveryDay", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void updateTransactionStatusEveryDay() {
         log.info("----------------------------- Starting SCHEDULE -----------------------------");
         updateTransactionStatus();
@@ -144,9 +144,10 @@ public class CronService {
 //        processNextRecurrentTransaction();
 //    }
 
+    //To remove
     // s-l done
-    @Scheduled(cron = "* */30 * * * *")
-    @SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+    //@Scheduled(cron = "* */30 * * * *")
+    //@SchedulerLock(name = "TaskScheduler_expireTransactionAfterThirtyMinutes", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void expireAllTransactionOver30Mins() {
         log.info("------||| expiring transactions that have stayed more than 30min NOW |||-------");
         wayaPaymentDAO.expireAllTransactionMoreThan30Mins();

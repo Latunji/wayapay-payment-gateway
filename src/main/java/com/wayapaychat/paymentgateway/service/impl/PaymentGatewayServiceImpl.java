@@ -1875,24 +1875,27 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests) {
         
         PaymentGateway notifyPayload = new PaymentGateway();
+        // find in sandbox
+        SandboxPaymentGateway sandboxPayment = sandboxPaymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
         // find in live
         PaymentGateway payment = paymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
+        if(ObjectUtils.isEmpty(payment) && ObjectUtils.isEmpty(sandboxPayment)){
+            return ResponseEntity.badRequest().body("Ooops! TRANSACTION DOES NOT EXIST... FAILED TO COMPLETE TRANSACTION.");
+        }
+
         if (payment != null) {
             BeanUtils.copyProperties(payment, notifyPayload);
             preprocessTransactionStatus(payment);
-            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
         }
-        // find in sandbox
-        SandboxPaymentGateway sandboxPayment = sandboxPaymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
-        if (sandboxPayment != null) {
+        else if(sandboxPayment != null) {
             BeanUtils.copyProperties(sandboxPayment, notifyPayload);
             preprocessSandboxTransactionStatus(sandboxPayment);
-            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
         }
 
         notifyPayload.setStatus(TransactionStatus.valueOf(requests.getStatus()));
         paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);
-        return ResponseEntity.badRequest().body("Ooops! TRANSACTION DOES NOT EXIST... FAILED TO COMPLETE TRANSACTION.");
+        
+        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
     }
 
     // s-l done

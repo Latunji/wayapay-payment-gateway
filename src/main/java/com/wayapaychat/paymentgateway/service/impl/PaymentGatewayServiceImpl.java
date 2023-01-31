@@ -741,7 +741,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 attitude = new WayaPayattitude(tranId, pay.getCardEncrypt());
 
                 BeanUtils.copyProperties(msPay, notifyPayload);
-                notifyPayload.setOrderId(msPay.getTranId());
+                notifyPayload.setOrderId(msPay.getRefNo());
                 notifyPayload.setStatus(msPay.getStatus().name()); 
                 notifyPayload.setCustomer(new  Customer(msPay.getCustomerName(), msPay.getCustomerEmail(), msPay.getCustomerPhone(), msPay.getCustomerId()));
             }
@@ -767,7 +767,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
                 attitude = new WayaPayattitude(tranId, pay.getCardEncrypt());
                 BeanUtils.copyProperties(mPay, notifyPayload);
-                notifyPayload.setOrderId(mPay.getTranId());
+                notifyPayload.setOrderId(mPay.getRefNo());
                 notifyPayload.setStatus(mPay.getStatus().name()); 
                 notifyPayload.setCustomer(new  Customer(mPay.getCustomerName(), mPay.getCustomerEmail(),  mPay.getCustomerPhone(), mPay.getCustomerId()));
             }
@@ -982,7 +982,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 sandboxTransactionSettlementRepository.save(transactionSettlement);
                 
                 BeanUtils.copyProperties(sandboxPayment, notifyPayload); 
-                notifyPayload.setOrderId(sandboxPayment.getTranId());
+                notifyPayload.setOrderId(sandboxPayment.getRefNo());
                 notifyPayload.setStatus(sandboxPayment.getStatus().name()); 
                 notifyPayload.setCustomer(new  Customer(sandboxPayment.getCustomerName(), sandboxPayment.getCustomerEmail(),  sandboxPayment.getCustomerPhone(), sandboxPayment.getCustomerId()));
                 CompletableFuture.runAsync(() -> {paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);});
@@ -1125,7 +1125,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
                 
                 BeanUtils.copyProperties(payment, notifyPayload); 
-                notifyPayload.setOrderId(payment.getTranId());
+                notifyPayload.setOrderId(payment.getRefNo());
                 notifyPayload.setStatus(payment.getStatus().name()); 
                 notifyPayload.setCustomer(new  Customer(payment.getCustomerName(), payment.getCustomerEmail(),  payment.getCustomerPhone(), payment.getCustomerId()));
                 CompletableFuture.runAsync(() -> {  paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);  });
@@ -2016,7 +2016,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 paymentGatewayRepo.save(payment);
                 TransactionStatusResponse notifyPayload = new TransactionStatusResponse();
                 BeanUtils.copyProperties(payment, notifyPayload);
-                notifyPayload.setOrderId(payment.getTranId());
+                notifyPayload.setOrderId(payment.getRefNo());
                 notifyPayload.setStatus(payment.getStatus().name()); 
                 notifyPayload.setCustomer(new  Customer(payment.getCustomerName(), payment.getCustomerEmail(),  payment.getCustomerPhone(), payment.getCustomerId()));
                 paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);
@@ -2062,7 +2062,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
                 TransactionStatusResponse notifyPayload = new TransactionStatusResponse();
                 BeanUtils.copyProperties(payment, notifyPayload);
-                notifyPayload.setOrderId(payment.getTranId());
+                notifyPayload.setOrderId(payment.getRefNo());
                 notifyPayload.setStatus(payment.getStatus().name()); 
                 notifyPayload.setCustomer(new  Customer(payment.getCustomerName(), payment.getCustomerEmail(),  payment.getCustomerPhone(), payment.getCustomerId()));
                 paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);

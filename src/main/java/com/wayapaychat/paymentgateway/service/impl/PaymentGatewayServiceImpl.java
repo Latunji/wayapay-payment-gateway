@@ -1326,7 +1326,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             return new ResponseEntity<>(new ErrorResponse("NO PAYMENT REQUEST INITIATED"), HttpStatus.BAD_REQUEST);
         }
         com.wayapaychat.paymentgateway.enumm.TransactionStatus status = com.wayapaychat.paymentgateway.enumm.TransactionStatus
-                .valueOf(account.getStatus());
+                .valueOf(account.getStatus().toUpperCase());
         payment.setStatus(status);
         payment.setTranId(account.getTranId());
         payment.setSuccessfailure(account.isSuccessfailure());
@@ -1892,7 +1892,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             preprocessSandboxTransactionStatus(sandboxPayment);
         }
 
-        notifyPayload.setStatus(TransactionStatus.valueOf(requests.getStatus()));
+        notifyPayload.setStatus(TransactionStatus.valueOf(requests.getStatus().toUpperCase()));
         paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);
         
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();

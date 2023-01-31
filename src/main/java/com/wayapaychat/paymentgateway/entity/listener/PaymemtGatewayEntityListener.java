@@ -67,6 +67,14 @@ public class PaymemtGatewayEntityListener {
         return payData.getToken();
     }
 
+    
+
+    @Autowired
+    public void setIdentityManagementServiceProxy(IdentityManagementServiceProxy identityManagementServiceProxy) {
+        PaymemtGatewayEntityListener.identityManagementServiceProxy = identityManagementServiceProxy;
+        log.info("Initializing with dependency [" + identityManagementServiceProxy + "]");
+    }
+
     @Autowired
     public void setAuthApiClient(AuthApiClient authApiClient) {
         PaymemtGatewayEntityListener.authApiClient = authApiClient;
@@ -244,7 +252,6 @@ public class PaymemtGatewayEntityListener {
         MerchantData merchantData = new MerchantData();
         try {
             log.info("Pushing to merchant webhook trnxid: {} merchantid: {}", payment.getTranId(), payment.getMerchantId());
-            if(ObjectUtils.isEmpty(identityManagementServiceProxy)){ log.error("uninitialized identityManagementServiceProxy {}", identityManagementServiceProxy); }
             MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(getDaemonAuthToken(), payment.getMerchantId());
             merchantData = merchantResponse.getData();
             WebhookPushClient.postObjectToUrl(payment, merchantData.getMerchantWebHookURL());
@@ -252,4 +259,5 @@ public class PaymemtGatewayEntityListener {
             log.error("Error pushing to webhook url {} error {}", merchantData, e);
         }   
     }
+
 }

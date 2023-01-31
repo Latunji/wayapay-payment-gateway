@@ -1988,7 +1988,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // s-l done SANDBOX Counterpart: preprocessSandboxTransactionStatus()
     private void preprocessTransactionStatus(PaymentGateway payment) {
         try {
-            WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId(),
+            WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getRefNo(),
                     MerchantTransactionMode.PRODUCTION.name());
             log.info("-----UNIFIED PAYMENT RESPONSE {}----------", response);
             if (ObjectUtils.isNotEmpty(response)) {
@@ -2033,7 +2033,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // s-l done
     private void preprocessSandboxTransactionStatus(SandboxPaymentGateway payment) {
         try {
-            WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId(),
+            WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getRefNo(),
                     MerchantTransactionMode.TEST.name());
             log.info("-----UNIFIED PAYMENT RESPONSE {}----------", response);
             if (ObjectUtils.isNotEmpty(response)) {

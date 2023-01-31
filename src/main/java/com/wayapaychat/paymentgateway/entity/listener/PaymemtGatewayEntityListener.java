@@ -15,6 +15,7 @@ import com.wayapaychat.paymentgateway.pojo.waya.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.TransactionStatusResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
@@ -248,10 +249,10 @@ public class PaymemtGatewayEntityListener {
         }
     }
   
-    public void pushToMerchantWebhook(PaymentGateway payment) {
+    public void pushToMerchantWebhook(TransactionStatusResponse payment) {
         MerchantData merchantData = new MerchantData();
         try {
-            log.info("Pushing to merchant webhook trnxid: {} merchantid: {}", payment.getTranId(), payment.getMerchantId());
+            log.info("Pushing to merchant webhook trnxid: {} merchantid: {}", payment.getOrderId(), payment.getMerchantId());
             MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(getDaemonAuthToken(), payment.getMerchantId());
             merchantData = merchantResponse.getData();
             WebhookPushClient.postObjectToUrl(payment, merchantData.getMerchantWebHookURL());

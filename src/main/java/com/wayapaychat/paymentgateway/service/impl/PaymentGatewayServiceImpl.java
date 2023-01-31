@@ -717,7 +717,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         String tranId = null;
         WayaPayattitude attitude = null;
         String mode = "";
-        PaymentGateway notifyPayload = new PaymentGateway();
+        TransactionStatusResponse notifyPayload = new TransactionStatusResponse();
 
         if (pay.getTranId().startsWith("7263269")) { // merchant transacts in test mode
             mode = MerchantTransactionMode.TEST.name();
@@ -739,7 +739,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 msPay.setTranId(tranId);
                 sandboxPaymentGatewayRepo.save(msPay);
                 attitude = new WayaPayattitude(tranId, pay.getCardEncrypt());
+
                 BeanUtils.copyProperties(msPay, notifyPayload);
+                notifyPayload.setOrderId(msPay.getTranId());
+                notifyPayload.setStatus(msPay.getStatus().name()); 
+                notifyPayload.setCustomer(new  Customer(msPay.getCustomerName(), msPay.getCustomerEmail(), msPay.getCustomerPhone(), msPay.getCustomerId()));
             }
         } else { // merchant transacts in live mode
             mode = MerchantTransactionMode.PRODUCTION.name();
@@ -763,14 +767,17 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
                 attitude = new WayaPayattitude(tranId, pay.getCardEncrypt());
                 BeanUtils.copyProperties(mPay, notifyPayload);
+                notifyPayload.setOrderId(mPay.getTranId());
+                notifyPayload.setStatus(mPay.getStatus().name()); 
+                notifyPayload.setCustomer(new  Customer(mPay.getCustomerName(), mPay.getCustomerEmail(),  mPay.getCustomerPhone(), mPay.getCustomerId()));
             }
         }
 
         if (attitude != null) {
             WayaTransactionQuery callReq = uniPaymentProxy.postPayAttitude(attitude, mode);
-            notifyPayload.setStatus(TransactionStatus.FAILED);
+            notifyPayload.setStatus(TransactionStatus.FAILED.name());
             if (callReq != null) {
-                notifyPayload.setStatus(TransactionStatus.SUCCESSFUL);
+                notifyPayload.setStatus(TransactionStatus.SUCCESSFUL.name());
                 response = new PaymentGatewayResponse(true, "Success Encrypt", callReq);
             }
 
@@ -881,7 +888,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> processWalletPayment(HttpServletRequest request, WayaWalletPayment account, String token) {
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocessed Transaction Request"),
                 HttpStatus.BAD_REQUEST);
-        PaymentGateway notifyPayload = new PaymentGateway();
+        TransactionStatusResponse notifyPayload = new TransactionStatusResponse();
         if (account.getRefNo().startsWith("7263269")) {
             SandboxPaymentGateway sandboxPayment;
             try {
@@ -973,7 +980,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 transactionSettlement.setDateCreated(LocalDateTime.now());
                 log.info("Saving Settlement Object Sandbox :::: " + transactionSettlement);
                 sandboxTransactionSettlementRepository.save(transactionSettlement);
-                BeanUtils.copyProperties(sandboxPayment, notifyPayload);
+                
+                BeanUtils.copyProperties(sandboxPayment, notifyPayload); 
+                notifyPayload.setOrderId(sandboxPayment.getTranId());
+                notifyPayload.setStatus(sandboxPayment.getStatus().name()); 
+                notifyPayload.setCustomer(new  Customer(sandboxPayment.getCustomerName(), sandboxPayment.getCustomerEmail(),  sandboxPayment.getCustomerPhone(), sandboxPayment.getCustomerId()));
                 CompletableFuture.runAsync(() -> {paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);});
                 // Todo: call notification on another thread
                 // wallet.setPaymentDescription(tran.getTranNarrate());
@@ -1112,7 +1123,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     wallet.setStatus(TStatus.REJECTED);
                     paymentWalletRepo.save(wallet);
                 }
-                BeanUtils.copyProperties(payment, notifyPayload);
+                
+                BeanUtils.copyProperties(payment, notifyPayload); 
+                notifyPayload.setOrderId(payment.getTranId());
+                notifyPayload.setStatus(payment.getStatus().name()); 
+                notifyPayload.setCustomer(new  Customer(payment.getCustomerName(), payment.getCustomerEmail(),  payment.getCustomerPhone(), payment.getCustomerId()));
                 CompletableFuture.runAsync(() -> {  paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);  });
             } catch (Exception ex) {
                 log.error("Error occurred - GET WALLET TRANSACTION :{}", ex.getMessage());
@@ -1873,8 +1888,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // s-l done
     @Override
     public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests) {
-        
-        PaymentGateway notifyPayload = new PaymentGateway();
+         
         // find in sandbox
         SandboxPaymentGateway sandboxPayment = sandboxPaymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
         // find in live
@@ -1884,16 +1898,11 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
 
         if (payment != null) {
-            BeanUtils.copyProperties(payment, notifyPayload);
             preprocessTransactionStatus(payment);
         }
-        else if(sandboxPayment != null) {
-            BeanUtils.copyProperties(sandboxPayment, notifyPayload);
+        else if(sandboxPayment != null) { 
             preprocessSandboxTransactionStatus(sandboxPayment);
-        }
-
-        notifyPayload.setStatus(TransactionStatus.valueOf(requests.getStatus().toUpperCase()));
-        paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);
+        } 
         
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(wayapayStatusURL)).build();
     }
@@ -2005,6 +2014,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     payment.setTranId(response.getOrderId());
                 }
                 paymentGatewayRepo.save(payment);
+                TransactionStatusResponse notifyPayload = new TransactionStatusResponse();
+                BeanUtils.copyProperties(payment, notifyPayload);
+                notifyPayload.setOrderId(payment.getTranId());
+                notifyPayload.setStatus(payment.getStatus().name()); 
+                notifyPayload.setCustomer(new  Customer(payment.getCustomerName(), payment.getCustomerEmail(),  payment.getCustomerPhone(), payment.getCustomerId()));
+                paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);
                 // send email and in-app notification (will only be sent if successful)
                 paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(payment);
             }
@@ -2044,6 +2059,13 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     payment.setTranId(response.getOrderId());
                 }
                 sandboxPaymentGatewayRepo.save(payment);
+
+                TransactionStatusResponse notifyPayload = new TransactionStatusResponse();
+                BeanUtils.copyProperties(payment, notifyPayload);
+                notifyPayload.setOrderId(payment.getTranId());
+                notifyPayload.setStatus(payment.getStatus().name()); 
+                notifyPayload.setCustomer(new  Customer(payment.getCustomerName(), payment.getCustomerEmail(),  payment.getCustomerPhone(), payment.getCustomerId()));
+                paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);
             }
         } catch (Exception e) {
             log.error("------||||SYSTEM ERROR||||-------", e);

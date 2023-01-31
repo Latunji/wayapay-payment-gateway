@@ -247,6 +247,7 @@ public class PaymemtGatewayEntityListener {
             merchantData = merchantResponse.getData();
             WebhookPushClient.postObjectToUrl(payment, merchantData.getMerchantWebHookURL());
         } catch (Exception e) {
+            log.error("Error pushing to webhook url {} error {}", merchantData, e);
         }   
     }
 }

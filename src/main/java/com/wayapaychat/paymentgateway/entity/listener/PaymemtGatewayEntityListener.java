@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import java.util.Currency;
@@ -242,7 +243,8 @@ public class PaymemtGatewayEntityListener {
     public void pushToMerchantWebhook(PaymentGateway payment) {
         MerchantData merchantData = new MerchantData();
         try {
-            log.info("Pushing to merchant webhook url: {}", payment.getTranId());
+            log.info("Pushing to merchant webhook trnxid: {} merchantid: {}", payment.getTranId(), payment.getMerchantId());
+            if(ObjectUtils.isEmpty(identityManagementServiceProxy)){ log.error("uninitialized identityManagementServiceProxy {}", identityManagementServiceProxy); }
             MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(getDaemonAuthToken(), payment.getMerchantId());
             merchantData = merchantResponse.getData();
             WebhookPushClient.postObjectToUrl(payment, merchantData.getMerchantWebHookURL());

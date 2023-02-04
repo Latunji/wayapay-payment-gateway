@@ -1139,52 +1139,101 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     public ResponseEntity<?> walletPaymentQR(HttpServletRequest request, WayaQRRequest account) {
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("Unprocessed Transaction Request"),
                 HttpStatus.BAD_REQUEST);
-        PaymentGateway payment = paymentGatewayRepo.findByRefNo(account.getRefNo()).orElse(null);
-        if (payment == null) {
-            return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"),
-                    HttpStatus.BAD_REQUEST);
-        }
-        try {
-            LoginRequest auth = new LoginRequest();
-            auth.setEmailOrPhoneNumber(username);
-            auth.setPassword(passSecret);
-            TokenAuthResponse authToken = authProxy.authenticateUser(auth);
-            log.info("Response: " + authToken.toString());
-            if (!authToken.getStatus()) {
-                return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"),
-                        HttpStatus.BAD_REQUEST);
-            }
-            PaymentData payData = authToken.getData();
-            String token = payData.getToken();
+            if (account.getRefNo().startsWith("7263269")) { // sandbox payment
+                SandboxPaymentGateway payment = sandboxPaymentGatewayRepo.findByRefNo(account.getRefNo()).orElse(null);
+                if (payment == null) {
+                    return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"),
+                            HttpStatus.BAD_REQUEST);
+                }
+                try{
+                LoginRequest auth = new LoginRequest();
+                auth.setEmailOrPhoneNumber(username);
+                auth.setPassword(passSecret);
+                TokenAuthResponse authToken = authProxy.authenticateUser(auth);
+                log.info("Response: " + authToken.toString());
+                if (!authToken.getStatus()) {
+                    return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"),
+                            HttpStatus.BAD_REQUEST);
+                }
+                PaymentData payData = authToken.getData();
+                String token = payData.getToken();
 
-            payment.setChannel(PaymentChannel.QR);
-            payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.PENDING);
-            paymentGatewayRepo.save(payment);
+                payment.setChannel(PaymentChannel.QR);
+                payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.PENDING);
+                sandboxPaymentGatewayRepo.save(payment);
 
-            MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
-            if (!merchant.getCode().equals("00")) {
-                return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
-            }
-            log.info("Merchant: " + merchant);
-            MerchantData sMerchant = merchant.getData();
-            ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
-            payment.setChannel(PaymentChannel.QR);
-            payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.PENDING);
+                MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
+                if (!merchant.getCode().equals("00")) {
+                    return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
+                }
+                log.info("Merchant: " + merchant);
+                MerchantData sMerchant = merchant.getData();
+                ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
+                payment.setChannel(PaymentChannel.QR);
+                payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.PENDING);
 
-            WalletQRResponse tranRep = uniPaymentProxy.postQRTransaction(payment, token, account, profile);
-            if (tranRep != null) {
-                tranRep.setName(profile.getData().getOtherDetails().getOrganisationName());
-                response = new ResponseEntity<>(new SuccessResponse("SUCCESS GENERATED", tranRep), HttpStatus.CREATED);
-                payment.setTranDate(currentAccurateTime());
-                payment.setRcre_time(LocalDateTime.now());
-                paymentGatewayRepo.save(payment);
+                WalletQRResponse tranRep = uniPaymentProxy.sandboxPostQRTransaction(payment, token, account, profile);
+                if (tranRep != null) {
+                    tranRep.setName(profile.getData().getOtherDetails().getOrganisationName());
+                    response = new ResponseEntity<>(new SuccessResponse("SUCCESS GENERATED", tranRep), HttpStatus.CREATED);
+                    payment.setTranDate(currentAccurateTime());
+                    payment.setRcre_time(LocalDateTime.now());
+                    sandboxPaymentGatewayRepo.save(payment);
+                }
+                } catch (Exception ex) {
+                    log.error("Error occurred - GET QR TRANSACTION :{}", ex.getMessage());
+                    payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.FAILED);
+                    sandboxPaymentGatewayRepo.save(payment);
+                    return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+                }
+            }else {
+                PaymentGateway payment = paymentGatewayRepo.findByRefNo(account.getRefNo()).orElse(null);
+                if (payment == null) {
+                    return new ResponseEntity<>(new ErrorResponse("REFERENCE NUMBER DOESN'T EXIST"),
+                            HttpStatus.BAD_REQUEST);
+                }
+                try {
+                    LoginRequest auth = new LoginRequest();
+                    auth.setEmailOrPhoneNumber(username);
+                    auth.setPassword(passSecret);
+                    TokenAuthResponse authToken = authProxy.authenticateUser(auth);
+                    log.info("Response: " + authToken.toString());
+                    if (!authToken.getStatus()) {
+                        return new ResponseEntity<>(new ErrorResponse("Unable to authenticate Demon User"),
+                                HttpStatus.BAD_REQUEST);
+                    }
+                    PaymentData payData = authToken.getData();
+                    String token = payData.getToken();
+
+                    payment.setChannel(PaymentChannel.QR);
+                    payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.PENDING);
+                    paymentGatewayRepo.save(payment);
+
+                    MerchantResponse merchant = merchantProxy.getMerchantInfo(token, payment.getMerchantId());
+                    if (!merchant.getCode().equals("00")) {
+                        return new ResponseEntity<>(new ErrorResponse("MERCHANT ID DOESN'T EXIST"), HttpStatus.BAD_REQUEST);
+                    }
+                    log.info("Merchant: " + merchant);
+                    MerchantData sMerchant = merchant.getData();
+                    ProfileResponse profile = authProxy.getProfileDetail(sMerchant.getUserId(), token);
+                    payment.setChannel(PaymentChannel.QR);
+                    payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.PENDING);
+
+                    WalletQRResponse tranRep = uniPaymentProxy.postQRTransaction(payment, token, account, profile);
+                    if (tranRep != null) {
+                        tranRep.setName(profile.getData().getOtherDetails().getOrganisationName());
+                        response = new ResponseEntity<>(new SuccessResponse("SUCCESS GENERATED", tranRep), HttpStatus.CREATED);
+                        payment.setTranDate(currentAccurateTime());
+                        payment.setRcre_time(LocalDateTime.now());
+                        paymentGatewayRepo.save(payment);
+                    }
+                } catch (Exception ex) {
+                    log.error("Error occurred - GET QR TRANSACTION :{}", ex.getMessage());
+                    payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.FAILED);
+                    paymentGatewayRepo.save(payment);
+                    return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+                }
             }
-        } catch (Exception ex) {
-            log.error("Error occurred - GET QR TRANSACTION :{}", ex.getMessage());
-            payment.setStatus(com.wayapaychat.paymentgateway.enumm.TransactionStatus.FAILED);
-            paymentGatewayRepo.save(payment);
-            return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
-        }
         return response;
     }
 

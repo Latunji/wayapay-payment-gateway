@@ -7,6 +7,7 @@ import com.wayapaychat.paymentgateway.common.enums.MerchantTransactionMode;
 import com.wayapaychat.paymentgateway.config.FeignClientInterceptor;
 import com.wayapaychat.paymentgateway.entity.PaymentGateway;
 import com.wayapaychat.paymentgateway.entity.PaymentWallet;
+import com.wayapaychat.paymentgateway.entity.SandboxPaymentGateway;
 import com.wayapaychat.paymentgateway.enumm.PaymentChannel;
 import com.wayapaychat.paymentgateway.enumm.TStatus;
 import com.wayapaychat.paymentgateway.enumm.TransactionSettled;
@@ -457,6 +458,43 @@ public class UnifiedPaymentProxy {
     }
 
     public WalletQRResponse postQRTransaction(PaymentGateway account, String token, WayaQRRequest request, ProfileResponse profile) {
+        WalletQRResponse wallet = new WalletQRResponse();
+        WalletQRGenerate qrgen = new WalletQRGenerate();
+        qrgen.setPayableAmount(account.getAmount());
+        qrgen.setActive(true);
+        qrgen.setCustomerSessionId(account.getRefNo());
+        qrgen.setMerchantId(account.getMerchantId());
+        qrgen.setPaymentChannel("QR");
+        qrgen.setMerchantEmail(account.getMerchantEmail());
+        qrgen.setFirstName(profile.getData().getFirstName());
+        qrgen.setSurname(profile.getData().getSurname());
+        String tranParticular = account.getDescription() + "-" + account.getRefNo();
+        qrgen.setTransactionNarration(tranParticular);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        String expiryDate = sdf.format(request.getQrExpiryDate());
+        log.info("QR TIME: " + expiryDate);
+        qrgen.setQrCodeExpiryDate(expiryDate);
+        qrgen.setUserId(0);
+        log.info("Request QR: " + qrgen);
+        try {
+            wallet = qrCodeProxy.wayaQRGenerate(FeignClientInterceptor.getBearerTokenHeader(), qrgen);
+            if (wallet.getStatusCodeValue() != 200) {
+                log.error("QR TRANSACTION FAILED: " + wallet.getStatusCode() + " with Merchant: "
+                        + account.getMerchantId());
+            }
+        } catch (Exception ex) {
+            if (ex instanceof FeignException) {
+                String httpStatus = Integer.toString(((FeignException) ex).status());
+                log.error("Feign Exception Status {}", httpStatus);
+            }
+            log.error("Higher Wahala {}", ex.getMessage());
+            log.error("WALLET TRANSACTION: " + ex.getLocalizedMessage());
+        }
+        return wallet;
+    }
+
+
+    public WalletQRResponse sandboxPostQRTransaction(SandboxPaymentGateway account, String token, WayaQRRequest request, ProfileResponse profile) {
         WalletQRResponse wallet = new WalletQRResponse();
         WalletQRGenerate qrgen = new WalletQRGenerate();
         qrgen.setPayableAmount(account.getAmount());

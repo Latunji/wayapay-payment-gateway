@@ -69,6 +69,8 @@ public class PaymentGateWayCommonUtils {
     }
 
     public String getDaemonAuthToken() {
+        log.info("Username ::::: " +variableUtil.getUserName());
+        log.info("Password ::::: "+variableUtil.getPassword());
         TokenAuthResponse authToken = authApiClient.authenticateUser(
                 LoginRequest.builder()
                         .password(variableUtil.getPassword())

@@ -1687,13 +1687,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         List<Withdrawals> withdrawalsList = withdrawalRepository.findByWithdrawalStatus(merchantId);
         if (withdrawalsList.isEmpty()) {
             result.put("Total Withdrawal", 0);
+            result.put("Withdrawal Count", 0);
             return new PaymentGatewayResponse(false, "No withdrawal history", result);
         }
         totalWithdrawals = withdrawalsList.stream()
                 .map(Withdrawals::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        result.put("Total Withdrawal", totalWithdrawals);
-        return new PaymentGatewayResponse(true, "Data Retrieved Successfully", result);
+
+            result.put("Total Withdrawal", totalWithdrawals);
+            result.put("Withdrawal Count", withdrawalsList.size());
+            return new PaymentGatewayResponse(true, "Data Retrieved Successfully", result);
     }
 
     @Override

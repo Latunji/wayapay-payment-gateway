@@ -1,0 +1,9 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Dec 14 00:48:54 WAT 2022
+@default-nexus-repo-http\://178.62.63.208\:8081/repository/maven-releases/.lastUpdated=1639398907470
+http\://178.62.63.208\:8081/repository/maven-releases/.error=Could not transfer artifact com.wayapay\:waya-integration\:pom\:1.0 from/to nexus-repo (http\://178.62.63.208\:8081/repository/maven-releases/)\: Transfer failed for http\://178.62.63.208\:8081/repository/maven-releases/com/wayapay/waya-integration/1.0/waya-integration-1.0.pom
+https\://repo.maven.apache.org/maven2/.error=
+https\://repo.maven.apache.org/maven2/.lastUpdated=1670975334134
+https\://repo.spring.io/milestone/.error=
+https\://repo.spring.io/milestone/.lastUpdated=1670975333513
+https\://waya-nexus.mywayapay.com/nexus/content/repositories/releases/.lastUpdated=1641463236175

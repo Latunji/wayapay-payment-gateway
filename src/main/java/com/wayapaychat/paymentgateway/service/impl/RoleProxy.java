@@ -6,7 +6,7 @@ import com.wayapaychat.paymentgateway.pojo.RolePermissionResponsePayload;
 import com.wayapaychat.paymentgateway.pojo.RoleResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+//import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -21,7 +21,7 @@ public class RoleProxy {
     @Autowired
     private API api;
 
-    @Value("${waya.role-service.baseurl}")
+    //@Value("${waya.role-service.baseurl}")
     private String baseUrl;
 
     public RolePermissionResponsePayload fetchUserRoleAndPermissions(Long userId, String token){

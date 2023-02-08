@@ -15,9 +15,11 @@ import com.wayapaychat.paymentgateway.pojo.waya.PaymentData;
 import com.wayapaychat.paymentgateway.pojo.waya.TokenAuthResponse;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantData;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantResponse;
+import com.wayapaychat.paymentgateway.pojo.waya.wallet.TransactionStatusResponse;
 import com.wayapaychat.paymentgateway.proxy.AuthApiClient;
 import com.wayapaychat.paymentgateway.proxy.IdentityManagementServiceProxy;
 import com.wayapaychat.paymentgateway.proxy.NotificationServiceProxy;
+import com.wayapaychat.paymentgateway.proxy.WebhookPushClient;
 import com.wayapaychat.paymentgateway.repository.PaymentGatewayRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import java.util.Currency;
@@ -63,6 +66,14 @@ public class PaymemtGatewayEntityListener {
         }
         PaymentData payData = authToken.getData();
         return payData.getToken();
+    }
+
+    
+
+    @Autowired
+    public void setIdentityManagementServiceProxy(IdentityManagementServiceProxy identityManagementServiceProxy) {
+        PaymemtGatewayEntityListener.identityManagementServiceProxy = identityManagementServiceProxy;
+        log.info("Initializing with dependency [" + identityManagementServiceProxy + "]");
     }
 
     @Autowired
@@ -106,8 +117,18 @@ public class PaymemtGatewayEntityListener {
     public void sendTransactionNotificationAfterPaymentIsSuccessful(PaymentGateway paymentGateway) {
         CompletableFuture.runAsync(() -> {
             SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-            log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------",
-                    paymentGateway.getTranId());
+            log.info("------||||PREPROCESSING TRANSACTION BEFORE SENDING NOTIFICATION WITH TRANSACTION ID: {}||||--------", paymentGateway.getTranId());
+
+            String token = null;
+            MerchantData merchantData = new MerchantData();
+            try {
+                token = getDaemonAuthToken();
+                MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, paymentGateway.getMerchantId());
+                merchantData = merchantResponse.getData();
+            } catch (Exception e) {
+            }
+
+
             if (paymentGateway.getStatus() == TransactionStatus.SUCCESSFUL) {
                 NotificationPojo notificationPojo = NotificationPojo
                         .builder()
@@ -127,10 +148,6 @@ public class PaymemtGatewayEntityListener {
                         .build();
                 try {
                     processEmailAlert(notificationPojo);
-                    // notify the merchant via in-app
-                    String token = getDaemonAuthToken();
-                    MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(token, paymentGateway.getMerchantId());
-                    MerchantData merchantData = merchantResponse.getData();
                     processInAppNotification("TRANSACTION",
                             merchantData.getUserId(),
                             String.format("You received payment of %s from %s", paymentGateway.getAmount(), paymentGateway.getCustomerName()),
@@ -231,4 +248,17 @@ public class PaymemtGatewayEntityListener {
             }
         }
     }
+  
+    public void pushToMerchantWebhook(TransactionStatusResponse payment) {
+        MerchantData merchantData = new MerchantData();
+        try {
+            log.info("Pushing to merchant webhook trnxid: {} merchantid: {}", payment.getOrderId(), payment.getMerchantId());
+            MerchantResponse merchantResponse = identityManagementServiceProxy.getMerchantDetail(getDaemonAuthToken(), payment.getMerchantId());
+            merchantData = merchantResponse.getData();
+            WebhookPushClient.postObjectToUrl(payment, merchantData.getMerchantWebHookURL());
+        } catch (Exception e) {
+            log.error("Error pushing to webhook url {} error {}", merchantData, e);
+        }   
+    }
+
 }

@@ -19,9 +19,9 @@ public interface FraudEventRepository extends JpaRepository<FraudEvent, Long> {
     @Query(value = "SELECT * FROM m_fraud_event WHERE deleted = false", nativeQuery = true)
     Page<FraudEvent> findAllFraudEvents(Pageable pageable);
 
-    @Query(value = "SELECT f FROM FraudEvent WHERE expired = false")
-    List<FraudEvent> findAllNotExpired();
+//    @Query(value = "SELECT f FROM FraudEvent WHERE expired = false")
+//    List<FraudEvent> findAllNotExpired();
 
-    @Query(value = "SELECT f FROM FraudEvent WHERE f.ipAddress = :ipAddress AND expired = false")
-    Optional<FraudEvent> findFraudByIpAddressAndExpired(String ipAddress);
+//    @Query(value = "SELECT f FROM FraudEvent WHERE f.ipAddress = :ipAddress AND expired = false")
+//    Optional<FraudEvent> findFraudByIpAddressAndExpired(String ipAddress);
 }

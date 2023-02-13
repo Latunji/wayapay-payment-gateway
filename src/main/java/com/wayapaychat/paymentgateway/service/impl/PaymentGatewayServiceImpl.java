@@ -196,10 +196,10 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             }
 
             //check for Fraud
-            Optional<FraudEvent> fraudEvent = fraudEventRepository.findFraudByIpAddressAndExpired(PaymentGateWayCommonUtils.getClientRequestIP(request));
-            if(fraudEvent.isPresent()){
-                return new PaymentGatewayResponse(false, "Fraud Alert! Transactions Have Been Blocked From This Ip Address", null);
-            }
+//            Optional<FraudEvent> fraudEvent = fraudEventRepository.findFraudByIpAddressAndExpired(PaymentGateWayCommonUtils.getClientRequestIP(request));
+//            if(fraudEvent.isPresent()){
+//                return new PaymentGatewayResponse(false, "Fraud Alert! Transactions Have Been Blocked From This Ip Address", null);
+//            }
 
             // validate the provided merchant key
             if (sMerchant.getMerchantKeyMode().equals(MerchantTransactionMode.TEST.toString())) {

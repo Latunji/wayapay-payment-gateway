@@ -17,11 +17,10 @@ import java.time.LocalDateTime;
 @EntityListeners(value = FraudEventEntityListener.class)
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-//@Entity
-//@Table(name = "m_fraud_event")
+@Entity
+@Table(name = "m_fraud_event")
 public class FraudEvent extends FraudBaseEntity {
     @Column(nullable = false, name = "fraud_action")
     private String fraudAction;

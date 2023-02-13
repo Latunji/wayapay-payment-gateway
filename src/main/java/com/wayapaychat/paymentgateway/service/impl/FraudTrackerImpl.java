@@ -50,7 +50,7 @@ public class FraudTrackerImpl implements FraudTrackerService {
         log.info("---- FOUND "+allPayment.size()+" TRANSACTIONS WITHIN THE LAST HOUR");
         List<PaymentGateway> allIPAddress =  allPayment.stream().filter(distinctByKey(PaymentGateway::getCustomerIpAddress)).collect(Collectors.toList());
 
-        for(PaymentGateway p : allIPAddress){
+//        for(PaymentGateway p : allIPAddress){
 //            List<PaymentGateway> totalCount = paymentGatewayRepository.findByCustomerIpAddress(p.getCustomerIpAddress());
 //            if(totalCount.size() >= 3){
 //                FraudEvent fraudEvent = new FraudEvent();
@@ -72,7 +72,7 @@ public class FraudTrackerImpl implements FraudTrackerService {
 //
 //                fraudEventRepository.save(fraudEvent);
 //            }
-        }
+//        }
     }
 
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
@@ -84,16 +84,16 @@ public class FraudTrackerImpl implements FraudTrackerService {
     @Scheduled(cron = "*/59 * * * * *")// EveryMin
     @SchedulerLock(name = "TaskScheduler_checkFraudSchedulerEveryHour", lockAtLeastFor = "10s", lockAtMostFor = "30s")
     public void checkExpiredFraudSchedulerEveryMinute() {
-        log.info("----------------------------- Starting FRAUD EXPIRATION SCHEDULE -----------------------------");
+//        log.info("----------------------------- Starting FRAUD EXPIRATION SCHEDULE -----------------------------");
         checkExpiredFraudEvents();
     }
 
     private void checkExpiredFraudEvents() {
-            List<FraudEvent> f = fraudEventRepository.findAllNotExpired();
-            f.stream().filter(b -> b.getSuspensionExpiryDate().equals(LocalDateTime.now())).forEach(t ->{
-                t.setExpired(true);
-                fraudEventRepository.save(t);
-            });
+//            List<FraudEvent> f = fraudEventRepository.findAllNotExpired();
+//            f.stream().filter(b -> b.getSuspensionExpiryDate().equals(LocalDateTime.now())).forEach(t ->{
+//                t.setExpired(true);
+//                fraudEventRepository.save(t);
+//            });
     }
 
 }

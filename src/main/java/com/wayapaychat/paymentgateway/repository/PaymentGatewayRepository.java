@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,12 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
     Optional<PaymentGateway> findByRefNo(String refNo);
 
     Optional<PaymentGateway> findByTranId(String tranId);
+
+    @Query("SELECT u FROM PaymentGateway u WHERE u.rce_time BETWEEN :anHourAgo and :justNow")
+    List<PaymentGateway> findAllPaymentsWithinTheHour(LocalDateTime anHourAgo, LocalDateTime justNow);
+
+    @Query("SELECT u FROM PaymentGateway u WHERE u.customerIpAddress = :customerIpAddress")
+    List<PaymentGateway> findByCustomerIpAddress(String customerIpAddress);
 
     @Query("SELECT u FROM PaymentGateway u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false"
             + " AND u.tranDate = (:tranDate)")

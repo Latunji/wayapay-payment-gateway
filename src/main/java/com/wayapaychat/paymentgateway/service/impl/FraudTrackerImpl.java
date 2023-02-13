@@ -45,32 +45,33 @@ public class FraudTrackerImpl implements FraudTrackerService {
 
         LocalDateTime anHourAgo = LocalDateTime.now().minusHours(1L);
         LocalDateTime justNow = LocalDateTime.now();
-        List<PaymentGateway> allPayment = paymentGatewayRepository.findAllPaymentsWithinTheHour(anHourAgo, justNow);
+//        List<PaymentGateway> allPayment = paymentGatewayRepository.findAllPaymentsWithinTheHour(anHourAgo, justNow);
+        List<PaymentGateway> allPayment = paymentGatewayRepository.findByMerchantPayment();
         log.info("---- FOUND "+allPayment.size()+" TRANSACTIONS WITHIN THE LAST HOUR");
         List<PaymentGateway> allIPAddress =  allPayment.stream().filter(distinctByKey(PaymentGateway::getCustomerIpAddress)).collect(Collectors.toList());
 
         for(PaymentGateway p : allIPAddress){
-            List<PaymentGateway> totalCount = paymentGatewayRepository.findByCustomerIpAddress(p.getCustomerIpAddress());
-            if(totalCount.size() >= 3){
-                FraudEvent fraudEvent = new FraudEvent();
-
-                fraudEvent.setIpAddress(p.getCustomerIpAddress());
-                fraudEvent.setEmailAddress(p.getCustomerEmail());
-                fraudEvent.setMaskedPan(p.getMaskedPan());
-                fraudEvent.setPaymentResponse(p.getStatus().toString());
-                fraudEvent.setNumberOfRequestMade(3L);
-                fraudEvent.setPhoneNumber(p.getCustomerPhone());
-                fraudEvent.setTranId(p.getTranId());
-                fraudEvent.setDeleted(false);
-                fraudEvent.setFraudAction(FraudRuleType.SAME_IP_THREE_TIMES_TRANSACTION_IN_ONE_HOUR.getAction());
-                fraudEvent.setFraudRule(FraudRuleType.SAME_IP_THREE_TIMES_TRANSACTION_IN_ONE_HOUR.getRule());
-                fraudEvent.setSuspensionDate(LocalDateTime.now());
-                fraudEvent.setSuspensionExpiryDate(LocalDateTime.now().plusHours(1L));
-                fraudEvent.setFraudRuleType(FraudRuleType.SAME_IP_THREE_TIMES_TRANSACTION_IN_ONE_HOUR);
-                fraudEvent.setExpired(false);
-
-                fraudEventRepository.save(fraudEvent);
-            }
+//            List<PaymentGateway> totalCount = paymentGatewayRepository.findByCustomerIpAddress(p.getCustomerIpAddress());
+//            if(totalCount.size() >= 3){
+//                FraudEvent fraudEvent = new FraudEvent();
+//
+//                fraudEvent.setIpAddress(p.getCustomerIpAddress());
+//                fraudEvent.setEmailAddress(p.getCustomerEmail());
+//                fraudEvent.setMaskedPan(p.getMaskedPan());
+//                fraudEvent.setPaymentResponse(p.getStatus().toString());
+//                fraudEvent.setNumberOfRequestMade(3L);
+//                fraudEvent.setPhoneNumber(p.getCustomerPhone());
+//                fraudEvent.setTranId(p.getTranId());
+//                fraudEvent.setDeleted(false);
+//                fraudEvent.setFraudAction(FraudRuleType.SAME_IP_THREE_TIMES_TRANSACTION_IN_ONE_HOUR.getAction());
+//                fraudEvent.setFraudRule(FraudRuleType.SAME_IP_THREE_TIMES_TRANSACTION_IN_ONE_HOUR.getRule());
+//                fraudEvent.setSuspensionDate(LocalDateTime.now());
+//                fraudEvent.setSuspensionExpiryDate(LocalDateTime.now().plusHours(1L));
+//                fraudEvent.setFraudRuleType(FraudRuleType.SAME_IP_THREE_TIMES_TRANSACTION_IN_ONE_HOUR);
+//                fraudEvent.setExpired(false);
+//
+//                fraudEventRepository.save(fraudEvent);
+//            }
         }
     }
 

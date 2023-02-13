@@ -17,8 +17,8 @@ public interface PaymentGatewayRepository extends JpaRepository<PaymentGateway, 
 
     Optional<PaymentGateway> findByTranId(String tranId);
 
-    @Query("SELECT u FROM PaymentGateway u WHERE u.rce_time BETWEEN :anHourAgo and :justNow")
-    List<PaymentGateway> findAllPaymentsWithinTheHour(LocalDateTime anHourAgo, LocalDateTime justNow);
+//    @Query("SELECT u FROM PaymentGateway u WHERE u.rce_time BETWEEN :anHourAgo and :justNow")
+//    List<PaymentGateway> findAllPaymentsWithinTheHour(LocalDateTime anHourAgo, LocalDateTime justNow);
 
     @Query("SELECT u FROM PaymentGateway u WHERE u.customerIpAddress = :customerIpAddress")
     List<PaymentGateway> findByCustomerIpAddress(String customerIpAddress);

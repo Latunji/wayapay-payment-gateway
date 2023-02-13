@@ -27,5 +27,5 @@ public class FraudBaseEntity extends GenericBaseEntity {
     @Column(name = "number_of_request_made")
     private Long numberOfRequestMade;
     @Column(name = "masked_pan")
-    private Boolean maskedPan;
+    private String maskedPan;
 }

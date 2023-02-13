@@ -146,6 +146,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     @Autowired
     CardRepository cardRepository;
 
+    @Autowired
+    private FraudEventRepository fraudEventRepository;
+
     // s-l done
     @Override
     public PaymentGatewayResponse initiateCardTransaction(HttpServletRequest request,
@@ -190,6 +193,12 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
                 log.error("Higher Wahala {}", ex.getMessage());
                 log.error("PROFILE ERROR MESSAGE {}", ex.getLocalizedMessage());
+            }
+
+            //check for Fraud
+            Optional<FraudEvent> fraudEvent = fraudEventRepository.findFraudByIpAddressAndExpired(PaymentGateWayCommonUtils.getClientRequestIP(request));
+            if(fraudEvent.isPresent()){
+                return new PaymentGatewayResponse(false, "Fraud Alert! Transactions Have Been Blocked From This Ip Address", null);
             }
 
             // validate the provided merchant key

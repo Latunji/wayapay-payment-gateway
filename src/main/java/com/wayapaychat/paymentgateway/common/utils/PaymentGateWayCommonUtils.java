@@ -69,14 +69,11 @@ public class PaymentGateWayCommonUtils {
     }
 
     public String getDaemonAuthToken() {
-        log.info("Username ::::: " +variableUtil.getUserName());
-        log.info("Password ::::: "+variableUtil.getPassword());
         TokenAuthResponse authToken = authApiClient.authenticateUser(
                 LoginRequest.builder()
                         .password(variableUtil.getPassword())
                         .emailOrPhoneNumber(variableUtil.getUserName())
                         .build());
-        log.info("AUTHENTICATION RESPONSE: " + authToken.toString());
         if (!authToken.getStatus()) {
             log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------",
                     variableUtil.getUserName(), variableUtil.getPassword());

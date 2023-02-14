@@ -120,8 +120,6 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     private String DAEMON_TOKEN;
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private FraudEventImpl paymentGatewayFraudEvent;
     @Value("${service.encrypt-all-merchant-secretkey-with}")
     private String encryptAllMerchantSecretKeyWith;
     @Value("${service.wayapay-payment-status-url}")

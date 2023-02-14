@@ -28,9 +28,9 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class FraudTrackerImpl implements FraudTrackerService {
 //    private final FraudTrackerRepository fraudTrackerRepository;
-    private final FraudEventRepository fraudEventRepository;
+//    private final FraudEventRepository fraudEventRepository;
 //    private final FraudRuleRepository fraudRuleRepository;
-    private PaymentGatewayRepository paymentGatewayRepository;
+//    private PaymentGatewayRepository paymentGatewayRepository;
 //    private final ObjectMapper objectMapper;
 
 //    @Scheduled(cron = "*/59 60 * * * *") // 60min
@@ -40,16 +40,16 @@ public class FraudTrackerImpl implements FraudTrackerService {
 //        checkPaymentsFromSameIpAddress();
 //    }
 
-    private void checkPaymentsFromSameIpAddress() {
-        log.info("----------------------------- CHECKING MULTIPLE PAYMENTS FROM SAME IP ADDRESS -----------------------------");
-
-        LocalDateTime anHourAgo = LocalDateTime.now().minusHours(1L);
-        LocalDateTime justNow = LocalDateTime.now();
+//    private void checkPaymentsFromSameIpAddress() {
+//        log.info("----------------------------- CHECKING MULTIPLE PAYMENTS FROM SAME IP ADDRESS -----------------------------");
+//
+//        LocalDateTime anHourAgo = LocalDateTime.now().minusHours(1L);
+//        LocalDateTime justNow = LocalDateTime.now();
 //        List<PaymentGateway> allPayment = paymentGatewayRepository.findAllPaymentsWithinTheHour(anHourAgo, justNow);
-        List<PaymentGateway> allPayment = paymentGatewayRepository.findByMerchantPayment();
-        log.info("---- FOUND "+allPayment.size()+" TRANSACTIONS WITHIN THE LAST HOUR");
-        List<PaymentGateway> allIPAddress =  allPayment.stream().filter(distinctByKey(PaymentGateway::getCustomerIpAddress)).collect(Collectors.toList());
-
+//        List<PaymentGateway> allPayment = paymentGatewayRepository.findByMerchantPayment();
+//        log.info("---- FOUND "+allPayment.size()+" TRANSACTIONS WITHIN THE LAST HOUR");
+//        List<PaymentGateway> allIPAddress =  allPayment.stream().filter(distinctByKey(PaymentGateway::getCustomerIpAddress)).collect(Collectors.toList());
+//
 //        for(PaymentGateway p : allIPAddress){
 //            List<PaymentGateway> totalCount = paymentGatewayRepository.findByCustomerIpAddress(p.getCustomerIpAddress());
 //            if(totalCount.size() >= 3){
@@ -73,12 +73,12 @@ public class FraudTrackerImpl implements FraudTrackerService {
 //                fraudEventRepository.save(fraudEvent);
 //            }
 //        }
-    }
-
-    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
-        Set<Object> seen = ConcurrentHashMap.newKeySet();
-        return t -> seen.add(keyExtractor.apply(t));
-    }
+//    }
+//
+//    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+//        Set<Object> seen = ConcurrentHashMap.newKeySet();
+//        return t -> seen.add(keyExtractor.apply(t));
+//    }
 
 
 //    @Scheduled(cron = "*/59 * * * * *")// EveryMin
@@ -88,12 +88,12 @@ public class FraudTrackerImpl implements FraudTrackerService {
 //        checkExpiredFraudEvents();
 //    }
 
-    private void checkExpiredFraudEvents() {
+//    private void checkExpiredFraudEvents() {
 //            List<FraudEvent> f = fraudEventRepository.findAllNotExpired();
 //            f.stream().filter(b -> b.getSuspensionExpiryDate().equals(LocalDateTime.now())).forEach(t ->{
 //                t.setExpired(true);
 //                fraudEventRepository.save(t);
 //            });
-    }
+//    }
 
 }

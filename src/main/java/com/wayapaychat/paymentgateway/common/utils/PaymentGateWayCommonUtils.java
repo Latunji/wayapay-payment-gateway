@@ -73,6 +73,7 @@ public class PaymentGateWayCommonUtils {
                 LoginRequest.builder()
                         .password(variableUtil.getPassword())
                         .emailOrPhoneNumber(variableUtil.getUserName())
+                        .otp("")
                         .build());
         if (!authToken.getStatus()) {
             log.info("------||||FAILED TO AUTHENTICATE DAEMON USER [email: {} , password: {}]||||--------",

@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @AllArgsConstructor
 public class FraudTrackerImpl implements FraudTrackerService {
-    private final FraudTrackerRepository fraudTrackerRepository;
+//    private final FraudTrackerRepository fraudTrackerRepository;
     private final FraudEventRepository fraudEventRepository;
-    private final FraudRuleRepository fraudRuleRepository;
+//    private final FraudRuleRepository fraudRuleRepository;
     private PaymentGatewayRepository paymentGatewayRepository;
 //    private final ObjectMapper objectMapper;
 

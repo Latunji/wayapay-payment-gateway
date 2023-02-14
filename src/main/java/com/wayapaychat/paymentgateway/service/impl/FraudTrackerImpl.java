@@ -33,12 +33,12 @@ public class FraudTrackerImpl implements FraudTrackerService {
     private PaymentGatewayRepository paymentGatewayRepository;
 //    private final ObjectMapper objectMapper;
 
-    @Scheduled(cron = "* 60 * * * *") // 60min
-    @SchedulerLock(name = "TaskScheduler_checkFraudSchedulerEveryHour", lockAtLeastFor = "10s", lockAtMostFor = "30s")
-    public void checkFraudSchedulerEveryHour() {
-        log.info("----------------------------- Starting FRAUD SCHEDULE -----------------------------");
-        checkPaymentsFromSameIpAddress();
-    }
+//    @Scheduled(cron = "*/59 60 * * * *") // 60min
+//    @SchedulerLock(name = "TaskScheduler_checkFraudSchedulerEveryHour", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+//    public void checkFraudSchedulerEveryHour() {
+//        log.info("----------------------------- Starting FRAUD SCHEDULE -----------------------------");
+//        checkPaymentsFromSameIpAddress();
+//    }
 
     private void checkPaymentsFromSameIpAddress() {
         log.info("----------------------------- CHECKING MULTIPLE PAYMENTS FROM SAME IP ADDRESS -----------------------------");
@@ -81,12 +81,12 @@ public class FraudTrackerImpl implements FraudTrackerService {
     }
 
 
-    @Scheduled(cron = "*/59 * * * * *")// EveryMin
-    @SchedulerLock(name = "TaskScheduler_checkFraudSchedulerEveryHour", lockAtLeastFor = "10s", lockAtMostFor = "30s")
-    public void checkExpiredFraudSchedulerEveryMinute() {
-//        log.info("----------------------------- Starting FRAUD EXPIRATION SCHEDULE -----------------------------");
-        checkExpiredFraudEvents();
-    }
+//    @Scheduled(cron = "*/59 * * * * *")// EveryMin
+//    @SchedulerLock(name = "TaskScheduler_checkFraudSchedulerEveryHour", lockAtLeastFor = "10s", lockAtMostFor = "30s")
+//    public void checkExpiredFraudSchedulerEveryMinute() {
+////        log.info("----------------------------- Starting FRAUD EXPIRATION SCHEDULE -----------------------------");
+//        checkExpiredFraudEvents();
+//    }
 
     private void checkExpiredFraudEvents() {
 //            List<FraudEvent> f = fraudEventRepository.findAllNotExpired();

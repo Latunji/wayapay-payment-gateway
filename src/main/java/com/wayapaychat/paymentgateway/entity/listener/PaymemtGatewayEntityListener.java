@@ -57,6 +57,7 @@ public class PaymemtGatewayEntityListener {
                 LoginRequest.builder()
                         .password(variableUtil.getPassword())
                         .emailOrPhoneNumber(variableUtil.getUserName())
+                        .otp("")
                         .build());
         log.info("AUTHENTICATION RESPONSE: " + authToken.toString());
         if (!authToken.getStatus()) {

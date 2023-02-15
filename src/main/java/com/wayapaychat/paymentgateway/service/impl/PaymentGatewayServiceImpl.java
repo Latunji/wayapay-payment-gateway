@@ -858,6 +858,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             LoginRequest auth = new LoginRequest();
             auth.setEmailOrPhoneNumber(account.getEmailOrPhoneNumber());
             auth.setPassword(account.getPassword());
+            auth.setOtp("");
             TokenAuthResponse authToken = authProxy.authenticateUser(auth);
             log.info("Response: " + authToken.toString());
             if (!authToken.getStatus()) {

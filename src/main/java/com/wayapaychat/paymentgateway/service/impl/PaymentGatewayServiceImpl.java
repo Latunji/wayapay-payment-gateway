@@ -2413,6 +2413,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     // REGION : LOCAL , INTERNATIONAL
     private BigDecimal calculateWayapayFee(
             String merchantId, BigDecimal amount, ProductName productName, String region) {
+        CreateProductPricingRepsonse createProductPricingRepsonse = new CreateProductPricingRepsonse();
         MerchantProductPricingQuery merchantProductPricingQuery = MerchantProductPricingQuery
                 .builder()
                 .merchantId(merchantId)
@@ -2424,12 +2425,19 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 .getMerchantProductPricing(
                         merchantProductPricingQuery.getMerchantId(), merchantProductPricingQuery.getProductName(),
                         DAEMON_TOKEN);
-        ProductPricingResponse productPricingResponse = merchantProductPricingResponse.getData();
-        log.info("-------MERCHANT PRODUCT PRICING {}--------", productPricingResponse);
-        Double feePercentage = 0D;
-        if (ObjectUtils.isEmpty(productPricingResponse)) {
-            throw new ApplicationException(400, "product_pricing_not_found", "Merchant Product pricing not found");
+        if(merchantProductPricingResponse.getData() == null){
+            createProductPricingRepsonse = iSettlementProductPricingProxy.setMerchantProductPricing(DAEMON_TOKEN);
         }
+        log.info("-------MERCHANT PRODUCT PRICING {}--------", createProductPricingRepsonse);
+        Double feePercentage = 0D;
+        if (ObjectUtils.isEmpty(createProductPricingRepsonse.getData())) {
+            throw new ApplicationException(400, "product_pricing_not_found", "Merchant Product pricing not created");
+        }
+         merchantProductPricingResponse = iSettlementProductPricingProxy
+                .getMerchantProductPricing(
+                        merchantProductPricingQuery.getMerchantId(), merchantProductPricingQuery.getProductName(),
+                        DAEMON_TOKEN);
+        ProductPricingResponse productPricingResponse = merchantProductPricingResponse.getData();
         if (productPricingResponse.getLocalDiscountRate() > 0) {
             feePercentage = productPricingResponse.getLocalDiscountRate();
         }

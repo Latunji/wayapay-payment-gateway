@@ -2,6 +2,7 @@ package com.wayapaychat.paymentgateway.proxy;
 
 import com.wayapaychat.paymentgateway.common.enums.ProductName;
 import com.wayapaychat.paymentgateway.config.PaymentGatewayClientConfiguration;
+import com.wayapaychat.paymentgateway.pojo.waya.merchant.CreateProductPricingRepsonse;
 import com.wayapaychat.paymentgateway.pojo.waya.merchant.MerchantProductPricingResponse;
 import com.wayapaychat.paymentgateway.proxy.pojo.MerchantProductPricingQuery;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -21,4 +22,7 @@ public interface ISettlementProductPricingProxy {
             @RequestParam String merchantId,
             @RequestParam ProductName productName,
             @NotNull @NotEmpty @RequestHeader("Authorization") String token);
+
+    @GetMapping("merchant-product-pricing/set-product-pricing")
+    CreateProductPricingRepsonse setMerchantProductPricing(@RequestHeader("Authorization") String token);
 }

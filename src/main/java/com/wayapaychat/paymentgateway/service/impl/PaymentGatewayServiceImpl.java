@@ -2428,16 +2428,16 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         log.info("MERCHANT PRODUCT PRICING RESPONSE :::::::: "+merchantProductPricingResponse);
         if(merchantProductPricingResponse.getData() == null){
             createProductPricingRepsonse = iSettlementProductPricingProxy.setMerchantProductPricing(DAEMON_TOKEN);
-        }
-        log.info("-------MERCHANT PRODUCT PRICING {}--------", createProductPricingRepsonse);
-        Double feePercentage = 0D;
-        if (ObjectUtils.isEmpty(createProductPricingRepsonse.getData())) {
-            throw new ApplicationException(400, "product_pricing_not_found", "Merchant Product pricing not created");
-        }
-         merchantProductPricingResponse = iSettlementProductPricingProxy
+            log.info("-------MERCHANT PRODUCT PRICING {}--------", createProductPricingRepsonse);
+            if (ObjectUtils.isEmpty(createProductPricingRepsonse.getData())) {
+                throw new ApplicationException(400, "product_pricing_not_created", "Merchant Product pricing not created");
+            }
+            merchantProductPricingResponse = iSettlementProductPricingProxy
                 .getMerchantProductPricing(
                         merchantProductPricingQuery.getMerchantId(), merchantProductPricingQuery.getProductName(),
                         DAEMON_TOKEN);
+        }
+        Double feePercentage = 0D;
         ProductPricingResponse productPricingResponse = merchantProductPricingResponse.getData();
         if (productPricingResponse.getLocalDiscountRate() > 0) {
             feePercentage = productPricingResponse.getLocalDiscountRate();

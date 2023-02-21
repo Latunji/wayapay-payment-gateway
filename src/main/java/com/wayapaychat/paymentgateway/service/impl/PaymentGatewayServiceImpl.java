@@ -2425,6 +2425,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 .getMerchantProductPricing(
                         merchantProductPricingQuery.getMerchantId(), merchantProductPricingQuery.getProductName(),
                         DAEMON_TOKEN);
+        log.info("MERCHANT PRODUCT PRICING RESPONSE :::::::: "+merchantProductPricingResponse);
         if(merchantProductPricingResponse.getData() == null){
             createProductPricingRepsonse = iSettlementProductPricingProxy.setMerchantProductPricing(DAEMON_TOKEN);
         }

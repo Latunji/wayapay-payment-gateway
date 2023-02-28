@@ -74,9 +74,9 @@ public interface PaymentGatewayService {
 
     ResponseEntity<?> getAllTransactionRevenue(HttpServletRequest req);
 
-    ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest wayaCallbackRequest) throws URISyntaxException;
+    ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest wayaCallbackRequest, String token) throws URISyntaxException;
 
-    ResponseEntity<?> updatePaymentStatus(String refNo);
+    ResponseEntity<?> updatePaymentStatus(String refNo, String token);
 
     ResponseEntity<PaymentGatewayResponse> filterSearchCustomerTransactions(QueryCustomerTransactionPojo queryCustomerTransactionPojo, Pageable pageable);
 

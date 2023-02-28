@@ -646,6 +646,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             WayaPaymentCallback pay) {
         PaymentGatewayResponse mResponse = new PaymentGatewayResponse(false, "Callback fail", null);
         String tranId = null;
+        PaymentGateway mPay = new PaymentGateway();
         String mode = "";
         try {
             if (pay.getTranId().startsWith("7263269")) { // merchant transacts in test mode
@@ -673,7 +674,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 }
             } else { // merchant transacts in live mode
                 mode = MerchantTransactionMode.PRODUCTION.name();
-                PaymentGateway mPay = paymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
+                mPay = paymentGatewayRepo.findByRefNo(pay.getTranId()).orElse(null);
                 if (mPay != null) {
                     mPay.setEncyptCard(pay.getCardEncrypt());
                     mPay.setChannel(PaymentChannel.CARD);
@@ -1108,20 +1109,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     }
                     paymentWalletRepo.save(wallet);
 
-                    // save settlement
-                    DefaultWalletResponse merchantDefaultWallet = walletProxy.getUserDefaultWalletAccount(token,
-                            mAuth.getId());
-                    TransactionSettlement transactionSettlement = new TransactionSettlement();
-                    transactionSettlement.setSettlementReferenceId(tran.getTranId());
-                    transactionSettlement.setMerchantId(payment.getMerchantId());
-                    transactionSettlement.setSettlementNetAmount(payment.getAmount());
-                    transactionSettlement.setMerchantUserId(mAuth.getId());
-                    transactionSettlement.setSettlementAccount(merchantDefaultWallet.getData().getAccountNo());
-                    transactionSettlement.setSettlementGrossAmount(payment.getAmount());
-                    transactionSettlement.setSettlementStatus(SettlementStatus.PENDING);
-                    transactionSettlement.setCreatedBy(mAuth.getId());
-                    transactionSettlement.setDateCreated(LocalDateTime.now());
-                    transactionSettlementRepository.save(transactionSettlement);
+                    //push card transaction for settlement
+                    paymemtGatewayEntityListener.sendTransactionForSettlement(payment, token);
                 } else {
                     wallet.setPaymentDescription(payment.getDescription());
                     wallet.setPaymentReference(payment.getPreferenceNo());
@@ -1945,7 +1934,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     // s-l done
     @Override
-    public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests) {
+    public ResponseEntity<?> updatePaymentStatus(WayaCallbackRequest requests, String token) {
          
         // find in sandbox
         SandboxPaymentGateway sandboxPayment = sandboxPaymentGatewayRepo.findByTranId(requests.getTrxId()).orElse(null);
@@ -1956,7 +1945,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         }
 
         if (payment != null) {
-            preprocessTransactionStatus(payment);
+            preprocessTransactionStatus(payment, token);
         }
         else if(sandboxPayment != null) { 
             preprocessSandboxTransactionStatus(sandboxPayment);
@@ -1967,7 +1956,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
 
     // s-l done
     @Override
-    public ResponseEntity<?> updatePaymentStatus(String refNo) {
+    public ResponseEntity<?> updatePaymentStatus(String refNo, String token) {
         if (refNo.startsWith("7263269")) {
             SandboxPaymentGateway sandboxPayment = sandboxPaymentGatewayRepo.findByRefNo(refNo).orElse(null);
             if (sandboxPayment == null) {
@@ -1979,7 +1968,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
             if (payment == null) {
                 return ResponseEntity.badRequest().body("UNKNOWN PAYMENT TRANSACTION STATUS");
             }
-            preprocessTransactionStatus(payment);
+            preprocessTransactionStatus(payment, token);
         }
         return ResponseEntity.ok().body("Transaction status updated successful");
     }
@@ -2044,7 +2033,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
     }
 
     // s-l done SANDBOX Counterpart: preprocessSandboxTransactionStatus()
-    private void preprocessTransactionStatus(PaymentGateway payment) {
+    private void preprocessTransactionStatus(PaymentGateway payment, String token) {
         try {
             WayaTransactionQuery response = uniPaymentProxy.transactionQuery(payment.getTranId(),
                     MerchantTransactionMode.PRODUCTION.name());
@@ -2059,6 +2048,8 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                     if (payment.getIsFromRecurrentPayment()) {
                         updateRecurrentTransaction(payment);
                     }
+                    //push card transaction for settlement
+                    paymemtGatewayEntityListener.sendTransactionForSettlement(payment, token);
                 } else {
                     com.wayapaychat.paymentgateway.enumm.TransactionStatus transactionStatus = Arrays
                             .stream(com.wayapaychat.paymentgateway.enumm.TransactionStatus.values()).map(Enum::name)
@@ -2077,6 +2068,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
                 notifyPayload.setOrderId(payment.getRefNo());
                 notifyPayload.setStatus(payment.getStatus().name()); 
                 notifyPayload.setCustomer(new  Customer(payment.getCustomerName(), payment.getCustomerEmail(),  payment.getCustomerPhone(), payment.getCustomerId()));
+
                 paymemtGatewayEntityListener.pushToMerchantWebhook(notifyPayload);
                 // send email and in-app notification (will only be sent if successful)
                 paymemtGatewayEntityListener.sendTransactionNotificationAfterPaymentIsSuccessful(payment);

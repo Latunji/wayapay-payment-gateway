@@ -8,6 +8,8 @@ import com.wayapaychat.paymentgateway.enumm.*;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.model.LitePaymentGateway;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.model.ProducerMessageDto;
 import com.wayapaychat.paymentgateway.kafkamessagebroker.producer.IkafkaMessageProducer;
+import com.wayapaychat.paymentgateway.pojo.GenericApiProxyResponse;
+import com.wayapaychat.paymentgateway.pojo.SettlementBankDto;
 import com.wayapaychat.paymentgateway.pojo.notification.*;
 import com.wayapaychat.paymentgateway.pojo.waya.LoginRequest;
 import com.wayapaychat.paymentgateway.pojo.waya.NotificationPojo;
@@ -231,12 +233,21 @@ public class PaymemtGatewayEntityListener {
 
     //    @PostPersist
 //    @PostUpdate
-    public void sendTransactionForSettlement(PaymentGateway paymentGateway) {
+    public void sendTransactionForSettlement(PaymentGateway paymentGateway, String token) {
         log.info("------||||PENDING SETTLEMENT PUBLISHED FOR PROCESSING||||--------");
         if (!paymentGateway.isSentForSettlement()) {
             if (Objects.equals(paymentGateway.getStatus(), TransactionStatus.SUCCESSFUL) &&
                     !Objects.equals(paymentGateway.getSettlementStatus(), SettlementStatus.SETTLED)) {
                 LitePaymentGateway litePaymentGateway = new LitePaymentGateway();
+                GenericApiProxyResponse<Optional<SettlementBankDto>> merchantDefaultWallet = null;
+                merchantDefaultWallet = identityManagementServiceProxy.getMerchantBankData(token, paymentGateway.getMerchantId());
+
+                if(!merchantDefaultWallet.getData().isEmpty()){
+                    litePaymentGateway.setSettlementAccountNumber(merchantDefaultWallet.getData().get().getAccountNumber());
+                    litePaymentGateway.setSettlementAccountName(merchantDefaultWallet.getData().get().getAccountName());
+                    litePaymentGateway.setSettlementBankCode(merchantDefaultWallet.getData().get().getBankCode());
+                    litePaymentGateway.setSettlementBankName(merchantDefaultWallet.getData().get().getBankName());
+                }
                 modelMapper.map(paymentGateway, litePaymentGateway);
                 ProducerMessageDto producerMessageDto = ProducerMessageDto.builder()
                         .data(litePaymentGateway)
@@ -244,6 +255,8 @@ public class PaymemtGatewayEntityListener {
                         .build();
                 ikafkaMessageProducer.send("merchant.settlement", producerMessageDto);
                 paymentGateway.setSentForSettlement(true);
+
+
                 paymentGatewayRepository.save(paymentGateway);
                 log.info("------||||SUCCESSFULLY PUBLISHED PENDING SETTLEMENT FOR PROCESSING {}||||--------", producerMessageDto);
             }

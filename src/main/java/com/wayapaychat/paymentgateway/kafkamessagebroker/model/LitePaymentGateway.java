@@ -36,4 +36,8 @@ public class LitePaymentGateway {
     private BigDecimal fee;
     private String currencyCode;
     private String merchantName;
+    private String settlementAccountNumber;
+    private String settlementAccountName;
+    private String settlementBankCode;
+    private String settlementBankName;
 }

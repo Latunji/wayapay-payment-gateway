@@ -200,7 +200,7 @@ public class PaymentGatewayController {
             log.info("REMOTE HOST POSTED CALLBACK FOR PAYMENT ::: " + httpServletRequest.getRemoteAddr());
             log.info("CALLBACK REQUEST ::: " + requests);
         });
-        return paymentGatewayService.updatePaymentStatus(requests);
+        return paymentGatewayService.updatePaymentStatus(requests, httpServletRequest.getHeader("Authorization"));
     }
 
     @ApiOperation(value = "Get Transaction Status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
@@ -225,8 +225,8 @@ public class PaymentGatewayController {
 
     @ApiOperation(value = "Update Transaction status", notes = "This endpoint transaction status", tags = {"PAYMENT-GATEWAY"})
     @PutMapping("/transaction/status/{refNo}")
-    public ResponseEntity<?> updateTransactionStatus(@PathVariable("refNo") final String refNo) {
-        return paymentGatewayService.updatePaymentStatus(refNo);
+    public ResponseEntity<?> updateTransactionStatus(HttpServletRequest request, @PathVariable("refNo") final String refNo) {
+        return paymentGatewayService.updatePaymentStatus(refNo, request.getHeader("Authorization"));
     }
 
     @ApiOperation(value = "Card Encryption", notes = "This endpoint create client user", tags = {"PAYMENT-GATEWAY"})

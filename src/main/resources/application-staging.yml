@@ -47,6 +47,8 @@ waya:
     tempname: WALLET-SERVICE
     tempurl: https://services.staging.wayabank.ng/temporal-service/api/v1
     wayapay-debit-account: WPSETTLE
+    nip: NIP-SERVICE
+    nipurl: https://services.staging.wayabank.ng/external-service/api/v1
   application:
     payment-gateway-mode: TEST
   notification-service:
@@ -76,6 +78,9 @@ waya:
     url: https://services.staging.wayapay.ng/wayapay-settlement-service/api/v1
   card-acquiring-service:
     baseurl: https://services.staging.wayapay.ng/card-acquiring/api/v1
+  withdrawal:
+    name: WITHDRAWAL-SERVICE
+    url: https://services.staging.wayabank.ng/withdrawal-service
   role-service:
     baseurl: https://services.staging.wayapay.ng/wayapay-role-access/
 service:
